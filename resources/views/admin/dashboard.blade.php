@@ -1,225 +1,659 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Top Greeting & Stat Summary -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">System Overview Dashboard</h1>
-            <p class="text-xs text-slate-500 mt-1">Platform operations, wholesale upstream registrar balances, and real-time ledger.</p>
-        </div>
-        <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                Services Operational
-            </span>
-        </div>
-    </div>
+<div class="space-y-6" x-data="{
+    drawerOpen: false,
+    selectedOrder: null,
+    openOrder(order) {
+        this.selectedOrder = order;
+        this.drawerOpen = true;
+    },
+    closeDrawer() {
+        this.drawerOpen = false;
+        this.selectedOrder = null;
+    }
+}">
 
-    <!-- Revenue & Core Metrics Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <!-- Revenue MTD -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Revenue (MTD)</span>
-                <span class="p-2 rounded-xl bg-indigo-50 text-indigo-600">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </span>
-            </div>
-            <div class="mt-4">
-                <div class="text-2xl font-black text-slate-900">${{ number_format($revenueMtdUsd, 2) }}</div>
-                <div class="text-xs text-slate-400 font-mono mt-0.5">≈ ৳{{ number_format($revenueMtdBdt, 2) }} BDT</div>
-            </div>
-        </div>
+    <!-- PAGE HEADER: Breadcrumb -> Title (24px) -> Controls -->
+    <div>
+        <nav class="flex items-center gap-1.5 text-[12px] text-[#6B7280] mb-1">
+            <a href="{{ route('admin.dashboard') }}" class="hover:text-[#111827]">Admin</a>
+            <span>/</span>
+            <span class="text-[#111827] font-medium">Overview</span>
+        </nav>
 
-        <!-- Revenue YTD -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Revenue (YTD)</span>
-                <span class="p-2 rounded-xl bg-purple-50 text-purple-600">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                </span>
-            </div>
-            <div class="mt-4">
-                <div class="text-2xl font-black text-slate-900">${{ number_format($revenueYtdUsd, 2) }}</div>
-                <div class="text-xs text-slate-400 font-mono mt-0.5">≈ ৳{{ number_format($revenueYtdBdt, 2) }} BDT</div>
-            </div>
-        </div>
-
-        <!-- Active Domains & Expirations -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Domains</span>
-                <span class="p-2 rounded-xl bg-emerald-50 text-emerald-600">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
-                </span>
-            </div>
-            <div class="mt-4 flex items-baseline justify-between">
-                <div class="text-2xl font-black text-slate-900">{{ number_format($totalActiveDomains) }}</div>
-                <div class="text-xs font-semibold text-amber-600">{{ $expiringIn30Days }} Expiring < 30d</div>
-            </div>
-        </div>
-
-        <!-- Users Breakdown -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Accounts</span>
-                <span class="p-2 rounded-xl bg-blue-50 text-blue-600">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                </span>
-            </div>
-            <div class="mt-4 flex items-baseline justify-between text-xs">
-                <div><span class="text-2xl font-black text-slate-900">{{ $totalClients }}</span> <span class="text-slate-400 font-medium">Clients</span></div>
-                <div><span class="text-2xl font-black text-indigo-600">{{ $totalResellers }}</span> <span class="text-slate-400 font-medium">Resellers</span></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Upstream Registrar Balances Section -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <h3 class="text-base font-bold text-slate-900">Upstream Registrar Module Balances</h3>
-                <p class="text-xs text-slate-500">Live wholesale credit at your suppliers (Namecheap, Spaceship, Dynadot, AtakDomain, NameSilo).</p>
+                <h1 class="text-[24px] font-semibold text-[#111827] tracking-tight leading-tight">Overview</h1>
+                <p class="text-[13px] text-[#6B7280] mt-0.5">Platform operations and real-time business telemetry.</p>
+            </div>
+
+            <!-- Right Controls: Date Range Selector + Registrar API Status Popover -->
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Date Range Selector -->
+                <div class="inline-flex rounded-[6px] border border-[#E5E7EB] bg-[#F7F7F8] p-0.5 text-[12px] font-medium">
+                    @foreach(['today' => 'Today', '7d' => '7d', '30d' => '30d', 'mtd' => 'MTD', 'ytd' => 'YTD'] as $key => $label)
+                        <a href="{{ route('admin.dashboard', ['range' => $key]) }}"
+                           class="px-2.5 py-1 rounded-[4px] transition-colors {{ $range === $key ? 'bg-white text-[#111827] font-semibold border border-[#E5E7EB]' : 'text-[#6B7280] hover:text-[#111827]' }}">
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </div>
+
+                <!-- API Status Popover -->
+                <div class="relative" x-data="{ statusOpen: false }">
+                    <button @click="statusOpen = !statusOpen"
+                            type="button"
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 h-8 rounded-[6px] border border-[#E5E7EB] bg-white hover:bg-[#F7F7F8] text-[12px] text-[#111827] font-medium transition">
+                        <span class="w-2 h-2 rounded-full {{ $lowBalanceRegistrars->count() > 0 ? 'bg-[#D97706]' : 'bg-[#16A34A]' }}"></span>
+                        <span>{{ $lowBalanceRegistrars->count() > 0 ? 'Degraded upstream' : 'All systems operational' }}</span>
+                        <svg class="w-3.5 h-3.5 text-[#6B7280]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+
+                    <div x-show="statusOpen"
+                         x-cloak
+                         @click.away="statusOpen = false"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         class="absolute right-0 mt-1.5 w-80 bg-white rounded-[6px] border border-[#E5E7EB] shadow-dropdown p-3 z-50 text-[13px]">
+                        <div class="flex items-center justify-between pb-2 border-b border-[#E5E7EB]">
+                            <span class="font-semibold text-[#111827] text-xs">Registrar API status</span>
+                            <span class="text-[11px] text-[#6B7280]">{{ $registrars->count() }} active modules</span>
+                        </div>
+                        <div class="divide-y divide-[#E5E7EB] my-1 max-h-56 overflow-y-auto">
+                            @forelse($registrars as $reg)
+                                <div class="py-2 flex items-center justify-between text-xs">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full {{ (float)$reg->balance < (float)($reg->low_balance_threshold ?? 50) ? 'bg-[#D97706]' : 'bg-[#16A34A]' }}"></span>
+                                        <span class="font-medium text-[#111827]">{{ $reg->name }}</span>
+                                        <span class="text-[10px] text-[#6B7280] uppercase">({{ $reg->environment }})</span>
+                                    </div>
+                                    <span class="tabular-nums font-mono text-[#111827]">${{ number_format((float)$reg->balance, 2) }}</span>
+                                </div>
+                            @empty
+                                <div class="py-3 text-center text-xs text-[#6B7280]">No active registrar modules found.</div>
+                            @endforelse
+                        </div>
+                        <div class="pt-2 border-t border-[#E5E7EB] text-right">
+                            <a href="{{ route('admin.registrars.index') }}" class="text-[12px] text-[#F6821F] hover:underline font-medium">Manage registrars &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI STRIP: ONE bordered panel divided into 4 equal columns by vertical dividers (No icons) -->
+    <div class="bg-white border border-[#E5E7EB] rounded-[8px] overflow-hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#E5E7EB]">
+
+            <!-- Column 1: Revenue -->
+            <div class="p-5 flex flex-col justify-between">
+                <span class="text-[12px] font-medium text-[#6B7280]">Revenue ({{ strtoupper($range) }})</span>
+                <div class="mt-2">
+                    <div class="text-[28px] font-semibold text-[#111827] tabular-nums tracking-tight leading-none">
+                        ${{ number_format($revenueUsd, 2) }}
+                    </div>
+                    <div class="mt-2 flex items-center gap-1.5 text-[12px]">
+                        @if($revenueDelta >= 0)
+                            <span class="font-medium text-[#16A34A] tabular-nums">+{{ $revenueDelta }}%</span>
+                        @else
+                            <span class="font-medium text-[#DC2626] tabular-nums">{{ $revenueDelta }}%</span>
+                        @endif
+                        <span class="text-[#6B7280]">vs last period</span>
+                    </div>
+                    <div class="text-[12px] text-[#6B7280] tabular-nums mt-0.5">
+                        ≈ ৳{{ number_format($revenueBdt, 2) }} BDT
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Active Domains -->
+            <div class="p-5 flex flex-col justify-between">
+                <span class="text-[12px] font-medium text-[#6B7280]">Active domains</span>
+                <div class="mt-2">
+                    <div class="text-[28px] font-semibold text-[#111827] tabular-nums tracking-tight leading-none">
+                        {{ number_format($totalActiveDomains) }}
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ route('admin.domains.index') }}" class="text-[12px] text-[#F6821F] hover:underline font-medium">
+                            {{ $expiringIn30Days }} expiring in 30 days &rarr;
+                        </a>
+                    </div>
+                    <div class="text-[12px] text-[#6B7280] mt-0.5">
+                        Managed on upstream registrars
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 3: Clients -->
+            <div class="p-5 flex flex-col justify-between">
+                <span class="text-[12px] font-medium text-[#6B7280]">Clients</span>
+                <div class="mt-2">
+                    <div class="text-[28px] font-semibold text-[#111827] tabular-nums tracking-tight leading-none">
+                        {{ number_format($totalClients) }}
+                    </div>
+                    <div class="mt-2 text-[12px] text-[#6B7280]">
+                        Direct retail accounts
+                    </div>
+                    <div class="text-[12px] text-[#6B7280] mt-0.5">
+                        <a href="{{ route('admin.clients.index') }}" class="text-[#6B7280] hover:text-[#111827]">View all clients &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 4: Resellers -->
+            <div class="p-5 flex flex-col justify-between">
+                <span class="text-[12px] font-medium text-[#6B7280]">Resellers</span>
+                <div class="mt-2">
+                    <div class="text-[28px] font-semibold text-[#111827] tabular-nums tracking-tight leading-none">
+                        {{ number_format($totalResellers) }}
+                    </div>
+                    <div class="mt-2 text-[12px] text-[#6B7280]">
+                        Active wholesale partners
+                    </div>
+                    <div class="text-[12px] text-[#6B7280] mt-0.5">
+                        <a href="{{ route('admin.resellers.index') }}" class="text-[#6B7280] hover:text-[#111827]">View reseller matrix &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ALERT STRIP: Only renders if attention items exist, otherwise hidden -->
+    @php
+        $hasAlerts = ($lowBalanceRegistrars->count() > 0) || ($pendingManualPaymentsCount > 0) || ($failedOrdersCount > 0) || ($openTicketsCount > 0);
+    @endphp
+    @if($hasAlerts)
+        <div class="border border-[#E5E7EB] bg-[#F7F7F8] rounded-[8px] p-3.5 space-y-2 text-[13px]">
+            @if($lowBalanceRegistrars->count() > 0)
+                <div class="flex items-center justify-between text-[#111827]">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#D97706] shrink-0"></span>
+                        <span>Low registrar balance: <strong>{{ $lowBalanceRegistrars->pluck('name')->join(', ') }}</strong> below configured threshold.</span>
+                    </div>
+                    <a href="{{ route('admin.registrars.index') }}" class="text-[#F6821F] hover:underline font-medium shrink-0 ml-3">Review &rarr;</a>
+                </div>
+            @endif
+
+            @if($pendingManualPaymentsCount > 0)
+                <div class="flex items-center justify-between text-[#111827]">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#D97706] shrink-0"></span>
+                        <span><strong>{{ $pendingManualPaymentsCount }}</strong> manual bank/bKash deposit requests awaiting verification.</span>
+                    </div>
+                    <a href="{{ route('admin.payments.manual.index') }}" class="text-[#F6821F] hover:underline font-medium shrink-0 ml-3">Review &rarr;</a>
+                </div>
+            @endif
+
+            @if($failedOrdersCount > 0)
+                <div class="flex items-center justify-between text-[#111827]">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#DC2626] shrink-0"></span>
+                        <span><strong>{{ $failedOrdersCount }}</strong> domain provisioning orders failed.</span>
+                    </div>
+                    <a href="{{ route('admin.orders.index') }}" class="text-[#F6821F] hover:underline font-medium shrink-0 ml-3">Review &rarr;</a>
+                </div>
+            @endif
+
+            @if($openTicketsCount > 0)
+                <div class="flex items-center justify-between text-[#111827]">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#2563EB] shrink-0"></span>
+                        <span><strong>{{ $openTicketsCount }}</strong> customer support tickets awaiting reply.</span>
+                    </div>
+                    <a href="{{ route('admin.tickets.index') }}" class="text-[#F6821F] hover:underline font-medium shrink-0 ml-3">Review &rarr;</a>
+                </div>
+            @endif
+        </div>
+    @endif
+
+    <!-- TWO-COLUMN SECTION: Left (2/3 Revenue line chart) | Right (1/3 Needs attention) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Left: Revenue line chart (8 of 12 cols = 2/3) -->
+        <div class="lg:col-span-8 bg-white border border-[#E5E7EB] rounded-[8px] p-5">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-[16px] font-semibold text-[#111827] leading-tight">Revenue</h2>
+                    <p class="text-[12px] text-[#6B7280] mt-0.5">Calculated from credit transactions over {{ strtoupper($range) }}.</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-[12px] text-[#6B7280]">Total</span>
+                    <span class="block text-[14px] font-semibold text-[#111827] tabular-nums">${{ number_format($revenueUsd, 2) }}</span>
+                </div>
+            </div>
+
+            <!-- SVG Line Chart with light gridlines and hover tooltips -->
+            @php
+                $amounts = array_column($chartPoints, 'amount');
+                $maxAmount = !empty($amounts) ? max($amounts) : 0;
+                $chartMax = $maxAmount > 0 ? ceil($maxAmount * 1.25) : 100;
+                $chartMax = max($chartMax, 10);
+                $pointCount = count($chartPoints);
+                $svgWidth = 720;
+                $svgHeight = 200;
+                $paddingTop = 15;
+                $paddingBottom = 25;
+                $paddingLeft = 45;
+                $paddingRight = 15;
+                $plotWidth = $svgWidth - $paddingLeft - $paddingRight;
+                $plotHeight = $svgHeight - $paddingTop - $paddingBottom;
+
+                $coordinates = [];
+                if ($pointCount > 1) {
+                    $stepX = $plotWidth / ($pointCount - 1);
+                    foreach ($chartPoints as $index => $pt) {
+                        $x = $paddingLeft + ($index * $stepX);
+                        $y = $paddingTop + $plotHeight - (($pt['amount'] / $chartMax) * $plotHeight);
+                        $coordinates[] = [
+                            'x' => round($x, 1),
+                            'y' => round($y, 1),
+                            'date' => $pt['date'],
+                            'amount' => $pt['amount'],
+                        ];
+                    }
+                } elseif ($pointCount === 1) {
+                    $pt = $chartPoints[0];
+                    $coordinates[] = [
+                        'x' => $paddingLeft + ($plotWidth / 2),
+                        'y' => $paddingTop + $plotHeight - (($pt['amount'] / $chartMax) * $plotHeight),
+                        'date' => $pt['date'],
+                        'amount' => $pt['amount'],
+                    ];
+                }
+                $pointsString = implode(' ', array_map(fn($c) => "{$c['x']},{$c['y']}", $coordinates));
+            @endphp
+
+            <div class="relative" x-data="{ tooltip: null }">
+                <!-- Hover Tooltip Box -->
+                <div x-show="tooltip"
+                     x-cloak
+                     :style="`left: ${tooltip ? tooltip.x : 0}px; top: ${tooltip ? tooltip.y - 38 : 0}px;`"
+                     class="absolute pointer-events-none -translate-x-1/2 bg-[#111827] text-white text-[11px] px-2.5 py-1 rounded-[4px] shadow-dropdown whitespace-nowrap z-20 transition-all duration-75">
+                    <span x-text="tooltip?.date" class="text-[#9CA3AF]"></span>:
+                    $<span x-text="tooltip?.amount" class="font-semibold text-white"></span>
+                </div>
+
+                <div class="w-full overflow-x-auto">
+                    <svg viewBox="0 0 {{ $svgWidth }} {{ $svgHeight }}" class="w-full h-52 select-none">
+                        <!-- Y-Axis Gridlines & Labels -->
+                        @for($i = 0; $i <= 3; $i++)
+                            @php
+                                $val = round($chartMax * (1 - ($i / 3)));
+                                $lineY = $paddingTop + ($plotHeight * ($i / 3));
+                            @endphp
+                            <line x1="{{ $paddingLeft }}" y1="{{ $lineY }}" x2="{{ $svgWidth - $paddingRight }}" y2="{{ $lineY }}"
+                                  stroke="#E5E7EB" stroke-width="1" />
+                            <text x="{{ $paddingLeft - 8 }}" y="{{ $lineY + 3 }}"
+                                  fill="#9CA3AF" font-size="10" text-anchor="end" font-family="'JetBrains Mono', monospace">
+                                ${{ $val }}
+                            </text>
+                        @endfor
+
+                        <!-- Date labels along X axis -->
+                        @if(!empty($coordinates))
+                            @php
+                                $stepLabel = max(1, floor(count($coordinates) / 6));
+                            @endphp
+                            @foreach($coordinates as $idx => $c)
+                                @if($idx === 0 || $idx === count($coordinates) - 1 || $idx % $stepLabel === 0)
+                                    <text x="{{ $c['x'] }}" y="{{ $svgHeight - 6 }}"
+                                          fill="#9CA3AF" font-size="10" text-anchor="middle" font-family="'Inter', sans-serif">
+                                        {{ $c['date'] }}
+                                    </text>
+                                @endif
+                            @endforeach
+                        @endif
+
+                        <!-- The Single Accent Revenue Line -->
+                        @if(count($coordinates) > 1)
+                            <polyline points="{{ $pointsString }}"
+                                      fill="none"
+                                      stroke="#F6821F"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round" />
+                        @endif
+
+                        <!-- Data Points -->
+                        @foreach($coordinates as $c)
+                            <circle cx="{{ $c['x'] }}"
+                                    cy="{{ $c['y'] }}"
+                                    r="3"
+                                    fill="#FFFFFF"
+                                    stroke="#F6821F"
+                                    stroke-width="2"
+                                    class="cursor-pointer transition-transform hover:scale-150"
+                                    @mouseenter="tooltip = { x: {{ $c['x'] }}, y: {{ $c['y'] }}, date: '{{ $c['date'] }}', amount: '{{ number_format($c['amount'], 2) }}' }"
+                                    @mouseleave="tooltip = null" />
+                        @endforeach
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Needs attention list (4 of 12 cols = 1/3) -->
+        <div class="lg:col-span-4 bg-white border border-[#E5E7EB] rounded-[8px] p-5">
+            <h2 class="text-[16px] font-semibold text-[#111827] leading-tight">Needs attention</h2>
+            <p class="text-[12px] text-[#6B7280] mt-0.5 mb-3">Pending administrative approvals and notices.</p>
+
+            <div class="divide-y divide-[#E5E7EB] text-[13px]">
+
+                <!-- Item 1: Manual payment approvals -->
+                <a href="{{ route('admin.payments.manual.index') }}"
+                   class="py-2.5 flex items-center justify-between hover:text-[#F6821F] group transition">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-2 h-2 rounded-full {{ $pendingManualPaymentsCount > 0 ? 'bg-[#D97706]' : 'bg-[#E5E7EB]' }} shrink-0"></span>
+                        <span class="truncate text-[#111827] group-hover:text-[#F6821F]">Manual payment approvals</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <span class="px-1.5 py-0.5 rounded text-[11px] font-mono font-medium {{ $pendingManualPaymentsCount > 0 ? 'bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]' : 'bg-[#F7F7F8] text-[#6B7280]' }}">
+                            {{ $pendingManualPaymentsCount }}
+                        </span>
+                        <svg class="w-3.5 h-3.5 text-[#6B7280] group-hover:text-[#F6821F]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+
+                <!-- Item 2: Open support tickets -->
+                <a href="{{ route('admin.tickets.index') }}"
+                   class="py-2.5 flex items-center justify-between hover:text-[#F6821F] group transition">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-2 h-2 rounded-full {{ $openTicketsCount > 0 ? 'bg-[#2563EB]' : 'bg-[#E5E7EB]' }} shrink-0"></span>
+                        <span class="truncate text-[#111827] group-hover:text-[#F6821F]">Open support tickets</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <span class="px-1.5 py-0.5 rounded text-[11px] font-mono font-medium {{ $openTicketsCount > 0 ? 'bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]' : 'bg-[#F7F7F8] text-[#6B7280]' }}">
+                            {{ $openTicketsCount }}
+                        </span>
+                        <svg class="w-3.5 h-3.5 text-[#6B7280] group-hover:text-[#F6821F]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+
+                <!-- Item 3: Expiring domains -->
+                <a href="{{ route('admin.domains.index') }}"
+                   class="py-2.5 flex items-center justify-between hover:text-[#F6821F] group transition">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-2 h-2 rounded-full {{ $expiringIn30Days > 0 ? 'bg-[#D97706]' : 'bg-[#E5E7EB]' }} shrink-0"></span>
+                        <span class="truncate text-[#111827] group-hover:text-[#F6821F]">Domains expiring in 30 days</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <span class="px-1.5 py-0.5 rounded text-[11px] font-mono font-medium {{ $expiringIn30Days > 0 ? 'bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]' : 'bg-[#F7F7F8] text-[#6B7280]' }}">
+                            {{ $expiringIn30Days }}
+                        </span>
+                        <svg class="w-3.5 h-3.5 text-[#6B7280] group-hover:text-[#F6821F]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+
+                <!-- Item 4: Failed orders -->
+                <a href="{{ route('admin.orders.index') }}"
+                   class="py-2.5 flex items-center justify-between hover:text-[#F6821F] group transition">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-2 h-2 rounded-full {{ $failedOrdersCount > 0 ? 'bg-[#DC2626]' : 'bg-[#E5E7EB]' }} shrink-0"></span>
+                        <span class="truncate text-[#111827] group-hover:text-[#F6821F]">Failed provisioning orders</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <span class="px-1.5 py-0.5 rounded text-[11px] font-mono font-medium {{ $failedOrdersCount > 0 ? 'bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]' : 'bg-[#F7F7F8] text-[#6B7280]' }}">
+                            {{ $failedOrdersCount }}
+                        </span>
+                        <svg class="w-3.5 h-3.5 text-[#6B7280] group-hover:text-[#F6821F]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-[#E5E7EB] text-right">
+                <a href="{{ route('admin.orders.index') }}" class="text-[12px] text-[#F6821F] hover:underline font-medium">View all queues &rarr;</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- REGISTRAR BALANCES: Compact table -->
+    <div class="bg-white border border-[#E5E7EB] rounded-[8px] overflow-hidden">
+        <div class="p-4 border-b border-[#E5E7EB] flex items-center justify-between">
+            <div>
+                <h2 class="text-[16px] font-semibold text-[#111827] leading-tight">Registrar balances</h2>
+                <p class="text-[12px] text-[#6B7280] mt-0.5">Live wholesale balances at upstream domain suppliers.</p>
             </div>
             <div class="text-right">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Total Upstream Balance:</span>
-                <span class="text-xl font-black text-emerald-600">${{ number_format($totalRegistrarBalance, 2) }} USD</span>
+                <span class="text-[12px] text-[#6B7280]">Total upstream balance</span>
+                <span class="block text-[15px] font-semibold text-[#111827] tabular-nums">${{ number_format($totalRegistrarBalance, 2) }} USD</span>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            @forelse($registrars as $reg)
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex flex-col justify-between">
-                    <div class="flex items-center justify-between">
-                        <span class="font-bold text-xs text-slate-800">{{ $reg->name }}</span>
-                        <span class="w-2 h-2 rounded-full {{ $reg->is_active ? 'bg-emerald-500' : 'bg-slate-300' }}"></span>
-                    </div>
-                    <div class="mt-3">
-                        <div class="text-lg font-black text-slate-900">${{ number_format((float)$reg->balance, 2) }}</div>
-                        <span class="text-[10px] text-slate-400 capitalize">{{ $reg->environment }}</span>
-                    </div>
-                    <form action="{{ route('admin.registrars.sync-balance', $reg->id) }}" method="POST" class="mt-3 pt-2 border-t border-slate-200">
-                        @csrf
-                        <button type="submit" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                            Sync Balance
-                        </button>
-                    </form>
-                </div>
-            @empty
-                <div class="col-span-full text-center py-6 text-sm text-slate-400">
-                    No active registrar modules found. <a href="{{ route('admin.registrars.index') }}" class="text-indigo-600 underline font-semibold">Configure registrars</a>.
-                </div>
-            @endforelse
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-[13px]">
+                <thead class="bg-[#F7F7F8] border-b border-[#E5E7EB] text-[12px] text-[#6B7280] font-normal">
+                    <tr>
+                        <th class="px-4 py-2.5 font-medium">Registrar</th>
+                        <th class="px-4 py-2.5 font-medium">Environment</th>
+                        <th class="px-4 py-2.5 font-medium text-right">Balance</th>
+                        <th class="px-4 py-2.5 font-medium">Status</th>
+                        <th class="px-4 py-2.5 font-medium">Last synced</th>
+                        <th class="px-4 py-2.5 font-medium text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#E5E7EB]">
+                    @forelse($registrars as $reg)
+                        @php
+                            $isLow = (float) $reg->balance < (float) ($reg->low_balance_threshold ?? 50.00);
+                        @endphp
+                        <tr class="hover:bg-[#F7F7F8] transition-colors h-[44px]">
+                            <!-- Registrar -->
+                            <td class="px-4 py-2 text-[#111827] font-medium">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded bg-[#F7F7F8] border border-[#E5E7EB] text-[#111827] flex items-center justify-center font-bold text-[10px]">
+                                        {{ substr($reg->name, 0, 2) }}
+                                    </div>
+                                    <span>{{ $reg->name }}</span>
+                                </div>
+                            </td>
+
+                            <!-- Environment -->
+                            <td class="px-4 py-2 text-[#6B7280]">
+                                <span class="capitalize">{{ $reg->environment }}</span>
+                            </td>
+
+                            <!-- Balance -->
+                            <td class="px-4 py-2 text-right">
+                                <div class="tabular-nums font-mono font-medium {{ $isLow ? 'text-[#D97706]' : 'text-[#111827]' }}">
+                                    ${{ number_format((float)$reg->balance, 2) }}
+                                </div>
+                                @if($isLow)
+                                    <a href="{{ route('admin.registrars.edit', $reg->id) }}" class="text-[11px] text-[#F6821F] hover:underline block">
+                                        Top up
+                                    </a>
+                                @endif
+                            </td>
+
+                            <!-- Status -->
+                            <td class="px-4 py-2">
+                                <x-cf.status-dot :status="$reg->is_active ? 'success' : 'neutral'" :label="$reg->is_active ? 'Active' : 'Disabled'" />
+                            </td>
+
+                            <!-- Last synced -->
+                            <td class="px-4 py-2 text-[#6B7280] text-[12px]">
+                                {{ $reg->updated_at ? $reg->updated_at->diffForHumans() : 'Never' }}
+                            </td>
+
+                            <!-- Action -->
+                            <td class="px-4 py-2 text-right">
+                                <form action="{{ route('admin.registrars.sync-balance', $reg->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="cf-btn cf-btn-secondary cf-btn-sm">
+                                        Sync
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-[#6B7280]">
+                                No registrar modules configured yet. <a href="{{ route('admin.registrars.index') }}" class="text-[#F6821F] hover:underline font-medium">Configure modules</a>.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+                <!-- Footer row: Total balance -->
+                @if($registrars->isNotEmpty())
+                    <tfoot class="bg-[#F7F7F8] border-t border-[#E5E7EB] font-medium text-[13px] text-[#111827]">
+                        <tr>
+                            <td class="px-4 py-3" colspan="2">Total upstream balance</td>
+                            <td class="px-4 py-3 text-right font-mono font-semibold tabular-nums">
+                                ${{ number_format($totalRegistrarBalance, 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-[12px] text-[#6B7280]" colspan="3">
+                                Across {{ $registrars->count() }} active modules (≈ ৳{{ number_format($totalRegistrarBalanceBdt, 2) }} BDT)
+                            </td>
+                        </tr>
+                    </tfoot>
+                @endif
+            </table>
         </div>
     </div>
 
-    <!-- Quick Management Action Shortcuts -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <a href="{{ route('admin.clients.create') }}" class="p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-indigo-400 transition flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-            </div>
+    <!-- RECENT ORDERS TABLE (Last 10) -->
+    <div class="bg-white border border-[#E5E7EB] rounded-[8px] overflow-hidden">
+        <div class="p-4 border-b border-[#E5E7EB] flex items-center justify-between">
             <div>
-                <span class="text-xs font-bold text-slate-800 block">Add Client</span>
-                <span class="text-[11px] text-slate-400">Create client profile</span>
+                <h2 class="text-[16px] font-semibold text-[#111827] leading-tight">Recent orders</h2>
+                <p class="text-[12px] text-[#6B7280] mt-0.5">Latest registrations, transfers and renewals.</p>
             </div>
-        </a>
-
-        <a href="{{ route('admin.resellers.create') }}" class="p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-indigo-400 transition flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-            </div>
-            <div>
-                <span class="text-xs font-bold text-slate-800 block">Add Reseller</span>
-                <span class="text-[11px] text-slate-400">Setup wholesale account</span>
-            </div>
-        </a>
-
-        <a href="{{ route('admin.tlds.create') }}" class="p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-indigo-400 transition flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-            </div>
-            <div>
-                <span class="text-xs font-bold text-slate-800 block">New TLD Extension</span>
-                <span class="text-[11px] text-slate-400">Add pricing matrix</span>
-            </div>
-        </a>
-
-        <a href="{{ route('admin.payments.manual.index') }}" class="p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-indigo-400 transition flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <div>
-                <span class="text-xs font-bold text-slate-800 block">Manual Approvals</span>
-                <span class="text-[11px] text-slate-400">Review offline deposits</span>
-            </div>
-        </a>
-    </div>
-
-    <!-- Recent Domain Orders -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-            <div>
-                <h3 class="text-base font-bold text-slate-800">Recent Domain Orders & Provisioning</h3>
-                <p class="text-xs text-slate-400 mt-0.5">Real-time registrations and provisioning status.</p>
-            </div>
-            <a href="{{ route('admin.orders.index') }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold">All Orders &rarr;</a>
+            <a href="{{ route('admin.orders.index') }}" class="text-[12px] text-[#F6821F] hover:underline font-medium">
+                All orders &rarr;
+            </a>
         </div>
 
         @if($recentOrders->isEmpty())
-            <div class="text-center py-12 px-4 text-slate-400 text-sm">No orders recorded yet.</div>
+            <div class="p-8">
+                <x-cf.empty-state
+                    title="No orders yet"
+                    description="Orders appear here when customers register domains."
+                    action-label="Create test order"
+                    action-url="{{ route('admin.orders.index') }}"
+                />
+            </div>
         @else
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+                <table class="w-full text-left text-[13px]">
+                    <thead class="bg-[#F7F7F8] border-b border-[#E5E7EB] text-[12px] text-[#6B7280] font-normal">
                         <tr>
-                            <th class="px-6 py-3.5">Order #</th>
-                            <th class="px-6 py-3.5">User</th>
-                            <th class="px-6 py-3.5">Domain Items</th>
-                            <th class="px-6 py-3.5">Date</th>
-                            <th class="px-6 py-3.5 text-right">Amount</th>
-                            <th class="px-6 py-3.5 text-center">Status</th>
-                            <th class="px-6 py-3.5 text-right">Action</th>
+                            <th class="px-4 py-2.5 font-medium">Order ID</th>
+                            <th class="px-4 py-2.5 font-medium">Customer</th>
+                            <th class="px-4 py-2.5 font-medium">Domain</th>
+                            <th class="px-4 py-2.5 font-medium">Type</th>
+                            <th class="px-4 py-2.5 font-medium text-right">Amount</th>
+                            <th class="px-4 py-2.5 font-medium">Status</th>
+                            <th class="px-4 py-2.5 font-medium">Time</th>
+                            <th class="px-4 py-2.5 font-medium text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-[#E5E7EB]">
                         @foreach($recentOrders as $order)
-                            <tr class="hover:bg-slate-50/50 transition">
-                                <td class="px-6 py-4 font-mono font-bold text-slate-900">
-                                    <a href="{{ route('admin.orders.show', $order->id) }}" class="text-indigo-600 hover:text-indigo-800">
-                                        #{{ $order->order_number ?? ('ORD-' . $order->id) }}
-                                    </a>
+                            @php
+                                $firstItem = $order->items->first();
+                                $itemCount = $order->items->count();
+                                $domainDisplay = $firstItem?->domain_name ?? ($firstItem?->description ?? '—');
+                                $orderType = ucfirst($firstItem?->action_type ?? 'Registration');
+                                $statusVariant = match($order->status) {
+                                    'completed' => 'success',
+                                    'pending' => 'warning',
+                                    'failed' => 'danger',
+                                    default => 'neutral'
+                                };
+                                $orderPayload = [
+                                    'id' => $order->id,
+                                    'order_number' => $order->order_number ?? ('ORD-' . $order->id),
+                                    'customer_name' => $order->user?->name ?? 'Guest',
+                                    'customer_email' => $order->user?->email ?? '—',
+                                    'domain' => $domainDisplay,
+                                    'item_count' => $itemCount,
+                                    'type' => $orderType,
+                                    'amount' => number_format($order->total_amount, 2),
+                                    'status' => ucfirst($order->status),
+                                    'status_variant' => $statusVariant,
+                                    'time' => $order->created_at->diffForHumans(),
+                                    'date' => $order->created_at->format('M d, Y H:i'),
+                                    'notes' => $order->notes ?? 'No provisioning issues logged.',
+                                    'view_url' => route('admin.orders.show', $order->id),
+                                ];
+                            @endphp
+                            <tr class="hover:bg-[#F7F7F8] transition-colors cursor-pointer h-[44px]"
+                                @click="openOrder(@js($orderPayload))">
+                                <!-- Order ID -->
+                                <td class="px-4 py-2 font-mono text-xs font-semibold text-[#111827]">
+                                    #{{ $order->order_number ?? ('ORD-' . $order->id) }}
                                 </td>
-                                <td class="px-6 py-4">
-                                    <div class="font-bold text-slate-800">{{ $order->user?->name ?? 'Guest/Unknown' }}</div>
-                                    <span class="text-xs text-slate-400">{{ $order->user?->email }}</span>
+
+                                <!-- Customer -->
+                                <td class="px-4 py-2">
+                                    <div class="font-medium text-[#111827] truncate">{{ $order->user?->name ?? 'Guest' }}</div>
+                                    <div class="text-[11px] text-[#6B7280] truncate">{{ $order->user?->email }}</div>
                                 </td>
-                                <td class="px-6 py-4">
-                                    @foreach($order->items as $it)
-                                        <span class="inline-block px-2 py-0.5 bg-slate-100 text-slate-800 text-xs font-mono rounded mr-1">
-                                            {{ $it->domain_name ?? $it->description }}
-                                        </span>
-                                    @endforeach
-                                </td>
-                                <td class="px-6 py-4 text-slate-500 text-xs">{{ $order->created_at->format('M d, Y H:i') }}</td>
-                                <td class="px-6 py-4 text-right font-bold text-slate-900">
-                                    ${{ number_format($order->total_amount, 2) }}
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    @if($order->status === 'completed')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Completed</span>
-                                    @elseif($order->status === 'pending')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Pending</span>
-                                    @elseif($order->status === 'failed')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">Failed</span>
-                                    @else
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">{{ ucfirst($order->status) }}</span>
+
+                                <!-- Domain -->
+                                <td class="px-4 py-2 font-mono text-xs text-[#111827]">
+                                    {{ $domainDisplay }}
+                                    @if($itemCount > 1)
+                                        <span class="text-[11px] text-[#6B7280] font-sans">+{{ $itemCount - 1 }} more</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 text-right">
-                                    <a href="{{ route('admin.orders.show', $order->id) }}" class="text-xs font-bold text-indigo-600 hover:text-indigo-800">View &rarr;</a>
+
+                                <!-- Type -->
+                                <td class="px-4 py-2 text-[#6B7280]">
+                                    {{ $orderType }}
+                                </td>
+
+                                <!-- Amount -->
+                                <td class="px-4 py-2 text-right font-mono font-medium text-[#111827] tabular-nums">
+                                    ${{ number_format($order->total_amount, 2) }}
+                                </td>
+
+                                <!-- Status -->
+                                <td class="px-4 py-2">
+                                    <x-cf.status-dot :status="$statusVariant" :label="ucfirst($order->status)" />
+                                </td>
+
+                                <!-- Time -->
+                                <td class="px-4 py-2 text-[12px] text-[#6B7280]">
+                                    {{ $order->created_at->diffForHumans() }}
+                                </td>
+
+                                <!-- Action Menu -->
+                                <td class="px-4 py-2 text-right" @click.stop>
+                                    <div class="relative inline-block" x-data="{ menuOpen: false }">
+                                        <button @click="menuOpen = !menuOpen"
+                                                type="button"
+                                                class="w-7 h-7 flex items-center justify-center text-[#6B7280] hover:text-[#111827] hover:bg-[#E5E7EB]/50 rounded-[4px] transition">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                <circle cx="12" cy="5" r="1.75" />
+                                                <circle cx="12" cy="12" r="1.75" />
+                                                <circle cx="12" cy="19" r="1.75" />
+                                            </svg>
+                                        </button>
+                                        <div x-show="menuOpen"
+                                             x-cloak
+                                             @click.away="menuOpen = false"
+                                             class="absolute right-0 mt-1 w-36 bg-white rounded-[6px] border border-[#E5E7EB] shadow-dropdown py-1 z-30 text-[12px]">
+                                            <button type="button"
+                                                    @click="menuOpen = false; openOrder(@js($orderPayload))"
+                                                    class="w-full text-left px-3 py-1.5 text-[#111827] hover:bg-[#F7F7F8]">
+                                                Quick view
+                                            </button>
+                                            <a href="{{ route('admin.orders.show', $order->id) }}"
+                                               class="block px-3 py-1.5 text-[#111827] hover:bg-[#F7F7F8]">
+                                                Order details
+                                            </a>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -228,5 +662,114 @@
             </div>
         @endif
     </div>
+
+    <!-- SLIDE-OVER SIDE DRAWER: Order Details & Provisioning Log -->
+    <div x-show="drawerOpen"
+         x-cloak
+         class="fixed inset-0 z-50 overflow-hidden"
+         role="dialog"
+         aria-modal="true">
+
+        <!-- Backdrop -->
+        <div x-show="drawerOpen"
+             x-transition:enter="ease-in-out duration-150"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in-out duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="closeDrawer()"
+             class="fixed inset-0 bg-[#111827]/40"></div>
+
+        <!-- Slide Drawer Panel -->
+        <div class="fixed inset-y-0 right-0 max-w-full flex">
+            <div x-show="drawerOpen"
+                 x-transition:enter="transform transition ease-in-out duration-150"
+                 x-transition:enter-start="translate-x-full"
+                 x-transition:enter-end="translate-x-0"
+                 x-transition:leave="transform transition ease-in-out duration-150"
+                 x-transition:leave-start="translate-x-0"
+                 x-transition:leave-end="translate-x-full"
+                 class="w-screen max-w-md bg-white border-l border-[#E5E7EB] shadow-modal flex flex-col">
+
+                <!-- Drawer Header -->
+                <div class="h-14 px-5 border-b border-[#E5E7EB] flex items-center justify-between shrink-0">
+                    <div>
+                        <h3 class="text-[14px] font-semibold text-[#111827] font-mono" x-text="`Order #${selectedOrder?.order_number}`"></h3>
+                        <p class="text-[11px] text-[#6B7280]" x-text="selectedOrder?.date"></p>
+                    </div>
+                    <button @click="closeDrawer()"
+                            type="button"
+                            class="p-1.5 text-[#6B7280] hover:text-[#111827] rounded-[4px] hover:bg-[#F7F7F8]">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Drawer Body -->
+                <div class="flex-1 overflow-y-auto p-5 space-y-5 text-[13px]">
+
+                    <!-- Customer Section -->
+                    <div class="space-y-1">
+                        <span class="text-[11px] font-medium text-[#6B7280]">Customer</span>
+                        <div class="p-3 bg-[#F7F7F8] border border-[#E5E7EB] rounded-[6px]">
+                            <p class="font-medium text-[#111827]" x-text="selectedOrder?.customer_name"></p>
+                            <p class="text-[12px] text-[#6B7280]" x-text="selectedOrder?.customer_email"></p>
+                        </div>
+                    </div>
+
+                    <!-- Domain & Items -->
+                    <div class="space-y-1">
+                        <span class="text-[11px] font-medium text-[#6B7280]">Domain Item</span>
+                        <div class="p-3 bg-[#F7F7F8] border border-[#E5E7EB] rounded-[6px] space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono font-medium text-[#111827]" x-text="selectedOrder?.domain"></span>
+                                <span class="text-[11px] text-[#6B7280]" x-text="selectedOrder?.type"></span>
+                            </div>
+                            <div class="flex items-center justify-between pt-1 border-t border-[#E5E7EB] text-xs">
+                                <span class="text-[#6B7280]">Amount:</span>
+                                <span class="font-mono font-semibold text-[#111827] tabular-nums" x-text="`$${selectedOrder?.amount}`"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="space-y-1">
+                        <span class="text-[11px] font-medium text-[#6B7280]">Provisioning Status</span>
+                        <div class="p-3 bg-[#F7F7F8] border border-[#E5E7EB] rounded-[6px] flex items-center justify-between">
+                            <span class="font-medium text-[#111827]" x-text="selectedOrder?.status"></span>
+                            <span class="text-[11px] text-[#6B7280]" x-text="selectedOrder?.time"></span>
+                        </div>
+                    </div>
+
+                    <!-- Provisioning Logs -->
+                    <div class="space-y-1">
+                        <span class="text-[11px] font-medium text-[#6B7280]">Provisioning Log & Notes</span>
+                        <div class="p-3 bg-[#111827] text-[#F9FAFB] rounded-[6px] font-mono text-[11px] leading-relaxed max-h-48 overflow-y-auto">
+                            <p class="text-[#9CA3AF] mb-1">// System audit log</p>
+                            <p x-text="selectedOrder?.notes"></p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Drawer Footer -->
+                <div class="p-4 border-t border-[#E5E7EB] flex items-center justify-between gap-3 shrink-0">
+                    <button @click="closeDrawer()"
+                            type="button"
+                            class="cf-btn cf-btn-secondary cf-btn-sm flex-1">
+                        Close
+                    </button>
+                    <a :href="selectedOrder?.view_url"
+                       class="cf-btn cf-btn-primary cf-btn-sm flex-1 text-center">
+                        View full order
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection
