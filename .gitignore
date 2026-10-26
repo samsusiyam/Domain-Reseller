@@ -9,6 +9,8 @@
 .env.production
 database/*.sqlite
 database/*.sqlite-journal
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml

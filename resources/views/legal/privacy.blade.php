@@ -1,32 +1,35 @@
 @extends('layouts.guest')
 
 @section('content')
-<div class="py-16 bg-white">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Privacy Policy</h1>
-        <p class="text-xs text-slate-400 mb-8">Last Updated: January 1, 2026</p>
+<div class="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <article class="glass-card p-8 sm:p-12 rounded-3xl border border-white/10 shadow-2xl">
+        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            Privacy Policy
+        </span>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-4 mb-2">Privacy & Data Protection</h1>
+        <p class="text-xs text-slate-400 mb-8 font-mono">Last Updated: October 2026 • GDPR & ICANN WHOIS Compliance</p>
 
-        <div class="prose prose-slate max-w-none text-sm leading-relaxed space-y-6 text-slate-700">
-            <h2 class="text-lg font-bold text-slate-900">1. Information We Collect</h2>
+        <div class="prose prose-invert prose-indigo max-w-none text-sm text-slate-300 leading-relaxed space-y-6 border-t border-white/10 pt-6">
+            <h2 class="text-lg font-bold text-white">1. Information We Collect</h2>
             <p>
-                To provide domain registration, billing, and API services, we collect personal information including full name, company name, email address, postal address, phone number, and IP addresses. We also store transaction logs and API request metadata for security audit compliance.
+                To provision domain names and provide billing services, we collect account details (name, email, organization, address, phone number), payment transaction metadata, and domain registrant contact details required by ICANN.
             </p>
 
-            <h2 class="text-lg font-bold text-slate-900">2. WHOIS Information & Privacy Protection</h2>
+            <h2 class="text-lg font-bold text-white">2. WHOIS Privacy & Data Masking</h2>
             <p>
-                Domain registries require contact information for domain records. If WHOIS ID Protection is enabled on supported TLDs, your personal details are replaced with a proxy privacy service to prevent spam and unsolicited inquiries.
+                We provide free WHOIS Privacy Protection on all eligible generic and top-level domain extensions. When activated, your personal email, phone number, and physical street address are masked from public WHOIS lookups.
             </p>
 
-            <h2 class="text-lg font-bold text-slate-900">3. Security and Storage</h2>
+            <h2 class="text-lg font-bold text-white">3. Third-Party Upstream Registry Disclosure</h2>
             <p>
-                All sensitive API keys and secrets are stored using one-way cryptographic SHA-256 hashes or AES-256 encryption. We enforce Two-Factor Authentication (2FA) and optional IP whitelisting on all wholesale API integrations.
+                Domain registration requires transmitting registrant details to accredited registries and upstream registrars (Namecheap, Spaceship, Dynadot, AtakDomain, NameSilo) to complete registry delegations.
             </p>
 
-            <h2 class="text-lg font-bold text-slate-900">4. Third-Party Data Sharing</h2>
+            <h2 class="text-lg font-bold text-white">4. API Security & Webhooks</h2>
             <p>
-                Your registration data is shared strictly with accredited upstream domain registries and ICANN-accredited registrars for provisioning purposes. We do not sell or rent customer data to third-party advertisers.
+                Reseller API requests are validated with SHA-256 HMAC cryptographic signatures and IP whitelists. We log API request endpoints, IP addresses, and response status codes for debugging and audit security.
             </p>
         </div>
-    </div>
+    </article>
 </div>
 @endsection

@@ -34,7 +34,7 @@ class DomainSearchController extends Controller
 
         $allTlds = TldPricing::where('is_active', true)->get();
 
-        return view('client.domains.search', compact('query', 'result', 'suggestions', 'allTlds'));
+        return view('domain.search', compact('query', 'result', 'suggestions', 'allTlds'));
     }
 
     public function index(Request $request)

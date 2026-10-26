@@ -104,6 +104,7 @@
 
         <!-- User Brief & Logout -->
         <div class="p-4 border-t border-slate-800 bg-slate-950/40">
+            @auth
             <div class="flex items-center justify-between">
                 <div class="truncate">
                     <p class="text-sm font-semibold text-white truncate">{{ auth()->user()->name }}</p>
@@ -118,6 +119,11 @@
                     </button>
                 </form>
             </div>
+            @else
+            <div class="flex items-center gap-2">
+                <a href="{{ route('login') }}" class="w-full text-center py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold">Sign In</a>
+            </div>
+            @endauth
         </div>
     </aside>
 
@@ -134,15 +140,17 @@
 
             <!-- Top Right Balance & Currency -->
             <div class="flex items-center gap-4">
+                @auth
                 <div class="hidden sm:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-xl text-xs font-semibold">
                     <span class="text-slate-500">Wallet:</span>
                     <span class="text-indigo-600 font-extrabold">${{ number_format((float)auth()->user()->balance, 2) }}</span>
                     @php
-                        $bdt = app(\App\Services\Currency\CurrencyConverter::class)->convert((float)auth()->user()->balance, 'USD', 'BDT');
+                        $bdt = app(\App\Services\Currency\CurrencyConverter::class)->convert((float)auth()->user()->balance, 'BDT');
                     @endphp
                     <span class="text-slate-400">/ ৳{{ number_format($bdt, 2) }}</span>
                     <a href="{{ route('client.wallet.index') }}" class="ml-1 text-xs text-indigo-600 hover:underline">+ Top Up</a>
                 </div>
+                @endauth
 
                 <x-currency-selector />
             </div>

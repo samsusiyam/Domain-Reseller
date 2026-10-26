@@ -1,13 +1,15 @@
 @extends('layouts.guest')
 
 @section('content')
-<div class="py-12 bg-white" x-data="{
+<div class="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto" x-data="{
     domain: '{{ request('domain', '') }}',
     loading: false,
     whoisData: null,
     error: null,
+    showRaw: false,
     queryWhois() {
-        if (!this.domain.trim()) return;
+        let d = this.domain.trim();
+        if (!d) return;
         this.loading = true;
         this.whoisData = null;
         this.error = null;
@@ -18,7 +20,7 @@
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify({ domain: this.domain })
+            body: JSON.stringify({ domain: d })
         })
         .then(res => res.json())
         .then(data => {
@@ -35,82 +37,138 @@
         });
     }
 }" x-init="if (domain) { queryWhois(); }">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Title -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">WHOIS Domain Lookup</h1>
-            <p class="mt-2 text-sm text-slate-600">
-                Inspect public registration records, nameservers, and expiration dates for any domain.
-            </p>
-        </div>
 
-        <!-- Query Form -->
-        <form @submit.prevent="queryWhois()" class="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-10">
-            <input type="text" x-model="domain" placeholder="Enter domain name (e.g. example.com)" required
-                class="flex-1 px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+    <!-- Title -->
+    <div class="text-center max-w-3xl mx-auto mb-10">
+        <span class="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/30">
+            Public Registry Inspector
+        </span>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mt-4">
+            WHOIS Domain Lookup
+        </h1>
+        <p class="mt-2 text-sm text-slate-400">
+            Inspect public registration records, nameservers, status codes, and expiration dates for any domain.
+        </p>
+    </div>
+
+    <!-- Query Form -->
+    <div class="glass-card p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl mb-10">
+        <form @submit.prevent="queryWhois()" class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+                <input type="text" x-model="domain" placeholder="Enter domain name (e.g. google.com, laravel.com)" required
+                    class="w-full px-5 py-4 bg-obsidian-900 border border-white/15 rounded-2xl text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-mono text-base">
+            </div>
             <button type="submit" :disabled="loading"
-                class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-75">
+                class="px-8 py-4 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold rounded-2xl transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 disabled:opacity-75">
                 <span x-show="!loading">Lookup WHOIS</span>
                 <span x-show="loading" x-cloak class="flex items-center gap-2">
-                    <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                     Querying...
                 </span>
             </button>
         </form>
+    </div>
 
-        <!-- Error Card -->
-        <div x-show="error" x-cloak class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm mb-6">
-            <span x-text="error"></span>
-        </div>
+    <!-- Error Banner -->
+    <div x-show="error" x-cloak class="p-4 rounded-2xl bg-rose-950/80 border border-rose-800 text-rose-300 text-sm mb-8 backdrop-blur">
+        <span x-text="error"></span>
+    </div>
 
-        <!-- WHOIS Record Details Card -->
-        <div x-show="whoisData" x-cloak class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+    <!-- Formatted Results Cards -->
+    <div x-show="whoisData" x-cloak class="space-y-6">
+        <!-- Main Domain Card -->
+        <div class="p-6 sm:p-8 rounded-3xl glass-card border border-white/10 shadow-2xl">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900" x-text="whoisData?.domain_name"></h3>
-                    <span class="text-xs text-slate-500">Registry WHOIS Record</span>
+                    <span class="text-2xl sm:text-3xl font-black text-white font-mono" x-text="whoisData?.domain"></span>
+                    <p class="text-xs text-slate-400 mt-1 font-mono">
+                        Registrar: <strong class="text-white" x-text="whoisData?.registrar || 'Not Disclosed'"></strong>
+                    </p>
                 </div>
-                <template x-if="whoisData?.is_private">
-                    <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200">
-                        WHOIS Privacy Protected
-                    </span>
-                </template>
+
+                <div class="flex items-center gap-3">
+                    <template x-if="whoisData?.is_registered">
+                        <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                            Registered
+                        </span>
+                    </template>
+                    <template x-if="!whoisData?.is_registered">
+                        <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                            Available for Registration
+                        </span>
+                    </template>
+                </div>
             </div>
 
-            <div class="p-6 space-y-6">
-                <!-- Meta Info Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-sm">
-                    <div>
-                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status</span>
-                        <span class="font-semibold text-slate-800 uppercase" x-text="whoisData?.status || 'Active'"></span>
+            <!-- Grid of Details -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 text-xs">
+                <!-- Col 1: Dates -->
+                <div class="p-4 rounded-2xl bg-obsidian-900 border border-white/5 space-y-2">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Key Registry Dates</span>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Created:</span>
+                        <span class="font-mono text-white font-semibold" x-text="whoisData?.creation_date || 'N/A'"></span>
                     </div>
-                    <div>
-                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Created Date</span>
-                        <span class="font-semibold text-slate-800" x-text="whoisData?.created_date || 'N/A'"></span>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Expires:</span>
+                        <span class="font-mono text-emerald-400 font-bold" x-text="whoisData?.expiration_date || 'N/A'"></span>
                     </div>
-                    <div>
-                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Expiration Date</span>
-                        <span class="font-semibold text-slate-800" x-text="whoisData?.expires_date || 'N/A'"></span>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Updated:</span>
+                        <span class="font-mono text-slate-300" x-text="whoisData?.updated_date || 'N/A'"></span>
                     </div>
                 </div>
 
-                <!-- Nameservers -->
-                <div class="pt-4 border-t border-slate-100">
-                    <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Authoritative Nameservers</span>
-                    <div class="flex flex-wrap gap-2">
-                        <template x-for="ns in (whoisData?.nameservers || [])" :key="ns">
-                            <span class="px-3 py-1 bg-slate-100 text-slate-800 font-mono text-xs rounded-lg border border-slate-200" x-text="ns"></span>
+                <!-- Col 2: Nameservers -->
+                <div class="p-4 rounded-2xl bg-obsidian-900 border border-white/5">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Delegated Nameservers</span>
+                    <template x-if="whoisData?.nameservers && whoisData.nameservers.length > 0">
+                        <ul class="space-y-1 font-mono text-[11px] text-indigo-300">
+                            <template x-for="ns in whoisData.nameservers" :key="ns">
+                                <li class="truncate" x-text="ns"></li>
+                            </template>
+                        </ul>
+                    </template>
+                    <template x-if="!whoisData?.nameservers || whoisData.nameservers.length === 0">
+                        <p class="text-slate-500 italic">No public nameservers listed.</p>
+                    </template>
+                </div>
+
+                <!-- Col 3: Status / Action -->
+                <div class="p-4 rounded-2xl bg-obsidian-900 border border-white/5 flex flex-col justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Domain Status</span>
+                        <p class="font-mono text-[11px] text-amber-300 truncate" x-text="whoisData?.status || 'Active / Delegated'"></p>
+                    </div>
+
+                    <div class="mt-4">
+                        <template x-if="!whoisData?.is_registered">
+                            <a :href="'{{ route('login') }}?redirect=' + encodeURIComponent('{{ route('client.domains.register') }}?domain=' + whoisData?.domain)"
+                                class="w-full text-center py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition block">
+                                Register this Domain →
+                            </a>
+                        </template>
+                        <template x-if="whoisData?.is_registered">
+                            <a :href="'{{ route('domain.search') }}?query=' + whoisData?.domain"
+                                class="w-full text-center py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition block">
+                                Check Alternative TLDs
+                            </a>
                         </template>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Raw output if available -->
-                <template x-if="whoisData?.raw_text">
-                    <div class="pt-4 border-t border-slate-100">
-                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Raw WHOIS Output</span>
-                        <pre class="bg-slate-900 text-slate-200 p-4 rounded-xl text-xs font-mono overflow-x-auto max-h-72" x-text="whoisData?.raw_text"></pre>
-                    </div>
-                </template>
+        <!-- Raw WHOIS Accordion -->
+        <div class="glass-card rounded-2xl border border-white/10 overflow-hidden">
+            <button @click="showRaw = !showRaw" type="button"
+                class="w-full p-4 text-left flex items-center justify-between text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition">
+                <span>View Full Raw Registry WHOIS Output</span>
+                <span x-text="showRaw ? 'Hide ▲' : 'Show ▼'" class="font-mono text-indigo-400"></span>
+            </button>
+
+            <div x-show="showRaw" x-cloak class="p-6 bg-slate-950 border-t border-white/10 text-xs font-mono text-slate-300 overflow-x-auto leading-relaxed">
+                <pre x-text="whoisData?.raw || 'No raw output available for this record.'"></pre>
             </div>
         </div>
     </div>
