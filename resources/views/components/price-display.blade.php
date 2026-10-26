@@ -4,11 +4,21 @@
 $amount = (float) $amount;
 $currencyConverter = app(\App\Services\Currency\CurrencyConverter::class);
 $amountBdt = $currencyConverter->convert($amount, 'USD', 'BDT');
+$currency = session('currency', 'USD');
 @endphp
 
-<span class="inline-flex items-baseline gap-1.5 font-bold text-slate-900 dark:text-white">
-    <span class="text-base text-indigo-600 dark:text-indigo-400 font-extrabold">${{ number_format($amount, 2) }}</span>
-    @if($showBdt)
-        <span class="text-xs font-normal text-slate-500 dark:text-slate-400">/ ৳{{ number_format($amountBdt, 2) }} BDT</span>
-    @endif
-</span>
+@if($currency === 'BDT')
+    <span class="inline-flex items-baseline gap-1 font-mono tabular-nums text-[#111827]">
+        <span class="font-semibold text-[14px]">৳{{ number_format($amountBdt, 2) }}</span>
+        @if($showBdt)
+            <span class="text-[12px] text-[#6B7280]">(${{ number_format($amount, 2) }})</span>
+        @endif
+    </span>
+@else
+    <span class="inline-flex items-baseline gap-1 font-mono tabular-nums text-[#111827]">
+        <span class="font-semibold text-[14px]">${{ number_format($amount, 2) }}</span>
+        @if($showBdt)
+            <span class="text-[12px] text-[#6B7280]">(৳{{ number_format($amountBdt, 2) }})</span>
+        @endif
+    </span>
+@endif
