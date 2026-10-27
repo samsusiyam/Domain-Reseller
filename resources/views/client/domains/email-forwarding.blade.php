@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="space-y-6">
-    <x-domain-tabs :domain=\$domain active="email-forwarding" />
+    <x-domain-tabs :domain="$domain" active="email-forwarding" />
 
     <!-- Notice -->
     <div class="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-xl p-4 flex items-start gap-3">

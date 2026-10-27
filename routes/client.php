@@ -94,6 +94,7 @@ Route::prefix('domains')->name('domains.')->group(function () {
 
     // Hosted DNS Zone
     Route::get('/{domain}/dns-records', [DnsRecordController::class, 'index'])->name('dns.index');
+    Route::get('/{domain}/dns', [DnsRecordController::class, 'index']);
     Route::post('/{domain}/dns-records', [DnsRecordController::class, 'store'])->name('dns.store');
     Route::put('/{domain}/dns-records/{recordId}', [DnsRecordController::class, 'update'])->name('dns.update');
     Route::delete('/{domain}/dns-records/{recordId}', [DnsRecordController::class, 'destroy'])->name('dns.destroy');

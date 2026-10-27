@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="space-y-6">
-    <x-domain-tabs :domain=\$domain active="url-forwarding" />
+    <x-domain-tabs :domain="$domain" active="url-forwarding" />
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-data="{ redirectType: '301' }">
         <!-- Add URL Forward Form -->
