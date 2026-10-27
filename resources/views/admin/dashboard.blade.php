@@ -231,10 +231,22 @@
                 </div>
             </div>
 
-            <!-- SVG Line Chart with light gridlines and hover tooltips -->
+            <!-- SVG Line Chart with light gridlines or Empty State if no data -->
             @php
                 $amounts = array_column($chartPoints, 'amount');
                 $maxAmount = !empty($amounts) ? max($amounts) : 0;
+            @endphp
+
+            @if($maxAmount <= 0)
+                <div class="h-52 flex flex-col items-center justify-center text-center p-6 rounded-[6px] border border-dashed border-[#E5E7EB] bg-[#F7F7F8]">
+                    <svg class="w-8 h-8 text-[#9CA3AF] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                    </svg>
+                    <p class="text-[13px] font-medium text-[#111827]">No revenue recorded for {{ strtoupper($range) }}</p>
+                    <p class="text-[12px] text-[#6B7280] mt-0.5 max-w-sm">Domain registrations, renewals, and wallet deposits will populate this chart automatically.</p>
+                </div>
+            @else
+            @php
                 $chartMax = $maxAmount > 0 ? ceil($maxAmount * 1.25) : 100;
                 $chartMax = max($chartMax, 10);
                 $pointCount = count($chartPoints);
@@ -338,6 +350,7 @@
                     </svg>
                 </div>
             </div>
+            @endif
         </div>
 
         <!-- Right: Needs attention list (4 of 12 cols = 1/3) -->

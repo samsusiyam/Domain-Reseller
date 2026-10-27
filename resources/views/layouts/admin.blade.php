@@ -1,9 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-white text-[#111827] antialiased">
+<html lang="en" class="h-full antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Overview' }} — {{ config('app.name', 'DomainReseller') }}</title>
+
+    <!-- Anti-flash inline theme loader -->
+    <script>
+        (function() {
+            var t = localStorage.getItem('theme') || 'system';
+            var m = t === 'system' ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : t;
+            document.documentElement.setAttribute('data-theme', m);
+            document.documentElement.style.colorScheme = m;
+            if (m === 'dark') document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+        })();
+    </script>
 
     <!-- Google Fonts: Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -67,8 +79,10 @@
         }
     </script>
 
-    <!-- Alpine.js -->
+    <!-- Alpine.js & Theme/Currency Scripts -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="{{ asset('js/theme.js') }}"></script>
+    <script defer src="{{ asset('js/currency.js') }}"></script>
 
     <style>
         [x-cloak] { display: none !important; }
@@ -516,6 +530,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                     </svg>
                 </a>
+
+                <!-- Theme Toggle -->
+                <x-theme-toggle />
 
                 <!-- Notifications Bell -->
                 @php

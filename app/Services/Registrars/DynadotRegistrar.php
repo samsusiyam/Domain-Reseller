@@ -30,15 +30,61 @@ class DynadotRegistrar extends AbstractRegistrar
 
     public function checkAvailability(string $domain): DomainAvailabilityDTO
     {
-        $isAvailable = !in_array(strtolower(trim($domain)), ['google.com', 'yahoo.com'], true);
+        $domain = strtolower(trim($domain));
+
+        if (!empty($this->apiKey)) {
+            try {
+                $response = $this->client->get('https://api.dynadot.com/api3.json', [
+                    'query' => [
+                        'key' => $this->apiKey,
+                        'command' => 'search',
+                        'domain0' => $domain,
+                    ]
+                ]);
+
+                if ($response->getStatusCode() === 200) {
+                    $data = json_decode((string) $response->getBody(), true);
+                    $searchResult = $data['SearchResponse']['SearchResults'][0] ?? null;
+                    if ($searchResult) {
+                        $available = ($searchResult['Available'] ?? '') === 'yes';
+                        $price = (float) ($searchResult['Price'] ?? 10.15);
+                        return new DomainAvailabilityDTO(
+                            domain: $domain,
+                            isAvailable: $available,
+                            isPremium: false,
+                            registrationCost: $price,
+                            renewalCost: $price,
+                            currency: 'USD',
+                            registrar: $this->getIdentifier(),
+                            status: $available ? 'available' : 'taken'
+                        );
+                    }
+                }
+            } catch (\Throwable $e) {
+                $this->logApiCall('checkAvailability_error', ['domain' => $domain], $e->getMessage());
+            }
+        }
+
+        if (config('registrars.test_mode', false)) {
+            $isAvailable = !in_array($domain, ['google.com', 'yahoo.com'], true);
+            return new DomainAvailabilityDTO(
+                domain: $domain,
+                isAvailable: $isAvailable,
+                isPremium: false,
+                registrationCost: 10.15,
+                renewalCost: 11.25,
+                currency: 'USD',
+                registrar: $this->getIdentifier(),
+                status: $isAvailable ? 'available' : 'taken',
+                isTestMode: true
+            );
+        }
 
         return new DomainAvailabilityDTO(
             domain: $domain,
-            isAvailable: $isAvailable,
-            isPremium: false,
-            registrationCost: 10.15,
-            renewalCost: 11.25,
-            currency: 'USD',
+            isAvailable: false,
+            status: 'error',
+            errorMessage: 'Upstream Dynadot API unavailable or credentials missing.',
             registrar: $this->getIdentifier()
         );
     }

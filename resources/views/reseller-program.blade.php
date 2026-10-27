@@ -1,210 +1,166 @@
-@extends('layouts.guest')
+@extends('layouts.guest', ['title' => 'Wholesale Domain Reseller Program'])
 
 @section('content')
-<!-- Hero Section -->
-<section class="relative overflow-hidden py-24 px-4 sm:px-6 lg:px-8 border-b border-white/5">
-    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
+<div class="space-y-16 py-10 sm:py-14">
 
-    <div class="max-w-4xl mx-auto text-center relative z-10">
-        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 uppercase tracking-widest mb-6">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            Turnkey Reseller Infrastructure
-        </span>
-        <h1 class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight mb-6">
-            Resell Domains Under Your Brand with <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-300 to-violet-400">Zero Overhead</span>
+    <!-- 1. Hero Section -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-left sm:text-center">
+        <div class="mb-3">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs font-mono font-medium border"
+                  style="background-color: var(--surface); border-color: var(--border); color: var(--text);">
+                <span class="w-2 h-2 rounded-full bg-[#16A34A]"></span>
+                <span>Turnkey Wholesale Registry</span>
+            </span>
+        </div>
+
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight leading-tight max-w-3xl mx-auto" style="color: var(--text);">
+            Resell domains under your brand with direct upstream registry access.
         </h1>
-        <p class="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Sell domains to your clients using our turnkey WHMCS Registrar Module or 44-endpoint REST API. Multi-registrar routing across 5 registries with automated dual-currency billing in USD & BDT.
+
+        <p class="text-sm sm:text-base mt-3 max-w-2xl mx-auto leading-relaxed" style="color: var(--text-muted);">
+            Automate provisioning for your web hosting clients using our native WHMCS registrar module or 44-endpoint REST API. Multi-registrar routing across 6 registries with dual USD and BDT settlement.
         </p>
 
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="{{ route('register') }}"
-                class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold rounded-xl transition shadow-xl shadow-indigo-600/30 text-sm">
-                Join Reseller Program Free →
+        <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a href="{{ route('register') }}?role=reseller"
+               class="cf-btn cf-btn-primary h-10 px-6 font-medium text-sm w-full sm:w-auto">
+                Apply for reseller account
             </a>
             <a href="#whmcs"
-                class="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition text-sm border border-white/10">
-                View WHMCS Integration
+               class="cf-btn cf-btn-secondary h-10 px-6 font-medium text-sm w-full sm:w-auto">
+                View WHMCS module
             </a>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Pricing Tiers Section -->
-<section class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-    <div class="text-center max-w-2xl mx-auto mb-16">
-        <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2 block">Volume Margins</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Automatic Wholesale Pricing Tiers</h2>
-        <p class="text-sm text-slate-400 mt-2">The more domains you provision, the lower your wholesale registry costs become.</p>
-    </div>
+    <!-- 2. Volume Pricing Tiers -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold tracking-tight" style="color: var(--text);">Volume pricing tiers</h2>
+            <p class="text-xs mt-1" style="color: var(--text-muted);">Account tiers automatically scale based on wallet deposit and monthly volume.</p>
+        </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Tier 1: Standard -->
-        <div class="p-6 rounded-3xl glass-card flex flex-col justify-between hover:border-white/20 transition">
-            <div>
-                <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block mb-2">Level 1</span>
-                <h3 class="text-xl font-extrabold text-white">Standard Tier</h3>
-                <p class="text-xs text-slate-400 mt-1">Starting point for new resellers</p>
-                <div class="my-6">
-                    <span class="text-3xl font-black text-white">$0</span>
-                    <span class="text-xs text-slate-500 font-mono">/ deposit</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Tier 1 -->
+            <div class="cf-panel p-5 flex flex-col justify-between">
+                <div>
+                    <span class="text-[11px] font-mono uppercase tracking-wider block mb-1" style="color: var(--text-muted);">Tier 1</span>
+                    <h3 class="text-base font-semibold" style="color: var(--text);">Standard</h3>
+                    <div class="my-4">
+                        <span class="text-2xl font-bold font-mono" style="color: var(--text);">$0</span>
+                        <span class="text-xs" style="color: var(--text-muted);">/ minimum deposit</span>
+                    </div>
+                    <ul class="space-y-2 text-xs" style="color: var(--text-muted);">
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> Catalog Wholesale Rates</li>
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> Turnkey WHMCS Module</li>
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> 44 REST API Endpoints</li>
+                    </ul>
                 </div>
-                <ul class="space-y-3 text-xs text-slate-300">
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Base Wholesale Rates</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Full WHMCS Module</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> 44 REST API Endpoints</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Free WHOIS Privacy</li>
-                </ul>
-            </div>
-            <a href="{{ route('register') }}" class="mt-8 w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs text-center transition">
-                Start Standard
-            </a>
-        </div>
-
-        <!-- Tier 2: Silver -->
-        <div class="p-6 rounded-3xl glass-card flex flex-col justify-between hover:border-indigo-500/40 transition">
-            <div>
-                <span class="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-bold block mb-2">Level 2</span>
-                <h3 class="text-xl font-extrabold text-white">Silver Tier</h3>
-                <p class="text-xs text-slate-400 mt-1">Active hosting providers</p>
-                <div class="my-6">
-                    <span class="text-3xl font-black text-indigo-400">$250</span>
-                    <span class="text-xs text-slate-500 font-mono">/ wallet credit</span>
+                <div class="mt-6">
+                    <a href="{{ route('register') }}?role=reseller" class="cf-btn cf-btn-secondary w-full text-xs">Start standard</a>
                 </div>
-                <ul class="space-y-3 text-xs text-slate-300">
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> <strong>5% Extra Discount</strong> on TLDs</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Priority API Rate Limits</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Instant Order Execution</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Custom Child NS Support</li>
-                </ul>
             </div>
-            <a href="{{ route('register') }}" class="mt-8 w-full py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-indigo-300 hover:text-white font-bold text-xs text-center transition">
-                Deposit $250
-            </a>
-        </div>
 
-        <!-- Tier 3: Gold (Popular) -->
-        <div class="p-6 rounded-3xl glass-card border-2 border-indigo-500/60 shadow-xl shadow-indigo-600/20 flex flex-col justify-between relative">
-            <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-indigo-600 text-[10px] font-bold text-white uppercase tracking-wider">
-                Most Popular
-            </span>
-            <div>
-                <span class="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold block mb-2">Level 3</span>
-                <h3 class="text-xl font-extrabold text-white">Gold Tier</h3>
-                <p class="text-xs text-slate-400 mt-1">High volume registries</p>
-                <div class="my-6">
-                    <span class="text-3xl font-black text-amber-400">$500</span>
-                    <span class="text-xs text-slate-500 font-mono">/ wallet credit</span>
+            <!-- Tier 2 -->
+            <div class="cf-panel p-5 flex flex-col justify-between" style="border-color: var(--accent);">
+                <div>
+                    <span class="text-[11px] font-mono uppercase tracking-wider block mb-1" style="color: var(--accent);">Tier 2 • Popular</span>
+                    <h3 class="text-base font-semibold" style="color: var(--text);">Silver</h3>
+                    <div class="my-4">
+                        <span class="text-2xl font-bold font-mono" style="color: var(--text);">$250</span>
+                        <span class="text-xs" style="color: var(--text-muted);">/ wallet credit</span>
+                    </div>
+                    <ul class="space-y-2 text-xs" style="color: var(--text-muted);">
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> <strong>5% Extra Discount</strong> on TLDs</li>
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> Priority API Rate Limits</li>
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> Instant DNS Failover</li>
+                    </ul>
                 </div>
-                <ul class="space-y-3 text-xs text-slate-300">
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> <strong>10% Extra Discount</strong> on TLDs</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Custom White-Label DNS</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Webhook Event Dispatcher</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Dedicated Account Manager</li>
-                </ul>
-            </div>
-            <a href="{{ route('register') }}" class="mt-8 w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs text-center transition shadow-md">
-                Deposit $500
-            </a>
-        </div>
-
-        <!-- Tier 4: Platinum -->
-        <div class="p-6 rounded-3xl glass-card flex flex-col justify-between hover:border-purple-500/40 transition">
-            <div>
-                <span class="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-bold block mb-2">Level 4</span>
-                <h3 class="text-xl font-extrabold text-white">Platinum Tier</h3>
-                <p class="text-xs text-slate-400 mt-1">Enterprise domain resellers</p>
-                <div class="my-6">
-                    <span class="text-3xl font-black text-purple-400">$1,000+</span>
-                    <span class="text-xs text-slate-500 font-mono">/ wallet credit</span>
+                <div class="mt-6">
+                    <a href="{{ route('register') }}?role=reseller" class="cf-btn cf-btn-primary w-full text-xs">Get Silver</a>
                 </div>
-                <ul class="space-y-3 text-xs text-slate-300">
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> <strong>15% Max Wholesale Margin</strong></li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Direct Registry Redundancy</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> Custom Upstream Routing</li>
-                    <li class="flex items-center gap-2"><span class="text-emerald-400 font-bold">✓</span> 24/7 Priority Emergency SLA</li>
-                </ul>
             </div>
-            <a href="{{ route('register') }}" class="mt-8 w-full py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600 border border-purple-500/30 text-purple-300 hover:text-white font-bold text-xs text-center transition">
-                Deposit $1,000
-            </a>
-        </div>
-    </div>
-</section>
 
-<!-- WHMCS Module Section -->
-<section id="whmcs" class="py-20 px-4 sm:px-6 lg:px-8 border-t border-white/10 bg-obsidian-900/60">
-    <div class="max-w-6xl mx-auto">
-        <div class="text-center max-w-3xl mx-auto mb-16">
-            <span class="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                1-Minute Setup
-            </span>
-            <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-4">
-                Official WHMCS Registrar Module
-            </h2>
-            <p class="text-slate-400 mt-3 text-base">
-                Download and drop into your WHMCS modules folder. Instant automated provisioning with zero code changes.
-            </p>
-        </div>
+            <!-- Tier 3 -->
+            <div class="cf-panel p-5 flex flex-col justify-between">
+                <div>
+                    <span class="text-[11px] font-mono uppercase tracking-wider block mb-1" style="color: var(--text-muted);">Tier 3</span>
+                    <h3 class="text-base font-semibold" style="color: var(--text);">Gold</h3>
+                    <div class="my-4">
+                        <span class="text-2xl font-bold font-mono" style="color: var(--text);">$1,000</span>
+                        <span class="text-xs" style="color: var(--text-muted);">/ wallet credit</span>
+                    </div>
+                    <ul class="space-y-2 text-xs" style="color: var(--text-muted);">
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> <strong>10% Extra Discount</strong> on TLDs</li>
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> Dedicated Account Manager</li>
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> Custom EPP Integration</li>
+                    </ul>
+                </div>
+                <div class="mt-6">
+                    <a href="{{ route('register') }}?role=reseller" class="cf-btn cf-btn-secondary w-full text-xs">Get Gold</a>
+                </div>
+            </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="p-6 rounded-2xl glass-card border border-white/10">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white font-mono font-bold flex items-center justify-center mb-4">1</div>
-                <h3 class="text-lg font-bold text-white mb-2">Download Module</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    Grab the official module from your reseller portal and upload the files to:
-                    <code class="block mt-2 p-2 rounded bg-black/40 text-indigo-300 text-[11px] font-mono">/modules/registrars/domainreseller/</code>
+            <!-- Tier 4 -->
+            <div class="cf-panel p-5 flex flex-col justify-between">
+                <div>
+                    <span class="text-[11px] font-mono uppercase tracking-wider block mb-1" style="color: var(--text-muted);">Tier 4</span>
+                    <h3 class="text-base font-semibold" style="color: var(--text);">Platinum</h3>
+                    <div class="my-4">
+                        <span class="text-2xl font-bold font-mono" style="color: var(--text);">$2,500</span>
+                        <span class="text-xs" style="color: var(--text-muted);">/ wallet credit</span>
+                    </div>
+                    <ul class="space-y-2 text-xs" style="color: var(--text-muted);">
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> <strong>Registry At-Cost</strong> Pricing</li>
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> Custom Credit Terms</li>
+                        <li class="flex items-center gap-2"><span class="text-[#16A34A] font-bold">✓</span> Direct ICANN Compliance Liaison</li>
+                    </ul>
+                </div>
+                <div class="mt-6">
+                    <a href="{{ route('contact') }}" class="cf-btn cf-btn-secondary w-full text-xs">Contact sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. WHMCS & API Section -->
+    <section id="whmcs" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div class="cf-panel p-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-6 h-6 rounded bg-[#F6821F] text-white flex items-center justify-center font-bold text-xs">W</span>
+                    <h3 class="font-semibold text-base" style="color: var(--text);">Turnkey WHMCS Module</h3>
+                </div>
+                <p class="text-xs leading-relaxed mb-4" style="color: var(--text-muted);">
+                    Drop our registrar module directly into <code>modules/registrars/domainreseller/</code>. Features instant domain registration, transfers, auto-renewals, DNS management, and nameserver synchronization.
                 </p>
+                <div class="p-3 rounded-[6px] border text-xs font-mono space-y-1" style="background-color: var(--surface); border-color: var(--border); color: var(--text);">
+                    <div>$configarray = [</div>
+                    <div class="pl-4">'FriendlyName' => ['Type' => 'System', 'Value' => 'DomainReseller'],</div>
+                    <div class="pl-4">'ApiKey' => ['Type' => 'password', 'Size' => '40'],</div>
+                    <div>];</div>
+                </div>
             </div>
 
-            <div class="p-6 rounded-2xl glass-card border border-white/10">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white font-mono font-bold flex items-center justify-center mb-4">2</div>
-                <h3 class="text-lg font-bold text-white mb-2">Configure API Keys</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    In WHMCS Admin ➔ System Settings ➔ Domain Registrars, activate <strong>DomainReseller</strong> and enter your API Key and Secret.
+            <div class="cf-panel p-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-6 h-6 rounded bg-[#111827] text-white flex items-center justify-center font-bold text-xs">API</span>
+                    <h3 class="font-semibold text-base" style="color: var(--text);">44 REST Endpoints</h3>
+                </div>
+                <p class="text-xs leading-relaxed mb-4" style="color: var(--text-muted);">
+                    Developer-first API with token authorization, IP whitelisting, webhook delivery, and sandbox testing endpoints.
                 </p>
+                <div class="p-3 rounded-[6px] border text-xs font-mono space-y-1" style="background-color: var(--surface); border-color: var(--border); color: var(--text);">
+                    <div>POST /api/v1/domains/register</div>
+                    <div>Host: api.domainreseller.local</div>
+                    <div>Authorization: Bearer dr_live_sec_...</div>
+                    <div class="text-[#16A34A]">{ "domain": "brand.com", "years": 1 }</div>
+                </div>
             </div>
 
-            <div class="p-6 rounded-2xl glass-card border border-white/10">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white font-mono font-bold flex items-center justify-center mb-4">3</div>
-                <h3 class="text-lg font-bold text-white mb-2">Automate Provisioning</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    Link your TLDs (.com, .net, .org, .xyz) to the registrar module. WHMCS handles client billing while we execute registry orders.
-                </p>
-            </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- REST API Section -->
-<section id="api" class="py-20 px-4 sm:px-6 lg:px-8 border-t border-white/10 max-w-6xl mx-auto">
-    <div class="text-center max-w-2xl mx-auto mb-12">
-        <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest block mb-2">Developer Friendly</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">External REST API Overview</h2>
-        <p class="text-sm text-slate-400 mt-2">44 fully-documented endpoints for custom provisioning, Blesta, or internal billing systems.</p>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
-        <div class="p-4 rounded-xl glass-card border border-white/10">
-            <span class="text-emerald-400 font-bold">GET</span>
-            <span class="text-white ml-1">/api/v1/domains/check</span>
-            <p class="text-slate-400 text-[11px] font-sans mt-1">Single domain availability & pricing</p>
-        </div>
-        <div class="p-4 rounded-xl glass-card border border-white/10">
-            <span class="text-indigo-400 font-bold">POST</span>
-            <span class="text-white ml-1">/api/v1/domains/register</span>
-            <p class="text-slate-400 text-[11px] font-sans mt-1">Instant registration execution</p>
-        </div>
-        <div class="p-4 rounded-xl glass-card border border-white/10">
-            <span class="text-indigo-400 font-bold">POST</span>
-            <span class="text-white ml-1">/api/v1/domains/renew</span>
-            <p class="text-slate-400 text-[11px] font-sans mt-1">Automated renewal execution</p>
-        </div>
-        <div class="p-4 rounded-xl glass-card border border-white/10">
-            <span class="text-purple-400 font-bold">PUT</span>
-            <span class="text-white ml-1">/api/v1/domains/{d}/dns</span>
-            <p class="text-slate-400 text-[11px] font-sans mt-1">Manage A, CNAME, MX, TXT records</p>
-        </div>
-    </div>
-</section>
+</div>
 @endsection

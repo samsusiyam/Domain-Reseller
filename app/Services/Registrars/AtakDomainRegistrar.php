@@ -32,15 +32,59 @@ class AtakDomainRegistrar extends AbstractRegistrar
 
     public function checkAvailability(string $domain): DomainAvailabilityDTO
     {
-        $isAvailable = !in_array(strtolower(trim($domain)), ['google.com', 'atakdomain.com'], true);
+        $domain = strtolower(trim($domain));
+
+        if (!empty($this->apiKey) && !empty($this->apiSecret)) {
+            try {
+                $response = $this->client->get('https://api.atakdomain.com/v1/domain/check', [
+                    'headers' => [
+                        'Authorization' => "Bearer {$this->apiKey}",
+                    ],
+                    'query' => [
+                        'domain' => $domain,
+                    ]
+                ]);
+
+                if ($response->getStatusCode() === 200) {
+                    $body = json_decode((string) $response->getBody(), true);
+                    $available = (bool) ($body['available'] ?? false);
+                    $price = (float) ($body['price'] ?? 9.85);
+                    return new DomainAvailabilityDTO(
+                        domain: $domain,
+                        isAvailable: $available,
+                        isPremium: false,
+                        registrationCost: $price,
+                        renewalCost: $price,
+                        currency: 'USD',
+                        registrar: $this->getIdentifier(),
+                        status: $available ? 'available' : 'taken'
+                    );
+                }
+            } catch (\Throwable $e) {
+                $this->logApiCall('checkAvailability_error', ['domain' => $domain], $e->getMessage());
+            }
+        }
+
+        if (config('registrars.test_mode', false)) {
+            $isAvailable = !in_array($domain, ['google.com', 'atakdomain.com'], true);
+            return new DomainAvailabilityDTO(
+                domain: $domain,
+                isAvailable: $isAvailable,
+                isPremium: false,
+                registrationCost: 9.85,
+                renewalCost: 11.50,
+                currency: 'USD',
+                registrar: $this->getIdentifier(),
+                status: $isAvailable ? 'available' : 'taken',
+                isTestMode: true
+            );
+        }
 
         return new DomainAvailabilityDTO(
             domain: $domain,
-            isAvailable: $isAvailable,
-            isPremium: false,
-            registrationCost: 9.85,
-            renewalCost: 11.50,
-            currency: 'USD',
+            isAvailable: false,
+            status: 'error',
+            errorMessage: 'Upstream AtakDomain API unavailable or credentials missing.',
             registrar: $this->getIdentifier()
         );
     }

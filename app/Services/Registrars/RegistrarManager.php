@@ -68,4 +68,9 @@ class RegistrarManager extends Manager
     {
         return new NamesiloRegistrar($this->getMergedConfig('namesilo'));
     }
+
+    public function createCosmotownDriver(): RegistrarModuleInterface
+    {
+        return new CosmotownRegistrar($this->getMergedConfig('cosmotown'));
+    }
 }

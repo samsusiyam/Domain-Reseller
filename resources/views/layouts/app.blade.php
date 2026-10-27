@@ -1,127 +1,160 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-100 text-slate-900 antialiased">
+<html lang="en" class="h-full antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Client Portal' }} — {{ config('app.name', 'DomainReseller') }}</title>
 
+    <script>
+        (function() {
+            var t = localStorage.getItem('theme') || 'system';
+            var m = t === 'system' ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : t;
+            document.documentElement.setAttribute('data-theme', m);
+            document.documentElement.style.colorScheme = m;
+            if (m === 'dark') document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+        })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS CDN -->
+    <link rel="stylesheet" href="{{ asset('css/design-system.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: ['class', '[data-theme="dark"]'],
             theme: {
                 extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#F6821F',
+                            hover: '#E07116',
+                            active: '#C9620E',
+                            subtle: '#FFF7ED',
+                        },
+                        cf: {
+                            bg: 'var(--bg)',
+                            surface: 'var(--surface)',
+                            border: 'var(--border)',
+                            text: 'var(--text)',
+                            muted: 'var(--text-muted)',
+                        }
+                    },
                     fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
                         mono: ['"JetBrains Mono"', 'monospace'],
                     }
                 }
             }
         }
     </script>
-    <!-- Alpine.js CDN -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="{{ asset('js/theme.js') }}"></script>
+    <script defer src="{{ asset('js/currency.js') }}"></script>
 
     <style>
         [x-cloak] { display: none !important; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg); color: var(--text); }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
     </style>
 </head>
 <body class="h-full flex overflow-hidden font-sans" x-data="{ sidebarOpen: false }">
 
     <!-- Mobile Sidebar Backdrop -->
-    <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"></div>
+    <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"></div>
 
-    <!-- Sidebar -->
-    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-200 ease-in-out lg:static lg:translate-x-0">
+    <!-- Sidebar: 240px, 1px right border, clean functional minimal -->
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+           class="fixed inset-y-0 left-0 z-50 w-60 flex flex-col transition-transform duration-150 lg:static lg:translate-x-0"
+           style="background-color: var(--surface); border-right: 1px solid var(--border);">
         <!-- Brand Header -->
-        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950/50">
-            <a href="{{ route('client.dashboard') }}" class="flex items-center gap-2.5 font-bold text-lg text-white">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+        <div class="h-14 flex items-center px-4 border-b shrink-0" style="border-color: var(--border);">
+            <a href="{{ route('client.dashboard') }}" class="flex items-center gap-2.5">
+                <div class="w-6 h-6 rounded-[4px] bg-[#F6821F] flex items-center justify-center text-white shrink-0">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
                     </svg>
                 </div>
-                <span>Client Portal</span>
+                <span class="font-semibold text-sm tracking-tight" style="color: var(--text);">Client portal</span>
             </a>
         </div>
 
         <!-- Navigation Links -->
-        <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-            <a href="{{ route('client.dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('client.dashboard') ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                Dashboard
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto text-xs">
+            <a href="{{ route('client.dashboard') }}"
+               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition {{ request()->routeIs('client.dashboard') ? 'bg-[#FFF7ED] text-[#F6821F] font-semibold border-l-2 border-[#F6821F]' : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg)]' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                <span>Overview</span>
             </a>
 
-            <div class="pt-4 pb-1 px-3 text-xs font-bold tracking-wider text-slate-500 uppercase">Domains</div>
+            <div class="pt-3 pb-1 px-2.5 text-[11px] font-medium" style="color: var(--text-muted);">Domains</div>
 
-            <a href="{{ route('client.domains.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('client.domains.index') || request()->routeIs('client.domains.show') ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                My Domains
+            <a href="{{ route('client.domains.index') }}"
+               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition {{ request()->routeIs('client.domains.index') || request()->routeIs('client.domains.show') ? 'bg-[#FFF7ED] text-[#F6821F] font-semibold border-l-2 border-[#F6821F]' : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg)]' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253" /></svg>
+                <span>My domains</span>
             </a>
-            <a href="{{ route('client.domains.search') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('client.domains.search') || request()->routeIs('client.domains.register') ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                Register Domain
+            <a href="{{ route('domain.search') }}"
+               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg)]">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                <span>Register domain</span>
             </a>
-            <a href="{{ route('client.domains.transfer') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('client.domains.transfer') ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                Transfer In
-            </a>
-
-            <div class="pt-4 pb-1 px-3 text-xs font-bold tracking-wider text-slate-500 uppercase">Billing</div>
-
-            <a href="{{ route('client.invoices.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('client.invoices.*') ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                My Invoices
-            </a>
-            <a href="{{ route('client.wallet.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('client.wallet.*') ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                Wallet & Funds
-            </a>
-            <a href="{{ route('client.transactions.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('client.transactions.index') ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                Transactions
+            <a href="{{ route('client.domains.transfer') }}"
+               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition {{ request()->routeIs('client.domains.transfer') ? 'bg-[#FFF7ED] text-[#F6821F] font-semibold border-l-2 border-[#F6821F]' : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg)]' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
+                <span>Transfer in</span>
             </a>
 
-            <div class="pt-4 pb-1 px-3 text-xs font-bold tracking-wider text-slate-500 uppercase">Support & Account</div>
+            <div class="pt-3 pb-1 px-2.5 text-[11px] font-medium" style="color: var(--text-muted);">Billing</div>
 
-            <a href="{{ route('client.tickets.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('client.tickets.*') ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                Support Tickets
+            <a href="{{ route('client.invoices.index') }}"
+               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition {{ request()->routeIs('client.invoices.*') ? 'bg-[#FFF7ED] text-[#F6821F] font-semibold border-l-2 border-[#F6821F]' : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg)]' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                <span>Invoices</span>
             </a>
-            <a href="{{ route('client.announcements.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('client.announcements.*') ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
-                Announcements
+            <a href="{{ route('client.wallet.index') }}"
+               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition {{ request()->routeIs('client.wallet.*') ? 'bg-[#FFF7ED] text-[#F6821F] font-semibold border-l-2 border-[#F6821F]' : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg)]' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" /></svg>
+                <span>Wallet & funds</span>
             </a>
-            <a href="{{ route('client.profile.edit') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('client.profile.*') || request()->routeIs('client.two-factor.*') || request()->routeIs('client.sessions.*') ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                Profile & Security
+            <a href="{{ route('client.transactions.index') }}"
+               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition {{ request()->routeIs('client.transactions.index') ? 'bg-[#FFF7ED] text-[#F6821F] font-semibold border-l-2 border-[#F6821F]' : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg)]' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" /></svg>
+                <span>Transactions</span>
+            </a>
+
+            <div class="pt-3 pb-1 px-2.5 text-[11px] font-medium" style="color: var(--text-muted);">Support & Account</div>
+
+            <a href="{{ route('client.tickets.index') }}"
+               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition {{ request()->routeIs('client.tickets.*') ? 'bg-[#FFF7ED] text-[#F6821F] font-semibold border-l-2 border-[#F6821F]' : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg)]' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" /></svg>
+                <span>Support tickets</span>
+            </a>
+            <a href="{{ route('client.profile.edit') }}"
+               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition {{ request()->routeIs('client.profile.*') ? 'bg-[#FFF7ED] text-[#F6821F] font-semibold border-l-2 border-[#F6821F]' : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg)]' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                <span>Profile & security</span>
             </a>
         </nav>
 
-        <!-- User Brief & Logout -->
-        <div class="p-4 border-t border-slate-800 bg-slate-950/40">
+        <!-- User Info & Logout -->
+        <div class="p-3 border-t shrink-0" style="border-color: var(--border);">
             @auth
             <div class="flex items-center justify-between">
                 <div class="truncate">
-                    <p class="text-sm font-semibold text-white truncate">{{ auth()->user()->name }}</p>
-                    <p class="text-xs text-slate-400 truncate">{{ auth()->user()->email }}</p>
+                    <p class="text-xs font-semibold truncate" style="color: var(--text);">{{ auth()->user()->name }}</p>
+                    <p class="text-[11px] truncate" style="color: var(--text-muted);">{{ auth()->user()->email }}</p>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" title="Logout" class="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <button type="submit" title="Logout" class="p-1 rounded text-[var(--danger)] hover:bg-[var(--danger-bg)]">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                         </svg>
                     </button>
                 </form>
-            </div>
-            @else
-            <div class="flex items-center gap-2">
-                <a href="{{ route('login') }}" class="w-full text-center py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold">Sign In</a>
             </div>
             @endauth
         </div>
@@ -129,48 +162,49 @@
 
     <!-- Main Content Wrapper -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <!-- Top Navigation Bar -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-10">
+        <!-- Top Navigation Bar: 56px -->
+        <header class="h-14 border-b flex items-center justify-between px-4 sm:px-6 z-10 shrink-0"
+                style="background-color: var(--bg); border-color: var(--border);">
             <div class="flex items-center gap-3">
-                <button @click="sidebarOpen = true" class="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 lg:hidden">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <button @click="sidebarOpen = true" class="p-1.5 rounded text-[var(--text-muted)] lg:hidden">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
                 </button>
-                <h1 class="text-lg font-bold text-slate-900 truncate">{{ $header ?? 'Client Portal' }}</h1>
+                <h1 class="text-sm font-semibold truncate" style="color: var(--text);">{{ $header ?? 'Client Portal' }}</h1>
             </div>
 
-            <!-- Top Right Balance & Currency -->
-            <div class="flex items-center gap-4">
+            <!-- Top Right: Wallet + Currency + Theme Toggle -->
+            <div class="flex items-center gap-3">
                 @auth
-                <div class="hidden sm:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-xl text-xs font-semibold">
-                    <span class="text-slate-500">Wallet:</span>
-                    <span class="text-indigo-600 font-extrabold">${{ number_format((float)auth()->user()->balance, 2) }}</span>
-                    @php
-                        $bdt = app(\App\Services\Currency\CurrencyConverter::class)->convert((float)auth()->user()->balance, 'BDT');
-                    @endphp
-                    <span class="text-slate-400">/ ৳{{ number_format($bdt, 2) }}</span>
-                    <a href="{{ route('client.wallet.index') }}" class="ml-1 text-xs text-indigo-600 hover:underline">+ Top Up</a>
+                <div class="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-[4px] border text-xs" style="background-color: var(--surface); border-color: var(--border);">
+                    <span style="color: var(--text-muted);">Wallet:</span>
+                    <span class="font-mono font-semibold" style="color: var(--text);">
+                        <x-price :usd="auth()->user()->balance" />
+                    </span>
+                    <a href="{{ route('client.wallet.index') }}" class="text-xs hover:underline font-medium" style="color: var(--accent);">+ Add funds</a>
                 </div>
                 @endauth
 
                 <x-currency-selector />
+                <x-theme-toggle />
+
+                <a href="{{ route('home') }}" target="_blank" class="cf-btn cf-btn-ghost cf-btn-sm text-xs">
+                    Storefront
+                </a>
             </div>
         </header>
 
         <!-- Page Body -->
-        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/60">
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" style="background-color: var(--bg);">
             @if(session('success'))
-                <div class="mb-6">
-                    <x-alert type="success" :message="session('success')" />
+                <div class="mb-4 p-3 rounded-[6px] text-xs flex items-center gap-2"
+                     style="background-color: var(--success-bg); border: 1px solid var(--success); color: var(--success);">
+                    <span>{{ session('success') }}</span>
                 </div>
             @endif
             @if(session('error'))
-                <div class="mb-6">
-                    <x-alert type="error" :message="session('error')" />
-                </div>
-            @endif
-            @if(session('info'))
-                <div class="mb-6">
-                    <x-alert type="info" :message="session('info')" />
+                <div class="mb-4 p-3 rounded-[6px] text-xs flex items-center gap-2"
+                     style="background-color: var(--danger-bg); border: 1px solid var(--danger); color: var(--danger);">
+                    <span>{{ session('error') }}</span>
                 </div>
             @endif
 

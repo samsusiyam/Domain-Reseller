@@ -23,7 +23,7 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'string', 'email', 'max:191', 'unique:users'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'password' => ['required', 'confirmed', Password::min(10)->letters()->numbers()->symbols()],
             'role' => ['nullable', 'in:client,reseller'],
             'phone' => ['nullable', 'string', 'max:30'],
             'company_name' => ['nullable', 'string', 'max:150'],
@@ -31,9 +31,11 @@ class RegisteredUserController extends Controller
         ]);
 
         $defaultCurrency = Currency::where('is_primary', true)->first();
+        $role = $request->input('role', 'client');
+        $isReseller = ($role === 'reseller');
 
         $user = User::create([
-            'role' => $request->input('role', 'client'),
+            'role' => $role,
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -42,11 +44,14 @@ class RegisteredUserController extends Controller
             'country' => $request->country ?? 'BD',
             'currency_id' => $defaultCurrency?->id,
             'balance' => 0.0000,
-            'status' => 'active',
-            'email_verified_at' => now(), // verified for ease of immediate use
+            'status' => $isReseller ? 'pending' : 'active',
+            'email_verified_at' => null, // requires email verification
         ]);
 
-        Auth::login($user);
+        // Send verification notification
+        if (method_exists($user, 'sendEmailVerificationNotification')) {
+            $user->sendEmailVerificationNotification();
+        }
 
         // Send welcome email in background
         SendEmailJob::dispatch($user->email, 'welcome_email', [
@@ -54,10 +59,12 @@ class RegisteredUserController extends Controller
             'login_url' => route('login'),
         ], $user->id);
 
-        if ($user->isReseller()) {
-            return redirect()->route('reseller.dashboard');
+        if ($isReseller) {
+            return redirect()->route('login')->with('success', 'Your reseller application has been submitted and is pending administrator review. Please check your email to verify your address.');
         }
 
-        return redirect()->route('client.dashboard');
+        Auth::login($user);
+
+        return redirect()->route('verification.notice');
     }
 }

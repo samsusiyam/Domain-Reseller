@@ -30,15 +30,71 @@ class NamesiloRegistrar extends AbstractRegistrar
 
     public function checkAvailability(string $domain): DomainAvailabilityDTO
     {
-        $isAvailable = !in_array(strtolower(trim($domain)), ['google.com', 'namesilo.com'], true);
+        $domain = strtolower(trim($domain));
+
+        if (!empty($this->apiKey)) {
+            try {
+                $response = $this->client->get('https://www.namesilo.com/api/checkRegisterAvailability', [
+                    'query' => [
+                        'version' => '1',
+                        'type' => 'xml',
+                        'key' => $this->apiKey,
+                        'domains' => $domain,
+                    ]
+                ]);
+
+                if ($response->getStatusCode() === 200) {
+                    $xml = simplexml_load_string((string) $response->getBody());
+                    if ($xml && isset($xml->reply->available->domain)) {
+                        $price = (float) ($xml->reply->available->domain['price'] ?? 9.95);
+                        return new DomainAvailabilityDTO(
+                            domain: $domain,
+                            isAvailable: true,
+                            isPremium: false,
+                            registrationCost: $price,
+                            renewalCost: $price,
+                            currency: 'USD',
+                            registrar: $this->getIdentifier(),
+                            status: 'available'
+                        );
+                    } elseif ($xml && isset($xml->reply->unavailable->domain)) {
+                        return new DomainAvailabilityDTO(
+                            domain: $domain,
+                            isAvailable: false,
+                            isPremium: false,
+                            registrationCost: 0,
+                            renewalCost: 0,
+                            currency: 'USD',
+                            registrar: $this->getIdentifier(),
+                            status: 'taken'
+                        );
+                    }
+                }
+            } catch (\Throwable $e) {
+                $this->logApiCall('checkAvailability_error', ['domain' => $domain], $e->getMessage());
+            }
+        }
+
+        if (config('registrars.test_mode', false)) {
+            $isAvailable = !in_array($domain, ['google.com', 'namesilo.com'], true);
+            return new DomainAvailabilityDTO(
+                domain: $domain,
+                isAvailable: $isAvailable,
+                isPremium: false,
+                registrationCost: 9.95,
+                renewalCost: 10.95,
+                currency: 'USD',
+                registrar: $this->getIdentifier(),
+                status: $isAvailable ? 'available' : 'taken',
+                isTestMode: true
+            );
+        }
 
         return new DomainAvailabilityDTO(
             domain: $domain,
-            isAvailable: $isAvailable,
-            isPremium: false,
-            registrationCost: 9.95,
-            renewalCost: 10.95,
-            currency: 'USD',
+            isAvailable: false,
+            status: 'error',
+            errorMessage: 'Upstream NameSilo API unavailable or credentials missing.',
             registrar: $this->getIdentifier()
         );
     }

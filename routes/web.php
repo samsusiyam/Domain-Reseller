@@ -10,6 +10,8 @@ use App\Http\Controllers\Client\LegalController;
 use App\Http\Controllers\Client\PaymentGatewayController;
 use App\Http\Controllers\Client\PricingPageController;
 use App\Http\Controllers\Client\WhoisLookupController;
+use App\Http\Controllers\Client\CartController;
+use App\Http\Controllers\Client\CheckoutController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,6 +32,20 @@ Route::post('/domain/check-bulk', [DomainSearchController::class, 'checkBulk'])-
 Route::get('/whois', [WhoisLookupController::class, 'index'])->name('whois.index');
 Route::post('/whois/query', [WhoisLookupController::class, 'query'])->name('whois.query');
 
+// Cart & Order Flows
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::patch('/cart/items/{domain}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/items/{domain}', [CartController::class, 'remove'])->name('cart.remove');
+Route::post('/cart/promo', [CartController::class, 'applyPromo'])->name('cart.promo.apply');
+Route::delete('/cart/promo', [CartController::class, 'removePromo'])->name('cart.promo.remove');
+
+// Checkout Flow
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout/failed', [CheckoutController::class, 'failed'])->name('checkout.failed');
+
 // Public Announcements & Knowledgebase
 Route::get('/announcements', [ClientAnnouncementController::class, 'publicIndex'])->name('announcements.index');
 Route::get('/announcements/{slug}', [ClientAnnouncementController::class, 'publicShow'])->name('announcements.show');
@@ -44,11 +60,19 @@ Route::get('/privacy', [LegalController::class, 'privacy'])->name('privacy');
 
 // Currency Switching
 Route::post('/currency/switch', [CurrencySwitchController::class, 'switch'])->name('currency.switch');
+Route::get('/api/rates', [CurrencySwitchController::class, 'rates'])->name('api.rates');
 
 // Payment Gateway Callbacks & Webhooks
 Route::match(['get', 'post'], '/payment/bkash/callback', [PaymentGatewayController::class, 'bkashCallback'])->name('payment.bkash.callback');
 Route::post('/payment/stripe/webhook', [PaymentGatewayController::class, 'stripeWebhook'])->name('payment.stripe.webhook');
 Route::post('/payment/binance/webhook', [PaymentGatewayController::class, 'binanceWebhook'])->name('payment.binance.webhook');
+
+// Style Guide (Local/Debug only)
+if (app()->environment('local') || config('app.debug')) {
+    Route::get('/dev/styleguide', function () {
+        return view('dev.styleguide');
+    })->name('dev.styleguide');
+}
 
 // Authentication routes
 require __DIR__.'/auth.php';

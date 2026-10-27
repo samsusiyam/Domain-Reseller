@@ -51,6 +51,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\MaintenanceMode::class,
         ]);
 
+        $middleware->encryptCookies(except: [
+            'currency',
+            'theme',
+        ]);
+
         // Disable CSRF verification for payment webhooks & external callbacks
         $middleware->validateCsrfTokens(except: [
             'webhook/*',

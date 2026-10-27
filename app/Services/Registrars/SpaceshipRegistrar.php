@@ -32,15 +32,56 @@ class SpaceshipRegistrar extends AbstractRegistrar
 
     public function checkAvailability(string $domain): DomainAvailabilityDTO
     {
-        $isAvailable = !in_array(strtolower(trim($domain)), ['google.com', 'microsoft.com'], true);
+        $domain = strtolower(trim($domain));
+
+        if (!empty($this->apiKey) && !empty($this->apiSecret)) {
+            try {
+                $response = $this->client->get('https://spaceship.dev/api/v1/domains/' . rawurlencode($domain) . '/available', [
+                    'headers' => [
+                        'X-API-Key' => $this->apiKey,
+                        'X-API-Secret' => $this->apiSecret,
+                    ]
+                ]);
+
+                if ($response->getStatusCode() === 200) {
+                    $data = json_decode((string) $response->getBody(), true);
+                    $available = (bool) ($data['available'] ?? false);
+                    return new DomainAvailabilityDTO(
+                        domain: $domain,
+                        isAvailable: $available,
+                        isPremium: (bool) ($data['premium'] ?? false),
+                        registrationCost: (float) ($data['price'] ?? 8.98),
+                        renewalCost: (float) ($data['renewalPrice'] ?? 10.48),
+                        currency: 'USD',
+                        registrar: $this->getIdentifier(),
+                        status: $available ? 'available' : 'taken'
+                    );
+                }
+            } catch (\Throwable $e) {
+                $this->logApiCall('checkAvailability_error', ['domain' => $domain], $e->getMessage());
+            }
+        }
+
+        if (config('registrars.test_mode', false)) {
+            $isAvailable = !in_array($domain, ['google.com', 'microsoft.com'], true);
+            return new DomainAvailabilityDTO(
+                domain: $domain,
+                isAvailable: $isAvailable,
+                isPremium: false,
+                registrationCost: 8.98,
+                renewalCost: 10.48,
+                currency: 'USD',
+                registrar: $this->getIdentifier(),
+                status: $isAvailable ? 'available' : 'taken',
+                isTestMode: true
+            );
+        }
 
         return new DomainAvailabilityDTO(
             domain: $domain,
-            isAvailable: $isAvailable,
-            isPremium: false,
-            registrationCost: 8.98,
-            renewalCost: 10.48,
-            currency: 'USD',
+            isAvailable: false,
+            status: 'error',
+            errorMessage: 'Upstream Spaceship API unavailable or credentials missing.',
             registrar: $this->getIdentifier()
         );
     }

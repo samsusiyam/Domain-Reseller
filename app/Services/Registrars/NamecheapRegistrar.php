@@ -77,16 +77,29 @@ class NamecheapRegistrar extends AbstractRegistrar
             }
         }
 
-        // Standard simulation fallback for development/sandbox
-        $isAvailable = !in_array(strtolower(trim($domain)), ['google.com', 'facebook.com', 'microsoft.com', 'apple.com', 'example.com'], true);
+        // Development/sandbox test mode only
+        if (config('registrars.test_mode', false)) {
+            $isAvailable = !in_array(strtolower(trim($domain)), ['google.com', 'facebook.com', 'microsoft.com', 'apple.com', 'example.com'], true);
 
+            return new DomainAvailabilityDTO(
+                domain: $domain,
+                isAvailable: $isAvailable,
+                isPremium: false,
+                registrationCost: 9.48,
+                renewalCost: 10.98,
+                currency: 'USD',
+                registrar: $this->getIdentifier(),
+                status: $isAvailable ? 'available' : 'taken',
+                isTestMode: true
+            );
+        }
+
+        // Production: never default to available on missing credentials or API error
         return new DomainAvailabilityDTO(
             domain: $domain,
-            isAvailable: $isAvailable,
-            isPremium: false,
-            registrationCost: 9.48,
-            renewalCost: 10.98,
-            currency: 'USD',
+            isAvailable: false,
+            status: 'error',
+            errorMessage: 'Upstream Namecheap API unavailable or credentials not configured.',
             registrar: $this->getIdentifier()
         );
     }

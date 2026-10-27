@@ -3,6 +3,8 @@
 return [
     'default' => env('DEFAULT_REGISTRAR', 'namecheap'),
 
+    'test_mode' => env('REGISTRAR_TEST_MODE', false),
+
     'low_balance_threshold' => env('REGISTRAR_LOW_BALANCE_THRESHOLD', 50.00),
 
     'modules' => [
@@ -39,6 +41,13 @@ return [
             'name' => 'NameSilo',
             'api_key' => env('NAMESILO_API_KEY'),
             'sandbox' => env('NAMESILO_SANDBOX', true),
+            'timeout' => 30,
+        ],
+        'cosmotown' => [
+            'name' => 'Cosmotown',
+            'api_key' => env('COSMOTOWN_API_KEY'),
+            'api_secret' => env('COSMOTOWN_API_SECRET'),
+            'sandbox' => env('COSMOTOWN_SANDBOX', true),
             'timeout' => 30,
         ],
     ],
