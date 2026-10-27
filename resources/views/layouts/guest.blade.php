@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>{{ $title ?? config('app.name', 'DomainReseller') }} — Wholesale Domain Registration</title>
     <meta name="description" content="Register domains at wholesale prices with multi-registrar failover. Pay in BDT or USD via bKash, Stripe, or Binance Pay.">
 
@@ -140,6 +142,7 @@
                                     <span class="font-semibold block text-slate-900 dark:text-white">Search</span>
                                     <span class="text-[11px] text-slate-500 dark:text-slate-400">Find single or bulk domain names</span>
                                 </a>
+<a href="{{ route('domain.transfer') }}" class="block px-3 py-2 text-xs rounded hover:bg-[var(--surface)] text-[var(--text)]">Transfer a domain</a>
                                 <a href="{{ route('pricing') }}" class="block px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors">
                                     <span class="font-semibold block text-slate-900 dark:text-white">Pricing</span>
                                     <span class="text-[11px] text-slate-500 dark:text-slate-400">Wholesale registration and renewal matrix</span>

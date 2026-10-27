@@ -5,7 +5,7 @@
     <!-- Sub-navigation tabs -->
     <div class="flex items-center gap-2 border-b border-slate-200 pb-3 text-sm font-semibold">
         <a href="{{ route('client.profile.edit') }}" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100">Personal Details</a>
-        <a href="{{ route('client.two-factor.index') }}" class="px-3.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-600">Two-Factor Authentication</a>
+        <a href="{{ route('client.two-factor.index') }}" class="px-3.5 py-1.5 rounded-lg bg-[#F6821F]/10 text-[#F6821F]">Two-Factor Authentication</a>
         <a href="{{ route('client.sessions.index') }}" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100">Browser Sessions</a>
     </div>
 
@@ -57,7 +57,7 @@
                     </button>
                 </form>
             @else
-                <a href="{{ route('client.two-factor.enable') }}" class="inline-flex items-center px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition shadow">
+                <a href="{{ route('client.two-factor.enable') }}" class="inline-flex items-center px-6 py-2.5 bg-[#F6821F] hover:bg-[#E07116] text-white font-bold text-sm rounded-xl transition shadow">
                     Enable Two-Factor Authentication &rarr;
                 </a>
             @endif

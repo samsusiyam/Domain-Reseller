@@ -225,4 +225,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->increment('balance', $amount);
     }
+
+    public function passkeys(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Passkey::class);
+    }
+
 }

@@ -27,6 +27,7 @@ Route::get('/reseller-program', [PricingPageController::class, 'resellerInfo'])-
 
 // Public Domain & WHOIS Search
 Route::get('/domain/search', [DomainSearchController::class, 'publicSearch'])->name('domain.search');
+Route::get('/domain/transfer', [DomainSearchController::class, 'publicTransfer'])->name('domain.transfer');
 Route::post('/domain/check', [DomainSearchController::class, 'checkSingle'])->name('domain.check');
 Route::post('/domain/check-bulk', [DomainSearchController::class, 'checkBulk'])->name('domain.check.bulk');
 Route::get('/whois', [WhoisLookupController::class, 'index'])->name('whois.index');

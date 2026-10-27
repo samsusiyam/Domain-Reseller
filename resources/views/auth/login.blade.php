@@ -74,6 +74,73 @@
     </button>
 </form>
 
+<div class="relative my-4">
+    <div class="absolute inset-0 flex items-center"><div class="w-full border-t" style="border-color: var(--border);"></div></div>
+    <div class="relative flex justify-center text-[11px] uppercase tracking-wider"><span class="px-2" style="background-color: var(--bg); color: var(--text-muted);">Or passwordless</span></div>
+</div>
+
+<!-- Passkey Sign-in Section -->
+<div x-data="{
+    authenticating: false,
+    passkeyError: '',
+
+    async loginWithPasskey() {
+        if (!window.PublicKeyCredential) {
+            this.passkeyError = 'Passkeys are not supported on this device or browser.';
+            return;
+        }
+        this.authenticating = true;
+        this.passkeyError = '';
+
+        try {
+            let optRes = await fetch('{{ route('passkeys.login.options') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+            let options = await optRes.json();
+            options.challenge = Uint8Array.from(atob(options.challenge), c => c.charCodeAt(0));
+
+            let assertion = await navigator.credentials.get({ publicKey: options });
+            let rawId = btoa(String.fromCharCode(...new Uint8Array(assertion.rawId)));
+
+            let verifyRes = await fetch('{{ route('passkeys.login.verify') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ credential_id: rawId })
+            });
+            let data = await verifyRes.json();
+            if (data.success) {
+                window.location.href = data.redirect || '{{ route('client.dashboard') }}';
+            } else {
+                this.passkeyError = data.message || 'Passkey verification failed.';
+            }
+        } catch(e) {
+            if (e.name !== 'NotAllowedError') {
+                this.passkeyError = e.message || 'Passkey login failed.';
+            }
+        } finally {
+            this.authenticating = false;
+        }
+    }
+}">
+    <p x-show="passkeyError" x-cloak class="text-xs text-red-500 mb-2 font-medium" x-text="passkeyError"></p>
+
+    <button type="button"
+            @click="loginWithPasskey()"
+            :disabled="authenticating"
+            class="cf-btn cf-btn-secondary w-full h-10 font-medium text-xs flex items-center justify-center gap-2 cursor-pointer">
+        <svg class="w-4 h-4 text-[#F6821F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
+        <span x-text="authenticating ? 'Scanning Passkey...' : 'Sign in with Passkey / Biometrics'"></span>
+    </button>
+</div>
+
 <div class="mt-5 pt-4 text-center text-xs" style="border-top: 1px solid var(--border); color: var(--text-muted);">
     Don't have an account?
     <a href="{{ route('register', request('next') ? ['next' => request('next')] : []) }}" class="font-medium hover:underline ml-1" style="color: var(--accent);">Create an account</a>

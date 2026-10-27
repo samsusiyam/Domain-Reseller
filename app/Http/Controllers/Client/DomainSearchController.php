@@ -13,6 +13,27 @@ class DomainSearchController extends Controller
         protected DomainAvailabilityService $availabilityService
     ) {}
 
+    
+    public function publicTransfer(Request $request)
+    {
+        $domain = strtolower(trim($request->query('domain', '')));
+        $allTlds = TldPricing::where('is_active', true)->get();
+
+        $tldModel = null;
+        $transferPrice = null;
+
+        if ($domain && str_contains($domain, '.')) {
+            $parts = explode('.', $domain, 2);
+            $tld = '.' . $parts[1];
+            $tldModel = TldPricing::where('tld', $tld)->where('is_active', true)->first();
+            if ($tldModel) {
+                $transferPrice = (float)$tldModel->client_transfer;
+            }
+        }
+
+        return view('domain.transfer', compact('domain', 'allTlds', 'tldModel', 'transferPrice'));
+    }
+
     public function publicSearch(Request $request)
     {
         $query = $request->query('query');

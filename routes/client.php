@@ -37,16 +37,37 @@ Route::prefix('profile')->name('profile.')->group(function () {
     Route::put('/password', [ClientProfileController::class, 'updatePassword'])->name('password');
 });
 
+
+Route::prefix('passkeys')->name('passkeys.')->group(function () {
+    Route::post('/register/options', [\App\Http\Controllers\Auth\PasskeyController::class, 'registerOptions'])->name('register.options');
+    Route::post('/register', [\App\Http\Controllers\Auth\PasskeyController::class, 'store'])->name('store');
+    Route::delete('/{passkey}', [\App\Http\Controllers\Auth\PasskeyController::class, 'destroy'])->name('destroy');
+});
+
 Route::prefix('two-factor')->name('two-factor.')->group(function () {
     Route::get('/', [TwoFactorAuthController::class, 'index'])->name('index');
-    Route::post('/enable', [TwoFactorAuthController::class, 'enable'])->name('enable');
+    Route::get('/enable', [TwoFactorAuthController::class, 'enable'])->name('enable');
+    Route::post('/enable', [TwoFactorAuthController::class, 'confirm'])->name('enable.post');
     Route::post('/confirm', [TwoFactorAuthController::class, 'confirm'])->name('confirm');
-    Route::delete('/disable', [TwoFactorAuthController::class, 'disable'])->name('disable');
+    Route::post('/disable', [TwoFactorAuthController::class, 'disable'])->name('disable');
+    Route::delete('/disable', [TwoFactorAuthController::class, 'disable'])->name('disable.delete');
 });
 
 Route::prefix('sessions')->name('sessions.')->group(function () {
     Route::get('/', [SessionController::class, 'index'])->name('index');
     Route::delete('/{id}', [SessionController::class, 'destroy'])->name('destroy');
+});
+
+
+// Contact Profiles
+Route::prefix('contacts')->name('contacts.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Client\ClientContactController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Client\ClientContactController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Client\ClientContactController::class, 'store'])->name('store');
+    Route::get('/{contact}/edit', [\App\Http\Controllers\Client\ClientContactController::class, 'edit'])->name('edit');
+    Route::put('/{contact}', [\App\Http\Controllers\Client\ClientContactController::class, 'update'])->name('update');
+    Route::post('/{contact}/default', [\App\Http\Controllers\Client\ClientContactController::class, 'setDefault'])->name('set-default');
+    Route::delete('/{contact}', [\App\Http\Controllers\Client\ClientContactController::class, 'destroy'])->name('destroy');
 });
 
 // Domain Registration & Transfer Cart

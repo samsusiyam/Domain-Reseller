@@ -11,6 +11,10 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
+    // Passkey WebAuthn Login
+    Route::post('passkeys/login/options', [\App\Http\Controllers\Auth\PasskeyController::class, 'loginOptions'])->name('passkeys.login.options');
+    Route::post('passkeys/login', [\App\Http\Controllers\Auth\PasskeyController::class, 'loginVerify'])->name('passkeys.login.verify');
+
     Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('register', [RegisteredUserController::class, 'store']);
 
