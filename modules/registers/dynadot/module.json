@@ -1,0 +1,8 @@
+{
+    "name": "Dynadot",
+    "slug": "dynadot",
+    "version": "1.0.0",
+    "author": "HostNibo",
+    "description": "Dynadot Domain Registrar Module using official API v3.",
+    "website": "https://www.dynadot.com"
+}

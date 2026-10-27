@@ -1,0 +1,7 @@
+{
+    "name": "Stripe Cards",
+    "slug": "stripe",
+    "version": "1.0.0",
+    "author": "HostNibo",
+    "description": "Stripe Cards Payment Gateway Module for HostNibo."
+}

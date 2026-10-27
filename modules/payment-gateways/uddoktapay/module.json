@@ -1,0 +1,7 @@
+{
+    "name": "UddoktaPay",
+    "slug": "uddoktapay",
+    "version": "1.0.0",
+    "author": "HostNibo",
+    "description": "UddoktaPay Payment Gateway Module for HostNibo."
+}

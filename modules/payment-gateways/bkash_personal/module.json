@@ -1,0 +1,7 @@
+{
+    "name": "bKash Personal (Send Money)",
+    "slug": "bkash_personal",
+    "version": "1.0.0",
+    "author": "HostNibo",
+    "description": "bKash Personal (Send Money) Payment Gateway Module for HostNibo."
+}

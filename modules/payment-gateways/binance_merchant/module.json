@@ -1,0 +1,7 @@
+{
+    "name": "Binance Pay Merchant",
+    "slug": "binance_merchant",
+    "version": "1.0.0",
+    "author": "HostNibo",
+    "description": "Binance Pay Merchant Payment Gateway Module for HostNibo."
+}

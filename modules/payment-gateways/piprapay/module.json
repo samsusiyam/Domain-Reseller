@@ -1,0 +1,7 @@
+{
+    "name": "PipraPay v3",
+    "slug": "piprapay",
+    "version": "1.0.0",
+    "author": "HostNibo",
+    "description": "PipraPay v3 Payment Gateway Module for HostNibo."
+}

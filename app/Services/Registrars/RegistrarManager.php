@@ -9,24 +9,18 @@ use InvalidArgumentException;
 
 class RegistrarManager extends Manager
 {
-    /**
-     * Get the default driver name.
-     */
     public function getDefaultDriver(): string
     {
         return config('registrars.default', 'namecheap');
     }
 
-    /**
-     * Resolve registrar driver with dynamic config from DB if available.
-     */
     public function driver($driver = null): RegistrarModuleInterface
     {
         $driver = $driver ?: $this->getDefaultDriver();
         return parent::driver($driver);
     }
 
-    protected function getMergedConfig(string $slug): array
+    public function getMergedConfig(string $slug): array
     {
         $fileConfig = config("registrars.modules.{$slug}", []);
 
@@ -44,38 +38,51 @@ class RegistrarManager extends Manager
         return $fileConfig;
     }
 
+    protected function resolveModuleClass(string $slug, string $defaultClass): RegistrarModuleInterface
+    {
+        $config = $this->getMergedConfig($slug);
+        $moduleClass = "\\Modules\\Registers\\" . ucfirst($slug) . "\\" . $defaultClass;
+        
+        if (class_exists($moduleClass)) {
+            return new $moduleClass($config);
+        }
+
+        $fallbackClass = "\\App\\Services\\Registrars\\" . $defaultClass;
+        return new $fallbackClass($config);
+    }
+
     public function createNamecheapDriver(): RegistrarModuleInterface
     {
-        return new NamecheapRegistrar($this->getMergedConfig('namecheap'));
+        return $this->resolveModuleClass('namecheap', 'NamecheapRegistrar');
     }
 
     public function createSpaceshipDriver(): RegistrarModuleInterface
     {
-        return new SpaceshipRegistrar($this->getMergedConfig('spaceship'));
+        return $this->resolveModuleClass('spaceship', 'SpaceshipRegistrar');
     }
 
     public function createDynadotDriver(): RegistrarModuleInterface
     {
-        return new DynadotRegistrar($this->getMergedConfig('dynadot'));
+        return $this->resolveModuleClass('dynadot', 'DynadotRegistrar');
     }
 
     public function createAtakdomainDriver(): RegistrarModuleInterface
     {
-        return new AtakDomainRegistrar($this->getMergedConfig('atakdomain'));
+        return $this->resolveModuleClass('atakdomain', 'AtakDomainRegistrar');
     }
 
     public function createNamesiloDriver(): RegistrarModuleInterface
     {
-        return new NamesiloRegistrar($this->getMergedConfig('namesilo'));
+        return $this->resolveModuleClass('namesilo', 'NamesiloRegistrar');
     }
 
     public function createCosmotownDriver(): RegistrarModuleInterface
     {
-        return new CosmotownRegistrar($this->getMergedConfig('cosmotown'));
+        return $this->resolveModuleClass('cosmotown', 'CosmotownRegistrar');
     }
 
     public function createUnstoppabledomainsDriver(): RegistrarModuleInterface
     {
-        return new UnstoppableDomainsRegistrar($this->getMergedConfig('unstoppabledomains'));
+        return $this->resolveModuleClass('unstoppabledomains', 'UnstoppableDomainsRegistrar');
     }
 }

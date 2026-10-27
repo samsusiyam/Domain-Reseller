@@ -30,7 +30,16 @@ class RegistrarModuleController extends Controller
     public function edit($id)
     {
         $registrar = RegistrarModule::findOrFail($id);
-        return view('admin.registrars.edit', compact('registrar'));
+        $fields = [];
+        try {
+            $driver = $this->registrarManager->driver($registrar->slug);
+            if (method_exists($driver, 'getConfigFields')) {
+                $fields = $driver->getConfigFields();
+            }
+        } catch (\Throwable $e) {
+            // fallback
+        }
+        return view('admin.registrars.edit', compact('registrar', 'fields'));
     }
 
     /**

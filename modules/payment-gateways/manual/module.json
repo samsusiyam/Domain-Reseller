@@ -1,0 +1,7 @@
+{
+    "name": "Manual Bank Wire",
+    "slug": "manual",
+    "version": "1.0.0",
+    "author": "HostNibo",
+    "description": "Manual Bank Wire Payment Gateway Module for HostNibo."
+}

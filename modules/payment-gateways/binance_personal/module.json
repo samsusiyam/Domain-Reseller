@@ -1,0 +1,7 @@
+{
+    "name": "Binance Personal Pay ID",
+    "slug": "binance_personal",
+    "version": "1.0.0",
+    "author": "HostNibo",
+    "description": "Binance Personal Pay ID Payment Gateway Module for HostNibo."
+}

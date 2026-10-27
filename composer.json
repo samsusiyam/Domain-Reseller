@@ -3,7 +3,14 @@
     "name": "domainreseller/platform",
     "type": "project",
     "description": "Production Domain Reseller Platform with WHMCS-compatible API, Multi-Registrar & Multi-Gateway Support.",
-    "keywords": ["domain", "reseller", "whmcs", "registrar", "billing", "laravel"],
+    "keywords": [
+        "domain",
+        "reseller",
+        "whmcs",
+        "registrar",
+        "billing",
+        "laravel"
+    ],
     "license": "proprietary",
     "require": {
         "php": "^8.2",
@@ -27,7 +34,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "classmap": [
+            "modules/"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

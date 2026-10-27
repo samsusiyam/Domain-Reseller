@@ -2,120 +2,171 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
-    <div class="flex items-center gap-3">
-        <a href="{{ route('admin.registrars.index') }}" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-        </a>
-        <div>
-            <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Configure {{ $registrar->name }} Module</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage upstream API credentials, authentication tokens, and environment mode.</p>
+    <!-- Header with Back Button -->
+    <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.registrars.index') }}" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+            </a>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Configure {{ $registrar->name }} Module</h1>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium {{ $registrar->environment === 'production' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' }}">
+                        {{ strtoupper($registrar->environment) }}
+                    </span>
+                    @if($registrar->is_default)
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-[#F6821F]/10 text-[#F6821F] border border-[#F6821F]/20">
+                            DEFAULT REGISTRAR
+                        </span>
+                    @endif
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Isolated driver module located at <code class="font-mono text-[#F6821F]">modules/registers/{{ $registrar->slug }}/</code>
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.registrars.test', $registrar->id) }}"
+               class="cf-btn cf-btn-secondary text-xs inline-flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Test Connection
+            </a>
         </div>
     </div>
 
-    <div class="bg-white dark:bg-[#111827] rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 p-6 sm:p-8">
+    @if(session('success'))
+        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium flex items-center justify-between">
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-medium flex items-center justify-between">
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
+
+    <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs">
         <form action="{{ route('admin.registrars.update', $registrar->id) }}" method="POST" class="space-y-6">
             @csrf
             @method('PUT')
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <!-- Module Core Environment -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pb-6 border-b border-slate-100 dark:border-slate-800">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                        Environment Mode
+                    <label for="environment" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
+                        Environment Mode <span class="text-red-500">*</span>
                     </label>
-                    <select name="environment" required class="cf-input w-full font-semibold">
-                        <option value="production" {{ old('environment', $registrar->environment) === 'production' ? 'selected' : '' }}>Production (Live Registering)</option>
-                        <option value="sandbox" {{ old('environment', $registrar->environment) === 'sandbox' ? 'selected' : '' }}>Sandbox / Testbed (OT&E)</option>
+                    <select name="environment" id="environment" required class="cf-input w-full font-semibold">
+                        <option value="sandbox" {{ old('environment', $registrar->environment) === 'sandbox' ? 'selected' : '' }}>
+                            Sandbox / Testbed (OT&E)
+                        </option>
+                        <option value="production" {{ old('environment', $registrar->environment) === 'production' ? 'selected' : '' }}>
+                            Production (Live Registration)
+                        </option>
                     </select>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                        Select whether API commands execute against upstream live registry or sandbox testbed.
+                    </p>
                 </div>
 
-                <div class="flex items-center pt-6">
-                    <label class="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-slate-800 dark:text-slate-200">
-                        <input type="checkbox" name="is_active" value="1" {{ old('is_active', $registrar->is_active) ? 'checked' : '' }}
+                <div class="flex items-center">
+                    <label class="flex items-center gap-3 cursor-pointer pt-3">
+                        <input type="checkbox" name="is_active" value="1"
+                               {{ old('is_active', $registrar->is_active) ? 'checked' : '' }}
                                class="rounded border-slate-300 dark:border-slate-700 text-[#F6821F] focus:ring-[#F6821F]">
-                        Enable this Registrar Module
+                        <div>
+                            <span class="text-xs font-medium text-slate-900 dark:text-white block">Enable this Registrar Module</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400 block">Allow storefront and automated tasks to route operations through this provider</span>
+                        </div>
                     </label>
                 </div>
             </div>
 
-            <!-- API Credentials Specific Fields -->
-            <div class="pt-5 border-t border-slate-100 dark:border-slate-800">
-                <h4 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">
-                    API Authentication Credentials
-                </h4>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    @php $config = (array) ($registrar->config ?? []); @endphp
+            <!-- Dynamic Schema-Driven Credentials Section (WHMCS Style) -->
+            <div>
+                <h3 class="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span>API Authentication Credentials</span>
+                    <span class="text-[11px] font-normal lowercase font-mono text-slate-400">defined by {{ $registrar->slug }} module</span>
+                </h3>
 
-                    @if($registrar->slug === 'namecheap')
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">API Username</label>
-                            <input type="text" name="config[api_user]" value="{{ old('config.api_user', $config['api_user'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">API Key</label>
-                            <input type="password" name="config[api_key]" value="{{ old('config.api_key', $config['api_key'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Username (Account)</label>
-                            <input type="text" name="config[username]" value="{{ old('config.username', $config['username'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Whitelisted Client IP</label>
-                            <input type="text" name="config[client_ip]" value="{{ old('config.client_ip', $config['client_ip'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                    @elseif($registrar->slug === 'spaceship')
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">API Key</label>
-                            <input type="password" name="config[api_key]" value="{{ old('config.api_key', $config['api_key'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">API Secret</label>
-                            <input type="password" name="config[api_secret]" value="{{ old('config.api_secret', $config['api_secret'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                    @elseif($registrar->slug === 'dynadot')
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">API Secret Key</label>
-                            <input type="password" name="config[api_key]" value="{{ old('config.api_key', $config['api_key'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                    @elseif($registrar->slug === 'cosmotown')
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Cosmotown API Key</label>
-                            <input type="password" name="config[api_key]" value="{{ old('config.api_key', $config['api_key'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Cosmotown API Secret</label>
-                            <input type="password" name="config[api_secret]" value="{{ old('config.api_secret', $config['api_secret'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                    @elseif($registrar->slug === 'unstoppabledomains')
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Unstoppable API Key (Bearer Token)</label>
-                            <input type="password" name="config[api_key]" value="{{ old('config.api_key', $config['api_key'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Reseller ID / Partner Identifier</label>
-                            <input type="text" name="config[reseller_id]" value="{{ old('config.reseller_id', $config['reseller_id'] ?? 'hostnibo') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                    @elseif($registrar->slug === 'namesilo')
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">API Key</label>
-                            <input type="password" name="config[api_key]" value="{{ old('config.api_key', $config['api_key'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
+                <div class="space-y-4">
+                    @if(!empty($fields))
+                        @foreach($fields as $key => $field)
+                            <div>
+                                <label for="config_{{ $key }}" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                    {{ $field['label'] ?? ucfirst($key) }}
+                                    @if(!empty($field['required'])) <span class="text-red-500">*</span> @endif
+                                </label>
+
+                                @if(($field['type'] ?? 'text') === 'password')
+                                    <input type="password"
+                                           name="config[{{ $key }}]"
+                                           id="config_{{ $key }}"
+                                           value="{{ old('config.' . $key, $registrar->config[$key] ?? '') }}"
+                                           placeholder="{{ $field['placeholder'] ?? '' }}"
+                                           class="cf-input w-full font-mono text-xs"
+                                           @if(!empty($field['required'])) required @endif>
+                                @elseif(($field['type'] ?? 'text') === 'textarea')
+                                    <textarea name="config[{{ $key }}]"
+                                              id="config_{{ $key }}"
+                                              rows="3"
+                                              placeholder="{{ $field['placeholder'] ?? '' }}"
+                                              class="cf-input w-full font-mono text-xs">{{ old('config.' . $key, $registrar->config[$key] ?? '') }}</textarea>
+                                @elseif(($field['type'] ?? 'text') === 'select')
+                                    <select name="config[{{ $key }}]" id="config_{{ $key }}" class="cf-input w-full font-semibold">
+                                        @foreach(($field['options'] ?? []) as $val => $lbl)
+                                            <option value="{{ $val }}" {{ old('config.' . $key, $registrar->config[$key] ?? '') == $val ? 'selected' : '' }}>
+                                                {{ $lbl }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <input type="text"
+                                           name="config[{{ $key }}]"
+                                           id="config_{{ $key }}"
+                                           value="{{ old('config.' . $key, $registrar->config[$key] ?? '') }}"
+                                           placeholder="{{ $field['placeholder'] ?? '' }}"
+                                           class="cf-input w-full font-mono text-xs"
+                                           @if(!empty($field['required'])) required @endif>
+                                @endif
+
+                                @if(!empty($field['description']))
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                        {{ $field['description'] }}
+                                    </p>
+                                @endif
+                            </div>
+                        @endforeach
                     @else
+                        <!-- Fallback default API Key -->
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">API Key / Token</label>
-                            <input type="password" name="config[api_key]" value="{{ old('config.api_key', $config['api_key'] ?? '') }}" class="cf-input w-full font-mono text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">API Secret (If required)</label>
-                            <input type="password" name="config[api_secret]" value="{{ old('config.api_secret', $config['api_secret'] ?? '') }}" class="cf-input w-full font-mono text-xs">
+                            <label for="config_api_key" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                API Key <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password"
+                                   name="config[api_key]"
+                                   id="config_api_key"
+                                   value="{{ old('config.api_key', $registrar->config['api_key'] ?? '') }}"
+                                   placeholder="Upstream API Key"
+                                   class="cf-input w-full font-mono text-xs"
+                                   required>
                         </div>
                     @endif
                 </div>
             </div>
 
-            <div class="flex items-center justify-end gap-3 pt-5 border-t border-slate-100 dark:border-slate-800">
-                <a href="{{ route('admin.registrars.index') }}" class="cf-btn cf-btn-secondary text-xs">Cancel</a>
-                <button type="submit" class="cf-btn cf-btn-primary text-xs inline-flex items-center gap-1.5">
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <a href="{{ route('admin.registrars.index') }}" class="cf-btn cf-btn-secondary text-xs">
+                    Cancel
+                </a>
+                <button type="submit" class="cf-btn cf-btn-primary text-xs inline-flex items-center gap-1.5 shadow-xs">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
