@@ -103,15 +103,8 @@
 
                 <!-- Logo Left -->
                 <div class="flex items-center gap-8">
-                    <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-                        <div class="w-7 h-7 rounded-[6px] bg-[#F6821F] flex items-center justify-center text-white shrink-0">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
-                            </svg>
-                        </div>
-                        <span class="font-bold text-[16px] tracking-tight text-slate-900 dark:text-white">
-                            {{ config('app.name', 'DomainReseller') }}
-                        </span>
+                    <a href="{{ route('home') }}" class="flex items-center">
+                        <x-brand-logo class="h-8 w-auto" :show-text="false" />
                     </a>
 
                     <!-- Navigation Links -->
@@ -142,7 +135,10 @@
                                     <span class="font-semibold block text-slate-900 dark:text-white">Search</span>
                                     <span class="text-[11px] text-slate-500 dark:text-slate-400">Find single or bulk domain names</span>
                                 </a>
-<a href="{{ route('domain.transfer') }}" class="block px-3 py-2 text-xs rounded hover:bg-[var(--surface)] text-[var(--text)]">Transfer a domain</a>
+<a href="{{ route('domain.transfer') }}" class="block px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors">
+                                    <span class="font-semibold block text-slate-900 dark:text-white">Transfer</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Migrate existing domains with seamless renewal</span>
+                                </a>
                                 <a href="{{ route('pricing') }}" class="block px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors">
                                     <span class="font-semibold block text-slate-900 dark:text-white">Pricing</span>
                                     <span class="text-[11px] text-slate-500 dark:text-slate-400">Wholesale registration and renewal matrix</span>
@@ -346,11 +342,8 @@
 
                 <!-- Col 1: Platform Summary & Support -->
                 <div class="space-y-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-5 h-5 rounded-[4px] bg-[#F6821F] flex items-center justify-center text-white text-[11px] font-bold">
-                            DR
-                        </div>
-                        <span class="font-semibold text-[14px]" style="color: var(--text);">{{ config('app.name', 'DomainReseller') }}</span>
+                    <div class="mb-3">
+                        <x-brand-logo class="h-7 w-auto" :show-text="false" />
                     </div>
                     <p class="text-[12px] leading-relaxed">
                         Wholesale domain registration platform connecting upstream registries with dual USD and BDT billing.

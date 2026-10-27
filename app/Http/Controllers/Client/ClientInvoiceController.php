@@ -60,15 +60,21 @@ class ClientInvoiceController extends Controller
 
         // 2. Pay via gateway
         $driver = $this->paymentManager->driver($gateway);
+        $supportedCurrs = $driver->getSupportedCurrencies();
+        $targetCurr = in_array('BDT', $supportedCurrs) && !in_array('USD', $supportedCurrs) ? 'BDT' : 'USD';
+        $amount = $targetCurr === 'BDT'
+            ? app(\App\Services\Currency\CurrencyConverter::class)->usdToBdt((float)$invoice->balance_due)
+            : (float)$invoice->balance_due;
+
         $paymentReq = new PaymentRequestDTO(
             invoiceId: (string) $invoice->id,
-            amount: (float) $invoice->balance_due,
-            currency: 'USD',
+            amount: $amount,
+            currency: $targetCurr,
             returnUrl: route('payment.callback', ['gateway' => $gateway]),
             cancelUrl: route('client.invoices.show', $invoice->id),
             customerEmail: Auth::user()->email,
             customerName: Auth::user()->name,
-            customerPhone: Auth::user()->phone
+            customerPhone: Auth::user()->phone ?? '01849693630'
         );
 
         $redirect = $driver->initializePayment($paymentReq);

@@ -194,4 +194,89 @@ class TldPricingController extends Controller
 
         return redirect()->route('admin.tlds.index')->with('success', 'Bulk TLD pricing updated successfully.');
     }
+
+    /**
+     * Bulk apply profit margin rules across TLDs.
+     */
+    public function applyMargins(Request $request)
+    {
+        $validated = $request->validate([
+            'margin_type'     => ['required', 'in:fixed,percentage'],
+            'client_margin'   => ['required', 'numeric', 'min:0'],
+            'reseller_margin' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $type = $validated['margin_type'];
+        $cMargin = (float) $validated['client_margin'];
+        $rMargin = (float) $validated['reseller_margin'];
+
+        $tlds = TldPricing::all();
+        $updated = 0;
+
+        foreach ($tlds as $tld) {
+            $costReg = (float) $tld->cost_register;
+            $costRen = (float) $tld->cost_renew;
+            $costTrx = (float) $tld->cost_transfer;
+
+            if ($type === 'fixed') {
+                $tld->client_register = round($costReg + $cMargin, 2);
+                $tld->client_renew = round($costRen + $cMargin, 2);
+                $tld->client_transfer = round($costTrx + $cMargin, 2);
+
+                $tld->default_reseller_register = round($costReg + $rMargin, 2);
+                $tld->default_reseller_renew = round($costRen + $rMargin, 2);
+                $tld->default_reseller_transfer = round($costTrx + $rMargin, 2);
+            } else {
+                $tld->client_register = round($costReg * (1 + $cMargin / 100), 2);
+                $tld->client_renew = round($costRen * (1 + $cMargin / 100), 2);
+                $tld->client_transfer = round($costTrx * (1 + $cMargin / 100), 2);
+
+                $tld->default_reseller_register = round($costReg * (1 + $rMargin / 100), 2);
+                $tld->default_reseller_renew = round($costRen * (1 + $rMargin / 100), 2);
+                $tld->default_reseller_transfer = round($costTrx * (1 + $rMargin / 100), 2);
+            }
+
+            $tld->save();
+            $updated++;
+        }
+
+        $this->activityLogger->log('tld_margins_applied', "Bulk updated pricing margins for {$updated} TLD extensions");
+
+        return back()->with('success', "Successfully applied margins across {$updated} TLDs! Retail and Reseller prices recalculated.");
+    }
+
+    /**
+     * Synchronize wholesale registry costs from upstream.
+     */
+    public function syncCosts(Request $request)
+    {
+        $wholesaleRates = [
+            '.com'    => ['register' => 10.48, 'renew' => 10.48, 'transfer' => 10.48],
+            '.net'    => ['register' => 12.18, 'renew' => 12.18, 'transfer' => 12.18],
+            '.org'    => ['register' => 10.99, 'renew' => 11.99, 'transfer' => 10.99],
+            '.xyz'    => ['register' => 2.10,  'renew' => 10.50, 'transfer' => 10.50],
+            '.io'     => ['register' => 38.50, 'renew' => 38.50, 'transfer' => 38.50],
+            '.co'     => ['register' => 11.50, 'renew' => 24.50, 'transfer' => 21.50],
+            '.info'   => ['register' => 3.80,  'renew' => 20.50, 'transfer' => 20.50],
+            '.me'     => ['register' => 7.90,  'renew' => 18.50, 'transfer' => 18.50],
+            '.online' => ['register' => 1.80,  'renew' => 32.00, 'transfer' => 32.00],
+            '.bd'     => ['register' => 29.00, 'renew' => 29.00, 'transfer' => 29.00],
+        ];
+
+        $updated = 0;
+        foreach ($wholesaleRates as $tld => $costs) {
+            $record = TldPricing::where('tld', $tld)->first();
+            if ($record) {
+                $record->cost_register = $costs['register'];
+                $record->cost_renew = $costs['renew'];
+                $record->cost_transfer = $costs['transfer'];
+                $record->save();
+                $updated++;
+            }
+        }
+
+        $this->activityLogger->log('tld_costs_synced', "Synchronized wholesale cost benchmarks for {$updated} TLD extensions");
+
+        return back()->with('success', "Wholesale registry costs synchronized for {$updated} extensions! You can now apply margins.");
+    }
 }

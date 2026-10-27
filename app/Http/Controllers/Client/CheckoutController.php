@@ -77,7 +77,7 @@ class CheckoutController extends Controller
 
         $request->validate([
             'idempotency_key' => ['required', 'string'],
-            'payment_method' => ['required', 'in:balance,bkash,stripe,binance,bank_transfer'],
+            'payment_method' => ['required', 'in:balance,bkash,bkash_personal,uddoktapay,sslcommerz,piprapay,binance_personal,binance_merchant,binance,stripe,manual,bank_transfer'],
             'contact_type' => ['required', 'in:existing,new'],
             'contact_id' => ['nullable', 'exists:contacts,id'],
             'first_name' => ['required_if:contact_type,new', 'nullable', 'string', 'max:100'],
@@ -192,12 +192,13 @@ class CheckoutController extends Controller
                 return redirect()->route('checkout.success', ['order_id' => $order->uuid]);
             }
 
-            if ($paymentMethod === 'bank_transfer') {
+            // Handle bank transfer / manual
+            if ($paymentMethod === 'bank_transfer' || $paymentMethod === 'manual') {
                 Transaction::create([
                     'user_id' => $user->id,
                     'invoice_id' => $invoice->id,
                     'gateway' => 'manual',
-                    'gateway_transaction_id' => $request->input('bank_trx_id', 'BANK-' . strtoupper(Str::random(6))),
+                    'gateway_transaction_id' => $request->input('bank_trx_id', 'MANUAL-' . strtoupper(Str::random(6))),
                     'type' => 'credit',
                     'amount' => $totals['total'],
                     'currency' => 'USD',
@@ -217,14 +218,14 @@ class CheckoutController extends Controller
                 return redirect()->route('checkout.success', ['order_id' => $order->uuid, 'pending' => 1]);
             }
 
-            // For bKash / Stripe / Binance Pay simulated or direct flows
-            if (in_array($paymentMethod, ['bkash', 'stripe', 'binance'], true)) {
-                $invoice->update(['payment_method' => $paymentMethod]);
-                $this->cartService->clear();
-                Cache::put($cacheKey, $order->uuid, now()->addHours(1));
+            // Direct route to full payment gateway flow
+            $this->cartService->clear();
+            Cache::put($cacheKey, $order->uuid, now()->addHours(1));
 
-                return redirect()->route('checkout.success', ['order_id' => $order->uuid, 'gateway' => $paymentMethod]);
-            }
+            return redirect()->route('payment.checkout', [
+                'invoice' => $invoice->id,
+                'gateway' => $paymentMethod,
+            ]);
 
         } catch (\Throwable $e) {
             return redirect()->route('checkout.failed', [

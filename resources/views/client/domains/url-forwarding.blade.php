@@ -4,55 +4,22 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Domain Header & Sub-Nav -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('client.domains.show', $domain->id) }}" class="text-slate-400 hover:text-slate-600 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    </a>
-                    <h1 class="text-2xl font-bold text-slate-800">{{ $domain->domain_name }}</h1>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
-                        {{ $domain->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
-                        {{ ucfirst($domain->status) }}
-                    </span>
-                </div>
-                <p class="text-sm text-slate-500 mt-1">Configure 301, 302, and masked web forwarding for this domain.</p>
-            </div>
-            <div>
-                <a href="{{ route('client.domains.show', $domain->id) }}" class="inline-flex items-center px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition">
-                    Domain Overview
-                </a>
-            </div>
-        </div>
-
-        <!-- Domain Navigation Tabs -->
-        <div class="flex items-center gap-2 border-b border-slate-200 mt-6 -mb-6 overflow-x-auto text-sm">
-            <a href="{{ route('client.domains.show', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">Overview</a>
-            <a href="{{ route('client.domains.nameservers.edit', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">Nameservers</a>
-            <a href="{{ route('client.domains.dns.index', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">DNS Records</a>
-            <a href="{{ route('client.domains.child-ns.index', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">Glue Records</a>
-            <a href="{{ route('client.domains.whois.edit', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">WHOIS Contacts</a>
-            <a href="{{ route('client.domains.email-forwarding.index', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">Email Forwarding</a>
-            <a href="{{ route('client.domains.url-forwarding.index', $domain->id) }}" class="px-4 py-3 text-brand-600 border-b-2 border-brand-600 font-semibold whitespace-nowrap">URL Redirection</a>
-        </div>
-    </div>
+    <x-domain-tabs :domain=\$domain active="url-forwarding" />
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-data="{ redirectType: '301' }">
         <!-- Add URL Forward Form -->
         <div class="lg:col-span-1">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-6">
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Add URL Redirect</h3>
+            <div class="bg-white dark:bg-[#111827] rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 dark:border-slate-800 p-6 sticky top-6">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Add URL Redirect</h3>
                 <form action="{{ route('client.domains.url-forwarding.store', $domain->id) }}" method="POST" class="space-y-4">
                     @csrf
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Source Subdomain</label>
                         <div class="flex rounded-lg shadow-sm border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500">
                             <input type="text" name="source_subdomain" placeholder="@"
-                                class="flex-1 px-3 py-2 text-sm text-slate-800 border-none focus:outline-none"
+                                class="flex-1 px-3 py-2 text-sm text-slate-800 dark:text-white border-none focus:outline-none"
                                 value="{{ old('source_subdomain', '@') }}">
-                            <span class="inline-flex items-center px-3 bg-slate-50 text-slate-500 text-sm border-l border-slate-300">
+                            <span class="inline-flex items-center px-3 bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-sm border-l border-slate-300">
                                 .{{ $domain->domain_name }}
                             </span>
                         </div>
@@ -99,10 +66,10 @@
 
         <!-- Redirections List -->
         <div class="lg:col-span-2">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-white dark:bg-[#111827] rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 dark:border-slate-800 overflow-hidden">
                 <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-800">Active URL Redirects</h3>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white">Active URL Redirects</h3>
                         <p class="text-sm text-slate-500 mt-0.5">Visitors accessing these hosts will be routed accordingly.</p>
                     </div>
                     <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full">
@@ -121,7 +88,7 @@
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm text-slate-600">
-                            <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200 dark:border-slate-800">
                                 <tr>
                                     <th class="px-6 py-3.5">Source Host</th>
                                     <th class="px-6 py-3.5">Type</th>
@@ -131,15 +98,15 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 @foreach($forwards as $forward)
-                                    <tr class="hover:bg-slate-50/50 transition">
-                                        <td class="px-6 py-4 font-mono font-medium text-slate-800">
+                                    <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 transition">
+                                        <td class="px-6 py-4 font-mono font-medium text-slate-800 dark:text-white">
                                             {{ $forward->source_subdomain === '@' ? $domain->domain_name : $forward->source_subdomain . '.' . $domain->domain_name }}
                                         </td>
                                         <td class="px-6 py-4">
                                             @if($forward->redirect_type === '301')
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">301 Permanent</span>
                                             @elseif($forward->redirect_type === '302')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">302 Temporary</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:text-blue-300">302 Temporary</span>
                                             @else
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">Masked</span>
                                             @endif

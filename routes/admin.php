@@ -4,11 +4,13 @@ use App\Http\Controllers\Admin\SystemHealthController;
 
 
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\ApiRequestLogController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\ClientManagementController;
 use App\Http\Controllers\Admin\CurrencySettingController;
 use App\Http\Controllers\Admin\DomainManagementController;
+use App\Http\Controllers\Admin\DomainLifecycleController;
 use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\Admin\InvoiceManagementController;
 use App\Http\Controllers\Admin\ManualPaymentController;
@@ -19,6 +21,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ResellerManagementController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\SystemSettingController;
+use App\Http\Controllers\Admin\SmsSettingController;
 use App\Http\Controllers\Admin\TldPricingController;
 use App\Http\Controllers\Admin\TransactionManagementController;
 use Illuminate\Support\Facades\Route;
@@ -64,7 +67,10 @@ Route::prefix('resellers')->name('resellers.')->group(function () {
 });
 
 // Domain Management
-Route::prefix('domains')->name('domains.')->group(function () {
+Route::get('domains-lifecycle', [DomainLifecycleController::class, 'index'])->name('domains.lifecycle');
+    Route::post('domains-lifecycle/{id}/notice', [DomainLifecycleController::class, 'sendNotice'])->name('domains.lifecycle.notice');
+
+    Route::prefix('domains')->name('domains.')->group(function () {
     Route::get('/', [DomainManagementController::class, 'index'])->name('index');
     Route::get('/{domain}', [DomainManagementController::class, 'show'])->name('show');
     Route::get('/{domain}/edit', [DomainManagementController::class, 'edit'])->name('edit');
@@ -87,6 +93,8 @@ Route::prefix('tlds')->name('tlds.')->group(function () {
     Route::put('/{tld}', [TldPricingController::class, 'update'])->name('update');
     Route::delete('/{tld}', [TldPricingController::class, 'destroy'])->name('destroy');
     Route::post('/bulk-update', [TldPricingController::class, 'bulkUpdate'])->name('bulk-update');
+    Route::post('/apply-margins', [TldPricingController::class, 'applyMargins'])->name('apply-margins');
+    Route::post('/sync-costs', [TldPricingController::class, 'syncCosts'])->name('sync-costs');
 });
 
 // Registrar Modules
@@ -172,9 +180,19 @@ Route::prefix('activity-logs')->name('activity-logs.')->group(function () {
     Route::delete('/clear-old', [ActivityLogController::class, 'clearOld'])->name('clear-old');
 });
 
+// WHMCS & Reseller API Inspector
+Route::prefix('api-logs')->name('api-logs.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\ApiRequestLogController::class, 'index'])->name('index');
+    Route::get('/{id}', [\App\Http\Controllers\Admin\ApiRequestLogController::class, 'show'])->name('show');
+    Route::post('/clear', [\App\Http\Controllers\Admin\ApiRequestLogController::class, 'clear'])->name('clear');
+});
+
 // System Settings
 Route::prefix('settings')->name('settings.')->group(function () {
     Route::get('/gateways', [SystemSettingController::class, 'gateways'])->name('gateways');
+        Route::get('/sms', [SmsSettingController::class, 'index'])->name('sms');
+        Route::post('/sms', [SmsSettingController::class, 'update'])->name('sms.update');
+        Route::post('/sms/test', [SmsSettingController::class, 'sendTest'])->name('sms.test');
     Route::put('/gateways', [SystemSettingController::class, 'updateGateways'])->name('gateways.update');
 
     Route::get('/nameservers', [SystemSettingController::class, 'nameservers'])->name('nameservers');
@@ -216,3 +234,6 @@ Route::prefix('inquiries')->name('inquiries.')->group(function () {
 
 // System Health Diagnostics
 Route::get('/system-health', [SystemHealthController::class, 'index'])->name('system-health');
+Route::post('/system-health/backup', [SystemHealthController::class, 'createBackup'])->name('system-health.backup');
+Route::get('/system-health/backup/download/{filename}', [SystemHealthController::class, 'downloadBackup'])->name('system-health.backup.download');
+Route::delete('/system-health/backup/{filename}', [SystemHealthController::class, 'deleteBackup'])->name('system-health.backup.delete');

@@ -72,11 +72,7 @@
         <!-- Logo Header -->
         <div class="h-14 flex items-center px-4 border-b shrink-0" style="border-color: var(--border);">
             <a href="{{ route('reseller.dashboard') }}" class="flex items-center gap-2.5">
-                <div class="w-6 h-6 rounded-[4px] bg-[#F6821F] flex items-center justify-center text-white shrink-0">
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
-                    </svg>
-                </div>
+                <x-brand-logo class="h-6 w-auto" :show-text="false" />
                 <div class="leading-tight truncate">
                     <span class="block text-xs font-semibold tracking-tight" style="color: var(--text);">Reseller console</span>
                     <span class="block text-[10px] font-mono uppercase" style="color: var(--accent);">{{ strtoupper(auth()->user()->pricing_tier ?? 'Standard') }} Tier</span>
@@ -178,6 +174,7 @@
 
         <!-- Page Body -->
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" style="background-color: var(--bg);">
+            <x-announcement-banner />
             @if(session('success'))
                 <div class="mb-4 p-3 rounded-[6px] text-xs flex items-center gap-2"
                      style="background-color: var(--success-bg); border: 1px solid var(--success); color: var(--success);">

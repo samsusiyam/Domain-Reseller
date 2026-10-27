@@ -186,13 +186,13 @@
                             <span class="w-6 h-6 rounded-[4px] bg-[#F6821F] text-white flex items-center justify-center font-bold text-xs">3</span>
                             <h2 class="font-semibold text-sm" style="color: var(--text);">Payment method</h2>
                         </div>
-                        <span class="text-xs" style="color: var(--text-muted);">Instant activation</span>
+                        <span class="text-xs" style="color: var(--text-muted);">Instant automated activation</span>
                     </div>
 
-                    <div class="space-y-3">
+                    <div class="space-y-2.5">
 
                         <!-- Method 1: Account Balance -->
-                        <label class="flex items-start gap-3 p-3.5 rounded-[6px] border cursor-pointer transition"
+                        <label class="flex items-start gap-3 p-3 rounded-[6px] border cursor-pointer transition"
                                :style="paymentMethod === 'balance' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
                             <input type="radio" name="payment_method" value="balance" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
                             <div class="flex-1">
@@ -212,35 +212,146 @@
                             </div>
                         </label>
 
-                        <!-- Method 2: bKash -->
-                        <label class="flex items-start gap-3 p-3.5 rounded-[6px] border cursor-pointer transition"
-                               :style="paymentMethod === 'bkash' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
-                            <input type="radio" name="payment_method" value="bkash" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
+                        <!-- Method 2: bKash Personal -->
+                        <label class="flex items-start gap-3 p-3 rounded-[6px] border cursor-pointer transition"
+                               :style="paymentMethod === 'bkash_personal' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
+                            <input type="radio" name="payment_method" value="bkash_personal" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
                             <div class="flex-1">
                                 <div class="flex items-center justify-between">
                                     <span class="font-medium text-xs flex items-center gap-2" style="color: var(--text);">
                                         <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#E2136E] text-white">bKash</span>
-                                        <span>bKash Payment Gateway</span>
+                                        <span>bKash Personal (Send Money)</span>
                                     </span>
                                     <span class="font-mono font-semibold text-xs tabular-nums" style="color: var(--text);">
                                         ৳<span x-text="totalBdt"></span> BDT
                                     </span>
                                 </div>
                                 <p class="text-[11px] mt-0.5" style="color: var(--text-muted);">
-                                    Rate: 1 USD = {{ number_format($bdtRate, 2) }} BDT. Instant automated provisioning.
+                                    Send money to personal bKash number & submit TrxID for instant validation.
                                 </p>
                             </div>
                         </label>
 
-                        <!-- Method 3: Stripe -->
-                        <label class="flex items-start gap-3 p-3.5 rounded-[6px] border cursor-pointer transition"
+                        <!-- Method 3: UddoktaPay -->
+                        <label class="flex items-start gap-3 p-3 rounded-[6px] border cursor-pointer transition"
+                               :style="paymentMethod === 'uddoktapay' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
+                            <input type="radio" name="payment_method" value="uddoktapay" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-xs flex items-center gap-2" style="color: var(--text);">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#0284C7] text-white">UddoktaPay</span>
+                                        <span>bKash, Nagad, Rocket, Upay & Local Cards</span>
+                                    </span>
+                                    <span class="font-mono font-semibold text-xs tabular-nums" style="color: var(--text);">
+                                        ৳<span x-text="totalBdt"></span> BDT
+                                    </span>
+                                </div>
+                                <p class="text-[11px] mt-0.5" style="color: var(--text-muted);">
+                                    Instant automated verification and provisioning.
+                                </p>
+                            </div>
+                        </label>
+
+                        <!-- Method 4: Binance Personal (Pay ID) -->
+                        <label class="flex items-start gap-3 p-3 rounded-[6px] border cursor-pointer transition"
+                               :style="paymentMethod === 'binance_personal' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
+                            <input type="radio" name="payment_method" value="binance_personal" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-xs flex items-center gap-2" style="color: var(--text);">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#F3BA2F] text-black">Binance</span>
+                                        <span>Binance Pay (Personal Pay ID / QR)</span>
+                                    </span>
+                                    <span class="font-mono font-semibold text-xs tabular-nums" style="color: var(--text);">
+                                        ${{ number_format($totals['total'], 2) }} USDT
+                                    </span>
+                                </div>
+                                <p class="text-[11px] mt-0.5" style="color: var(--text-muted);">
+                                    Transfer directly via Binance Pay ID, email or USDT address and submit TxID.
+                                </p>
+                            </div>
+                        </label>
+
+                        <!-- Method 5: Binance Merchant (OpenAPI) -->
+                        <label class="flex items-start gap-3 p-3 rounded-[6px] border cursor-pointer transition"
+                               :style="paymentMethod === 'binance_merchant' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
+                            <input type="radio" name="payment_method" value="binance_merchant" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-xs flex items-center gap-2" style="color: var(--text);">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#F3BA2F] text-black">Binance</span>
+                                        <span>Binance Pay (Official Merchant Checkout)</span>
+                                    </span>
+                                    <span class="font-mono font-semibold text-xs tabular-nums" style="color: var(--text);">
+                                        ${{ number_format($totals['total'], 2) }} USDT
+                                    </span>
+                                </div>
+                                <p class="text-[11px] mt-0.5" style="color: var(--text-muted);">
+                                    Scan QR code with Binance App for instant settlement.
+                                </p>
+                            </div>
+                        </label>
+
+                        <!-- Method 6: bKash Merchant -->
+                        <label class="flex items-start gap-3 p-3 rounded-[6px] border cursor-pointer transition"
+                               :style="paymentMethod === 'bkash' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
+                            <input type="radio" name="payment_method" value="bkash" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-xs flex items-center gap-2" style="color: var(--text);">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#E2136E] text-white">bKash</span>
+                                        <span>bKash Tokenized Checkout</span>
+                                    </span>
+                                    <span class="font-mono font-semibold text-xs tabular-nums" style="color: var(--text);">
+                                        ৳<span x-text="totalBdt"></span> BDT
+                                    </span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Method 7: SSLCommerz -->
+                        <label class="flex items-start gap-3 p-3 rounded-[6px] border cursor-pointer transition"
+                               :style="paymentMethod === 'sslcommerz' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
+                            <input type="radio" name="payment_method" value="sslcommerz" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-xs flex items-center gap-2" style="color: var(--text);">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#1E293B] text-white">SSLCommerz</span>
+                                        <span>Visa, MasterCard, Amex, Internet Banking & MFS</span>
+                                    </span>
+                                    <span class="font-mono font-semibold text-xs tabular-nums" style="color: var(--text);">
+                                        ৳<span x-text="totalBdt"></span> BDT
+                                    </span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Method 8: PipraPay -->
+                        <label class="flex items-start gap-3 p-3 rounded-[6px] border cursor-pointer transition"
+                               :style="paymentMethod === 'piprapay' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
+                            <input type="radio" name="payment_method" value="piprapay" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-xs flex items-center gap-2" style="color: var(--text);">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#10B981] text-white">PipraPay</span>
+                                        <span>PipraPay Payment Gateway</span>
+                                    </span>
+                                    <span class="font-mono font-semibold text-xs tabular-nums" style="color: var(--text);">
+                                        ৳<span x-text="totalBdt"></span> BDT
+                                    </span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Method 9: Stripe -->
+                        <label class="flex items-start gap-3 p-3 rounded-[6px] border cursor-pointer transition"
                                :style="paymentMethod === 'stripe' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
                             <input type="radio" name="payment_method" value="stripe" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
                             <div class="flex-1">
                                 <div class="flex items-center justify-between">
                                     <span class="font-medium text-xs flex items-center gap-2" style="color: var(--text);">
                                         <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#635BFF] text-white">Stripe</span>
-                                        <span>Credit / Debit Card (Visa, MasterCard, Amex)</span>
+                                        <span>Credit / Debit Card (USD)</span>
                                     </span>
                                     <span class="font-mono font-semibold text-xs tabular-nums" style="color: var(--text);">
                                         ${{ number_format($totals['total'], 2) }} USD
@@ -249,25 +360,8 @@
                             </div>
                         </label>
 
-                        <!-- Method 4: Binance Pay -->
-                        <label class="flex items-start gap-3 p-3.5 rounded-[6px] border cursor-pointer transition"
-                               :style="paymentMethod === 'binance' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
-                            <input type="radio" name="payment_method" value="binance" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between">
-                                    <span class="font-medium text-xs flex items-center gap-2" style="color: var(--text);">
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#F3BA2F] text-black">Binance</span>
-                                        <span>Binance Pay (USDT / Crypto)</span>
-                                    </span>
-                                    <span class="font-mono font-semibold text-xs tabular-nums" style="color: var(--text);">
-                                        ${{ number_format($totals['total'], 2) }} USDT
-                                    </span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Method 5: Manual Bank Transfer -->
-                        <label class="flex items-start gap-3 p-3.5 rounded-[6px] border cursor-pointer transition"
+                        <!-- Method 10: Manual Bank Transfer -->
+                        <label class="flex items-start gap-3 p-3 rounded-[6px] border cursor-pointer transition"
                                :style="paymentMethod === 'bank_transfer' ? 'border-color: var(--accent); background-color: var(--accent-subtle);' : 'border-color: var(--border); background-color: var(--bg);'">
                             <input type="radio" name="payment_method" value="bank_transfer" x-model="paymentMethod" class="mt-0.5 accent-[#F6821F]">
                             <div class="flex-1">
@@ -279,7 +373,7 @@
                                     <p class="font-medium" style="color: var(--text);">Deposit to Company Bank Account:</p>
                                     <div class="font-mono text-[11px] space-y-0.5" style="color: var(--text-muted);">
                                         <div>Bank: City Bank Bangladesh</div>
-                                        <div>Account Name: Domain Reseller Registry Ltd</div>
+                                        <div>Account Name: HostNibo Registry</div>
                                         <div>Account No: 120-345678-001</div>
                                         <div>Routing: 225272635</div>
                                     </div>
@@ -299,9 +393,7 @@
                     </div>
                 </div>
 
-            </div>
-
-            <!-- Right: Order Summary (4 cols, sticky) -->
+            </div><!-- Right: Order Summary (4 cols, sticky) -->
             <div class="lg:col-span-4 space-y-4 sticky top-20">
                 <div class="cf-panel p-5">
                     <h3 class="font-semibold text-sm mb-3" style="color: var(--text);">Review order</h3>

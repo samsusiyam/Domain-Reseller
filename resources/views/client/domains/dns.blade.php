@@ -3,116 +3,123 @@
 @section('content')
 <div class="max-w-5xl space-y-6" x-data="{ addModal: false }">
     <!-- Domain Sub-navigation Tabs -->
-    <div class="flex items-center gap-2 overflow-x-auto border-b border-slate-200 pb-2 text-xs font-bold uppercase tracking-wider text-slate-600">
-        <a href="{{ route('client.domains.show', $domain->id) }}" class="px-3.5 py-2 rounded-lg hover:bg-slate-100 whitespace-nowrap">Overview</a>
-        <a href="{{ route('client.domains.nameservers.edit', $domain->id) }}" class="px-3.5 py-2 rounded-lg hover:bg-slate-100 whitespace-nowrap">Nameservers</a>
-        <a href="{{ route('client.domains.dns.index', $domain->id) }}" class="px-3.5 py-2 rounded-lg bg-indigo-50 text-indigo-600 whitespace-nowrap">DNS Zone</a>
-        <a href="{{ route('client.domains.child-ns.index', $domain->id) }}" class="px-3.5 py-2 rounded-lg hover:bg-slate-100 whitespace-nowrap">Child Nameservers</a>
-        <a href="{{ route('client.domains.whois.edit', $domain->id) }}" class="px-3.5 py-2 rounded-lg hover:bg-slate-100 whitespace-nowrap">WHOIS Contacts</a>
-        <a href="{{ route('client.domains.email-forwarding.index', $domain->id) }}" class="px-3.5 py-2 rounded-lg hover:bg-slate-100 whitespace-nowrap">Email Forwards</a>
-        <a href="{{ route('client.domains.url-forwarding.index', $domain->id) }}" class="px-3.5 py-2 rounded-lg hover:bg-slate-100 whitespace-nowrap">URL Redirects</a>
-    </div>
+    <x-domain-tabs :domain="$domain" active="dns" />
 
     <!-- Header & Add Button -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-bold text-slate-900">Hosted DNS Records for {{ $domain->domain_name }}</h2>
-            <p class="text-xs text-slate-500">Manage A, AAAA, CNAME, MX, TXT and SRV zone records.</p>
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Hosted DNS Records for {{ $domain->domain_name }}</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage A, AAAA, CNAME, MX, TXT and SRV zone records with instant propagation.</p>
         </div>
-        <button type="button" @click="addModal = true" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow flex items-center gap-2">
-            + Add DNS Record
+        <button type="button" @click="addModal = true" class="cf-btn cf-btn-primary cf-btn-sm text-xs font-semibold cursor-pointer flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Add DNS Record</span>
         </button>
     </div>
 
     <!-- Records Table -->
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead class="bg-slate-50 text-slate-600 font-bold text-xs uppercase tracking-wider">
-                <tr>
-                    <th class="py-3 px-6">Type</th>
-                    <th class="py-3 px-6">Host / Name</th>
-                    <th class="py-3 px-6">Value / Destination</th>
-                    <th class="py-3 px-6 text-center">Priority</th>
-                    <th class="py-3 px-6 text-center">TTL</th>
-                    <th class="py-3 px-6 text-right">Action</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200 font-mono text-xs text-slate-800">
-                @forelse($domain->dnsRecords as $record)
-                    <tr class="hover:bg-slate-50/70 transition">
-                        <td class="py-3.5 px-6 font-bold text-indigo-600">{{ $record->type }}</td>
-                        <td class="py-3.5 px-6 font-semibold">{{ $record->host }}</td>
-                        <td class="py-3.5 px-6 truncate max-w-xs" title="{{ $record->value }}">{{ $record->value }}</td>
-                        <td class="py-3.5 px-6 text-center">{{ $record->priority ?? '—' }}</td>
-                        <td class="py-3.5 px-6 text-center text-slate-500">{{ $record->ttl }}s</td>
-                        <td class="py-3.5 px-6 text-right font-sans">
-                            <form action="{{ route('client.domains.dns.destroy', [$domain->id, $record->id]) }}" method="POST" onsubmit="return confirm('Delete this DNS record?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-xs font-semibold text-rose-600 hover:underline">
-                                    Delete
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
+    <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-800/50 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 font-medium">
                     <tr>
-                        <td colspan="6" class="py-12 text-center text-slate-400 font-sans text-xs">
-                            No hosted DNS records added yet.
-                        </td>
+                        <th class="px-5 py-3">Type</th>
+                        <th class="px-5 py-3">Host / Name</th>
+                        <th class="px-5 py-3">Value / Target</th>
+                        <th class="px-5 py-3 text-center">Priority</th>
+                        <th class="px-5 py-3 text-center">TTL</th>
+                        <th class="px-5 py-3 text-right">Action</th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-xs text-slate-700 dark:text-slate-300">
+                    @forelse($domain->dnsRecords as $record)
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                            <td class="px-5 py-3 font-bold text-[#F6821F]">
+                                <span class="px-1.5 py-0.5 rounded bg-orange-50 dark:bg-orange-950/40 text-[10px]">{{ $record->type }}</span>
+                            </td>
+                            <td class="px-5 py-3 font-semibold text-slate-900 dark:text-white">{{ $record->host }}</td>
+                            <td class="px-5 py-3 truncate max-w-xs font-mono text-slate-600 dark:text-slate-400" title="{{ $record->value }}">{{ $record->value }}</td>
+                            <td class="px-5 py-3 text-center tabular-nums text-slate-400">{{ $record->priority ?? '—' }}</td>
+                            <td class="px-5 py-3 text-center tabular-nums text-slate-500">{{ $record->ttl }}s</td>
+                            <td class="px-5 py-3 text-right font-sans">
+                                <form action="{{ route('client.domains.dns.destroy', [$domain->id, $record->id]) }}" method="POST" onsubmit="return confirm('Delete this DNS record?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-rose-600 dark:text-rose-400 hover:underline text-xs cursor-pointer">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-5 py-10 text-center font-sans text-slate-400">
+                                No custom DNS records configured. Click "Add DNS Record" to create your first zone record.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Add Record Modal -->
-    <div x-show="addModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div @click.away="addModal = false" class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200">
-            <h3 class="text-base font-bold text-slate-900 mb-4">Add DNS Zone Record</h3>
+    <div x-show="addModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="addModal = false"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <form action="{{ route('client.domains.dns.store', $domain->id) }}" method="POST" class="space-y-4">
-                @csrf
+            <div class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200 dark:border-slate-800 p-6">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Add DNS Zone Record</h3>
+                    <button type="button" @click="addModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
 
-                <div class="grid grid-cols-3 gap-3">
+                <form action="{{ route('client.domains.dns.store', $domain->id) }}" method="POST" class="space-y-4 mt-4">
+                    @csrf
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Type</label>
-                        <select name="type" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold focus:ring-2 focus:ring-indigo-500">
-                            <option value="A">A (IPv4)</option>
-                            <option value="AAAA">AAAA (IPv6)</option>
-                            <option value="CNAME">CNAME</option>
-                            <option value="MX">MX (Mail)</option>
-                            <option value="TXT">TXT</option>
-                            <option value="SRV">SRV</option>
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Record Type</label>
+                        <select name="type" class="cf-select h-9 text-xs">
+                            <option value="A">A (IPv4 Address)</option>
+                            <option value="AAAA">AAAA (IPv6 Address)</option>
+                            <option value="CNAME">CNAME (Canonical Alias)</option>
+                            <option value="MX">MX (Mail Exchange)</option>
+                            <option value="TXT">TXT (Text / SPF / DKIM)</option>
+                            <option value="SRV">SRV (Service)</option>
                         </select>
                     </div>
-                    <div class="col-span-2">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Host / Name</label>
-                        <input type="text" name="host" placeholder="@ or subdomain" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-                </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Value / Destination</label>
-                    <input type="text" name="value" placeholder="192.0.2.1 or mail.server.com" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Priority (MX only)</label>
-                        <input type="number" name="priority" placeholder="10" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Host / Name</label>
+                        <input type="text" name="host" placeholder="@ or subdomain (e.g. mail, api)" required class="cf-input h-9 text-xs font-mono">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">TTL (Seconds)</label>
-                        <input type="number" name="ttl" value="3600" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-                </div>
 
-                <div class="pt-4 flex items-center justify-end gap-2">
-                    <button type="button" @click="addModal = false" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow">Save Record</button>
-                </div>
-            </form>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Value / Target</label>
+                        <input type="text" name="value" placeholder="192.0.2.1 or mail.server.com" required class="cf-input h-9 text-xs font-mono">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Priority (MX / SRV)</label>
+                            <input type="number" name="priority" placeholder="10" class="cf-input h-9 text-xs font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">TTL (Seconds)</label>
+                            <input type="number" name="ttl" value="3600" class="cf-input h-9 text-xs font-mono">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <button type="button" @click="addModal = false" class="cf-btn cf-btn-secondary text-xs">
+                            Cancel
+                        </button>
+                        <button type="submit" class="cf-btn cf-btn-primary text-xs font-semibold cursor-pointer">
+                            Save DNS Record
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

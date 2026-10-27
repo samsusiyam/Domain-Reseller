@@ -20,7 +20,7 @@ class ManualPaymentController extends Controller
      */
     public function index()
     {
-        $pendingPayments = Transaction::where(function($q) { $q->where('gateway', 'manual')->orWhereNull('gateway'); })
+        $pendingPayments = Transaction::whereIn('gateway', ['manual', 'bkash_personal', 'binance_personal'])->orWhereNull('gateway')
             ->with(['user', 'invoice'])
             ->latest()
             ->paginate(15);
@@ -33,7 +33,7 @@ class ManualPaymentController extends Controller
      */
     public function approve($id)
     {
-        $transaction = Transaction::where(function($q) { $q->where('gateway', 'manual')->orWhereNull('gateway'); })->findOrFail($id);
+        $transaction = Transaction::whereIn('gateway', ['manual', 'bkash_personal', 'binance_personal'])->orWhereNull('gateway')->findOrFail($id);
 
         if ($transaction->status === 'completed') {
             return back()->with('info', 'This payment is already approved.');
@@ -45,11 +45,12 @@ class ManualPaymentController extends Controller
         if ($transaction->invoice_id) {
             $invoice = Invoice::find($transaction->invoice_id);
             if ($invoice && $invoice->status !== 'paid') {
-                $invoice->update([
-                    'status'      => 'paid',
-                    'balance_due' => 0.0000,
-                    'paid_at'     => now(),
-                ]);
+                $invoice->markAsPaid($transaction->gateway ?? 'manual', $transaction->gateway_transaction_id);
+                if ($invoice->order) {
+                    app(\App\Services\Domain\DomainOrderService::class)->fulfillOrder($invoice->order);
+                } else {
+                    $invoice->user->creditBalance((float) $invoice->total_amount);
+                }
                 event(new InvoicePaid($invoice));
             }
         } else {
@@ -71,7 +72,7 @@ class ManualPaymentController extends Controller
      */
     public function reject(Request $request, $id)
     {
-        $transaction = Transaction::where(function($q) { $q->where('gateway', 'manual')->orWhereNull('gateway'); })->findOrFail($id);
+        $transaction = Transaction::whereIn('gateway', ['manual', 'bkash_personal', 'binance_personal'])->orWhereNull('gateway')->findOrFail($id);
 
         $request->validate([
             'reason' => ['required', 'string', 'max:255'],

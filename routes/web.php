@@ -79,3 +79,14 @@ if (app()->environment('local') || config('app.debug')) {
 
 // Authentication routes
 require __DIR__.'/auth.php';
+
+// Personal Payment Gateway Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/payment/bkash-personal/{invoice}', [PaymentGatewayController::class, 'showBkashPersonal'])->name('payment.bkash-personal.show');
+    Route::post('/payment/bkash-personal/{invoice}/submit', [PaymentGatewayController::class, 'submitBkashPersonal'])->name('payment.bkash-personal.submit');
+    Route::get('/payment/binance-personal/{invoice}', [PaymentGatewayController::class, 'showBinancePersonal'])->name('payment.binance-personal.show');
+    Route::post('/payment/binance-personal/{invoice}/submit', [PaymentGatewayController::class, 'submitBinancePersonal'])->name('payment.binance-personal.submit');
+});
+
+Route::match(['get', 'post'], '/payment/callback/{gateway}', [PaymentGatewayController::class, 'callback']);
+Route::post('/payment/webhook/{gateway}', [PaymentGatewayController::class, 'webhook'])->name('payment.webhook');

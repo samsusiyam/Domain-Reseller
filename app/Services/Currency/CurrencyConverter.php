@@ -4,6 +4,8 @@ namespace App\Services\Currency;
 
 use App\Models\Currency;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class CurrencyConverter
 {
@@ -74,5 +76,53 @@ class CurrencyConverter
         }
 
         return $currency->format($amountInUsd);
+    }
+
+    /**
+     * Fetch live exchange rates from open exchange rate API and sync currencies table.
+     */
+    public function syncRates(): bool
+    {
+        try {
+            $response = Http::timeout(10)->get('https://open.er-api.com/v6/latest/USD');
+
+            if (!$response->successful()) {
+                // Secondary fallback API
+                $response = Http::timeout(10)->get('https://api.exchangerate-api.com/v4/latest/USD');
+            }
+
+            if (!$response->successful()) {
+                throw new \Exception('Exchange rate API returned status ' . $response->status());
+            }
+
+            $data = $response->json();
+            $rates = $data['rates'] ?? [];
+
+            if (empty($rates)) {
+                throw new \Exception('Exchange rate payload did not contain rates list.');
+            }
+
+            $currencies = Currency::where('is_primary', false)->get();
+            $updatedCount = 0;
+
+            foreach ($currencies as $curr) {
+                $code = strtoupper($curr->code);
+                if (isset($rates[$code]) && is_numeric($rates[$code])) {
+                    $newRate = (float) $rates[$code];
+                    $curr->update([
+                        'exchange_rate' => $newRate,
+                        'last_updated_at' => now(),
+                    ]);
+                    Cache::forget("currency_rate_{$code}");
+                    $updatedCount++;
+                }
+            }
+
+            Log::info("Synchronized exchange rates for {$updatedCount} secondary currencies.");
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('Currency sync failed: ' . $e->getMessage());
+            throw $e;
+        }
     }
 }

@@ -23,18 +23,43 @@ class PaymentManager extends Manager
         return new ManualPaymentGateway(config('payment.gateways.manual', []));
     }
 
+    public function createBkashPersonalDriver(): PaymentGatewayInterface
+    {
+        return new BkashPersonalPaymentGateway(config('payment.gateways.bkash_personal', []));
+    }
+
     public function createBkashDriver(): PaymentGatewayInterface
     {
         return new BkashPaymentGateway(config('payment.gateways.bkash', []));
     }
 
-    public function createStripeDriver(): PaymentGatewayInterface
+    public function createSslcommerzDriver(): PaymentGatewayInterface
     {
-        return new StripePaymentGateway(config('payment.gateways.stripe', []));
+        return new SslcommerzPaymentGateway(config('payment.gateways.sslcommerz', []));
+    }
+
+    public function createPiprapayDriver(): PaymentGatewayInterface
+    {
+        return new PiprapayPaymentGateway(config('payment.gateways.piprapay', []));
+    }
+
+    public function createUddoktapayDriver(): PaymentGatewayInterface
+    {
+        return new UddoktapayPaymentGateway(config('payment.gateways.uddoktapay', []));
     }
 
     public function createBinanceDriver(): PaymentGatewayInterface
     {
-        return new BinancePaymentGateway(config('payment.gateways.binance', []));
+        return new BinanceMerchantPaymentGateway(config('payment.gateways.binance', []));
+    }
+
+    public function createBinancePersonalDriver(): PaymentGatewayInterface
+    {
+        return new BinancePersonalPaymentGateway(config('payment.gateways.binance_personal', []));
+    }
+
+    public function createStripeDriver(): PaymentGatewayInterface
+    {
+        return new StripePaymentGateway(config('payment.gateways.stripe', []));
     }
 }

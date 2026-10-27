@@ -4,6 +4,7 @@
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14" x-data="{
     search: '',
     category: 'all',
+    viewTier: 'retail',
     matchesCategory(tld) {
         if (this.category === 'all') return true;
         if (this.category === 'popular') return ['.com', '.net', '.org', '.xyz'].includes(tld);
@@ -35,32 +36,50 @@
             </div>
         </div>
 
-        <!-- Category Segmented Filter -->
-        <div class="mt-4 flex flex-wrap items-center gap-1.5 text-xs">
-            <button type="button"
-                    @click="category = 'all'"
-                    class="cf-btn cf-btn-sm"
-                    :class="category === 'all' ? 'cf-btn-primary' : 'cf-btn-secondary'">
-                All extensions
-            </button>
-            <button type="button"
-                    @click="category = 'popular'"
-                    class="cf-btn cf-btn-sm"
-                    :class="category === 'popular' ? 'cf-btn-primary' : 'cf-btn-secondary'">
-                Popular (.com, .net, .org)
-            </button>
-            <button type="button"
-                    @click="category = 'tech'"
-                    class="cf-btn cf-btn-sm"
-                    :class="category === 'tech' ? 'cf-btn-primary' : 'cf-btn-secondary'">
-                Tech (.io, .co)
-            </button>
-            <button type="button"
-                    @click="category = 'cheap'"
-                    class="cf-btn cf-btn-sm"
-                    :class="category === 'cheap' ? 'cf-btn-primary' : 'cf-btn-secondary'">
-                Budget (.xyz)
-            </button>
+        <!-- Tier Switcher & Category Filter -->
+        <div class="mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <!-- Tier Segmented Control -->
+            <div class="inline-flex p-1 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-xs">
+                <button type="button" @click="viewTier = 'retail'"
+                        :class="viewTier === 'retail' ? 'bg-white dark:bg-[#111827] text-slate-900 dark:text-white font-semibold shadow-xs' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'"
+                        class="px-3.5 py-1.5 rounded-md transition-all cursor-pointer">
+                    Retail Client Pricing
+                </button>
+                <button type="button" @click="viewTier = 'reseller'"
+                        :class="viewTier === 'reseller' ? 'bg-[#F6821F] text-white font-semibold shadow-xs' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'"
+                        class="px-3.5 py-1.5 rounded-md transition-all flex items-center gap-1.5 cursor-pointer">
+                    <span>Reseller Wholesale Tier</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-black/20 text-white font-mono uppercase">Wholesale</span>
+                </button>
+            </div>
+
+            <!-- Category Filter Buttons -->
+            <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                <button type="button"
+                        @click="category = 'all'"
+                        class="cf-btn cf-btn-sm"
+                        :class="category === 'all' ? 'cf-btn-primary' : 'cf-btn-secondary'">
+                    All extensions
+                </button>
+                <button type="button"
+                        @click="category = 'popular'"
+                        class="cf-btn cf-btn-sm"
+                        :class="category === 'popular' ? 'cf-btn-primary' : 'cf-btn-secondary'">
+                    Popular (.com, .net, .org)
+                </button>
+                <button type="button"
+                        @click="category = 'tech'"
+                        class="cf-btn cf-btn-sm"
+                        :class="category === 'tech' ? 'cf-btn-primary' : 'cf-btn-secondary'">
+                    Tech (.io, .co)
+                </button>
+                <button type="button"
+                        @click="category = 'cheap'"
+                        class="cf-btn cf-btn-sm"
+                        :class="category === 'cheap' ? 'cf-btn-primary' : 'cf-btn-secondary'">
+                    Budget (.xyz)
+                </button>
+            </div>
         </div>
     </div>
 
@@ -71,8 +90,12 @@
                 <tr>
                     <th>TLD Extension</th>
                     <th>Registrar driver</th>
-                    <th class="align-right">Registration (1 yr)</th>
-                    <th class="align-right">Renewal (1 yr)</th>
+                    <th class="align-right">
+                        <span x-text="viewTier === 'retail' ? 'Registration (1 yr)' : 'Wholesale Reg (1 yr)'"></span>
+                    </th>
+                    <th class="align-right">
+                        <span x-text="viewTier === 'retail' ? 'Renewal (1 yr)' : 'Wholesale Renew (1 yr)'"></span>
+                    </th>
                     <th class="align-right">Transfer</th>
                     <th>Included features</th>
                     <th class="align-right">Action</th>
@@ -91,22 +114,51 @@
                             {{ $tld->registrar?->name ?? 'Tier 1' }}
                         </td>
                         <td class="align-right font-mono font-medium tabular-nums" style="color: var(--text);">
-                            <x-price :usd="$tld->client_register" />
+                            <template x-if="viewTier === 'retail'">
+                                <x-price :usd="$tld->client_register" />
+                            </template>
+                            <template x-if="viewTier === 'reseller'">
+                                <span class="font-bold text-[#F6821F]">
+                                    <x-price :usd="$tld->default_reseller_register" />
+                                </span>
+                            </template>
                         </td>
                         <td class="align-right font-mono tabular-nums" style="color: var(--text-muted);">
-                            <x-price :usd="$tld->client_renew" />
+                            <template x-if="viewTier === 'retail'">
+                                <x-price :usd="$tld->client_renew" />
+                            </template>
+                            <template x-if="viewTier === 'reseller'">
+                                <span class="font-bold text-[#F6821F]">
+                                    <x-price :usd="$tld->default_reseller_renew" />
+                                </span>
+                            </template>
                         </td>
                         <td class="align-right font-mono tabular-nums" style="color: var(--text-muted);">
-                            <x-price :usd="$tld->client_transfer" />
+                            <template x-if="viewTier === 'retail'">
+                                <x-price :usd="$tld->client_transfer" />
+                            </template>
+                            <template x-if="viewTier === 'reseller'">
+                                <span class="font-bold text-[#F6821F]">
+                                    <x-price :usd="$tld->default_reseller_transfer" />
+                                </span>
+                            </template>
                         </td>
                         <td class="text-xs" style="color: var(--text-muted);">
                             WHOIS privacy · DNS zone management
                         </td>
                         <td class="align-right">
-                            <a href="{{ route('domain.search', ['query' => 'domain' . $tld->tld]) }}"
-                               class="cf-btn cf-btn-secondary cf-btn-sm">
-                                Register
-                            </a>
+                            <template x-if="viewTier === 'retail'">
+                                <a href="{{ route('domain.search', ['query' => 'domain' . $tld->tld]) }}"
+                                   class="cf-btn cf-btn-secondary cf-btn-sm">
+                                    Register
+                                </a>
+                            </template>
+                            <template x-if="viewTier === 'reseller'">
+                                <a href="{{ route('register') }}?role=reseller"
+                                   class="cf-btn cf-btn-primary cf-btn-sm font-semibold">
+                                    Join Wholesale
+                                </a>
+                            </template>
                         </td>
                     </tr>
                 @empty

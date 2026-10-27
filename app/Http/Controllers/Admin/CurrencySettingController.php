@@ -69,6 +69,7 @@ class CurrencySettingController extends Controller
         $validated['last_updated_at'] = now();
 
         $currency->update($validated);
+        \Illuminate\Support\Facades\Cache::forget('currency_rate_' . $currency->code);
 
         $this->activityLogger->log('currency_updated', "Admin updated currency {$currency->code}", $currency);
 

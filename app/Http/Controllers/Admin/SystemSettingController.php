@@ -29,20 +29,38 @@ class SystemSettingController extends Controller
     public function updateGeneral(Request $request)
     {
         $request->validate([
-            'company_name'  => ['required', 'string', 'max:255'],
-            'support_email' => ['required', 'email'],
-            'support_phone' => ['nullable', 'string', 'max:50'],
-            'currency_base' => ['required', 'string', 'max:3'],
-            'tax_percentage'=> ['nullable', 'numeric', 'min:0', 'max:100'],
+            'company_name'   => ['required', 'string', 'max:255'],
+            'support_email'  => ['required', 'email'],
+            'support_phone'  => ['nullable', 'string', 'max:50'],
+            'currency_base'  => ['required', 'string', 'max:3'],
+            'tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'logo_light'     => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:4096'],
+            'logo_dark'      => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:4096'],
+            'favicon'        => ['nullable', 'file', 'mimes:png,ico,svg', 'max:2048'],
         ]);
 
         foreach ($request->only(['company_name', 'support_email', 'support_phone', 'currency_base', 'tax_percentage', 'portal_title', 'footer_text']) as $key => $value) {
             SystemSetting::set($key, $value, 'general');
         }
 
-        $this->activityLogger->log('settings_updated', 'Admin updated general system settings');
+        if ($request->hasFile('logo_light')) {
+            $path = $request->file('logo_light')->store('branding', 'public');
+            SystemSetting::set('logo_light', '/storage/' . $path, 'general');
+        }
 
-        return back()->with('success', 'General settings saved.');
+        if ($request->hasFile('logo_dark')) {
+            $path = $request->file('logo_dark')->store('branding', 'public');
+            SystemSetting::set('logo_dark', '/storage/' . $path, 'general');
+        }
+
+        if ($request->hasFile('favicon')) {
+            $path = $request->file('favicon')->store('branding', 'public');
+            SystemSetting::set('favicon', '/storage/' . $path, 'general');
+        }
+
+        $this->activityLogger->log('settings_updated', 'Admin updated general system settings and brand logos');
+
+        return back()->with('success', 'General settings and brand logos saved successfully.');
     }
 
     /**
@@ -158,29 +176,62 @@ class SystemSettingController extends Controller
     public function gateways()
     {
         $settings = [
-            'bkash_enabled'          => SystemSetting::get('bkash_enabled', env('BKASH_ENABLED', 'true')),
-            'bkash_mode'             => SystemSetting::get('bkash_mode', env('BKASH_MODE', 'sandbox')),
-            'bkash_app_key'          => SystemSetting::get('bkash_app_key', env('BKASH_APP_KEY', '')),
-            'bkash_app_secret'       => SystemSetting::get('bkash_app_secret', env('BKASH_APP_SECRET', '')),
-            'bkash_username'         => SystemSetting::get('bkash_username', env('BKASH_USERNAME', '')),
-            'bkash_password'         => SystemSetting::get('bkash_password', env('BKASH_PASSWORD', '')),
+            // bKash Personal
+            'bkash_personal_enabled' => SystemSetting::get('bkash_personal_enabled', 'true'),
+            'bkash_personal_number'  => SystemSetting::get('bkash_personal_number', '01849693630'),
 
-            'stripe_enabled'         => SystemSetting::get('stripe_enabled', env('STRIPE_ENABLED', 'true')),
-            'stripe_key'             => SystemSetting::get('stripe_key', env('STRIPE_KEY', '')),
-            'stripe_secret'          => SystemSetting::get('stripe_secret', env('STRIPE_SECRET', '')),
-            'stripe_webhook_secret'  => SystemSetting::get('stripe_webhook_secret', env('STRIPE_WEBHOOK_SECRET', '')),
+            // bKash Merchant (Tokenized)
+            'bkash_enabled'          => SystemSetting::get('bkash_enabled', 'false'),
+            'bkash_mode'             => SystemSetting::get('bkash_mode', 'sandbox'),
+            'bkash_app_key'          => SystemSetting::get('bkash_app_key', ''),
+            'bkash_app_secret'       => SystemSetting::get('bkash_app_secret', ''),
+            'bkash_username'         => SystemSetting::get('bkash_username', ''),
+            'bkash_password'         => SystemSetting::get('bkash_password', ''),
 
-            'binance_enabled'        => SystemSetting::get('binance_enabled', env('BINANCE_ENABLED', 'true')),
-            'binance_merchant_id'    => SystemSetting::get('binance_merchant_id', env('BINANCE_MERCHANT_ID', '')),
-            'binance_api_key'        => SystemSetting::get('binance_api_key', env('BINANCE_API_KEY', '')),
-            'binance_secret_key'     => SystemSetting::get('binance_secret_key', env('BINANCE_SECRET_KEY', '')),
+            // SSLCommerz
+            'sslcommerz_enabled'     => SystemSetting::get('sslcommerz_enabled', 'false'),
+            'sslcommerz_mode'        => SystemSetting::get('sslcommerz_mode', 'sandbox'),
+            'sslcommerz_store_id'    => SystemSetting::get('sslcommerz_store_id', ''),
+            'sslcommerz_store_passwd'=> SystemSetting::get('sslcommerz_store_passwd', ''),
 
+            // PipraPay
+            'piprapay_enabled'       => SystemSetting::get('piprapay_enabled', 'false'),
+            'piprapay_api_key'       => SystemSetting::get('piprapay_api_key', ''),
+            'piprapay_api_url'       => SystemSetting::get('piprapay_api_url', 'https://piprapay.com/api'),
+
+            // UddoktaPay
+            'uddoktapay_enabled'     => SystemSetting::get('uddoktapay_enabled', 'true'),
+            'uddoktapay_api_key'     => SystemSetting::get('uddoktapay_api_key', ''),
+            'uddoktapay_api_url'     => SystemSetting::get('uddoktapay_api_url', 'https://pay.hostnibo.com/api'),
+
+            // Binance Pay Merchant
+            'binance_enabled'        => SystemSetting::get('binance_enabled', 'true'),
+            'binance_merchant_id'    => SystemSetting::get('binance_merchant_id', ''),
+            'binance_merchant_api_key'    => SystemSetting::get('binance_merchant_api_key', SystemSetting::get('binance_api_key', '')),
+            'binance_merchant_secret_key' => SystemSetting::get('binance_merchant_secret_key', SystemSetting::get('binance_secret_key', '')),
+
+            // Binance Personal Account (Direct Pay ID + Spot API)
+            'binance_personal_enabled'      => SystemSetting::get('binance_personal_enabled', 'true'),
+            'binance_personal_pay_id'       => SystemSetting::get('binance_personal_pay_id', '123456789'),
+            'binance_personal_email'        => SystemSetting::get('binance_personal_email', 'payments@hostnibo.com'),
+            'binance_personal_usdt_address' => SystemSetting::get('binance_personal_usdt_address', ''),
+            'binance_personal_network'      => SystemSetting::get('binance_personal_network', 'TRC20'),
+            'binance_personal_api_key'      => SystemSetting::get('binance_personal_api_key', ''),
+            'binance_personal_secret_key'   => SystemSetting::get('binance_personal_secret_key', ''),
+
+            // Stripe Cards
+            'stripe_enabled'         => SystemSetting::get('stripe_enabled', 'false'),
+            'stripe_key'             => SystemSetting::get('stripe_key', ''),
+            'stripe_secret'          => SystemSetting::get('stripe_secret', ''),
+            'stripe_webhook_secret'  => SystemSetting::get('stripe_webhook_secret', ''),
+
+            // Bank Wire / Manual
             'bank_transfer_enabled'  => SystemSetting::get('bank_transfer_enabled', 'true'),
             'bank_name'              => SystemSetting::get('bank_name', 'City Bank Ltd'),
-            'bank_account_name'     => SystemSetting::get('bank_account_name', 'HostNibo IT'),
-            'bank_account_number'   => SystemSetting::get('bank_account_number', '1100223344001'),
-            'bank_routing_number'   => SystemSetting::get('bank_routing_number', '225272630'),
-            'bank_instructions'     => SystemSetting::get('bank_instructions', 'Send payment with your Invoice ID as reference.'),
+            'bank_account_name'      => SystemSetting::get('bank_account_name', 'HostNibo Technologies Ltd'),
+            'bank_account_number'    => SystemSetting::get('bank_account_number', '1100223344001'),
+            'bank_routing_number'    => SystemSetting::get('bank_routing_number', '225272630'),
+            'bank_instructions'      => SystemSetting::get('bank_instructions', 'Send payment with your Invoice ID as reference.'),
         ];
 
         return view('admin.settings.gateways', compact('settings'));
@@ -192,63 +243,24 @@ class SystemSettingController extends Controller
     public function updateGateways(Request $request)
     {
         $keys = [
+            'bkash_personal_enabled', 'bkash_personal_number',
             'bkash_enabled', 'bkash_mode', 'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password',
+            'sslcommerz_enabled', 'sslcommerz_mode', 'sslcommerz_store_id', 'sslcommerz_store_passwd',
+            'piprapay_enabled', 'piprapay_api_key', 'piprapay_api_url',
+            'uddoktapay_enabled', 'uddoktapay_api_key', 'uddoktapay_api_url',
+            'binance_enabled', 'binance_merchant_id', 'binance_merchant_api_key', 'binance_merchant_secret_key',
+            'binance_personal_enabled', 'binance_personal_pay_id', 'binance_personal_email', 'binance_personal_usdt_address', 'binance_personal_network', 'binance_personal_api_key', 'binance_personal_secret_key',
             'stripe_enabled', 'stripe_key', 'stripe_secret', 'stripe_webhook_secret',
-            'binance_enabled', 'binance_merchant_id', 'binance_api_key', 'binance_secret_key',
-            'bank_transfer_enabled', 'bank_name', 'bank_account_name', 'bank_account_number', 'bank_routing_number', 'bank_instructions'
+            'bank_transfer_enabled', 'bank_name', 'bank_account_name', 'bank_account_number', 'bank_routing_number', 'bank_instructions',
         ];
 
-        foreach ($keys as $k) {
-            if (str_ends_with($k, '_enabled')) {
-                SystemSetting::set($k, $request->boolean($k) ? 'true' : 'false', 'gateway');
-            } else {
-                $val = $request->input($k);
-                if ($val !== null) {
-                    SystemSetting::set($k, $val, 'gateway');
-                }
+        foreach ($keys as $key) {
+            if ($request->has($key)) {
+                SystemSetting::set($key, $request->input($key), 'payment');
             }
         }
 
-        $this->activityLogger->log('gateway_settings_updated', 'Admin updated payment gateway configuration');
+        $this->activityLogger->log('settings_updated', 'Admin updated payment gateway credentials');
 
-        return back()->with('success', 'Payment gateway settings updated successfully.');
-    }
-
-    /**
-     * Nameserver configuration page.
-     */
-    public function nameservers()
-    {
-        $settings = [
-            'default_ns1' => SystemSetting::get('default_ns1', env('DEFAULT_NS1', 'ns1.hostnibo.com')),
-            'default_ns2' => SystemSetting::get('default_ns2', env('DEFAULT_NS2', 'ns2.hostnibo.com')),
-            'default_ns3' => SystemSetting::get('default_ns3', 'ns3.hostnibo.com'),
-            'default_ns4' => SystemSetting::get('default_ns4', 'ns4.hostnibo.com'),
-        ];
-
-        return view('admin.settings.nameservers', compact('settings'));
-    }
-
-    /**
-     * Save nameserver settings.
-     */
-    public function updateNameservers(Request $request)
-    {
-        $request->validate([
-            'default_ns1' => ['required', 'string', 'max:255'],
-            'default_ns2' => ['required', 'string', 'max:255'],
-            'default_ns3' => ['nullable', 'string', 'max:255'],
-            'default_ns4' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        SystemSetting::set('default_ns1', $request->input('default_ns1'), 'domain');
-        SystemSetting::set('default_ns2', $request->input('default_ns2'), 'domain');
-        SystemSetting::set('default_ns3', $request->input('default_ns3'), 'domain');
-        SystemSetting::set('default_ns4', $request->input('default_ns4'), 'domain');
-
-        $this->activityLogger->log('nameserver_settings_updated', 'Admin updated default nameservers');
-
-        return back()->with('success', 'Default nameservers updated successfully.');
-    }
-
-}
+        return back()->with('success', 'Payment gateway credentials saved successfully.');
+    }}

@@ -84,72 +84,151 @@
                 <!-- Gateway Selection (Neutral, Professional, Single Accent) -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Payment Method</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        <!-- bKash -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <!-- bKash Personal -->
+                        <label class="cursor-pointer border rounded-lg p-3.5 flex flex-col justify-between transition"
+                            :class="gateway === 'bkash_personal' 
+                                ? 'border-[#F6821F] ring-2 ring-[#F6821F]/20 bg-[#F6821F]/5 dark:bg-[#F6821F]/10' 
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600">
+                            <input type="radio" name="gateway" value="bkash_personal" x-model="gateway" class="sr-only">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-semibold text-xs text-slate-900 dark:text-white">bKash Personal</span>
+                                <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center"
+                                     :class="gateway === 'bkash_personal' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300 dark:border-slate-600'">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="gateway === 'bkash_personal'"></div>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-slate-500">Send Money & TrxID verification</span>
+                        </label>
+
+                        <!-- UddoktaPay -->
+                        <label class="cursor-pointer border rounded-lg p-3.5 flex flex-col justify-between transition"
+                            :class="gateway === 'uddoktapay' 
+                                ? 'border-[#F6821F] ring-2 ring-[#F6821F]/20 bg-[#F6821F]/5 dark:bg-[#F6821F]/10' 
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600">
+                            <input type="radio" name="gateway" value="uddoktapay" x-model="gateway" class="sr-only">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-semibold text-xs text-slate-900 dark:text-white">UddoktaPay</span>
+                                <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center"
+                                     :class="gateway === 'uddoktapay' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300 dark:border-slate-600'">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="gateway === 'uddoktapay'"></div>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-slate-500">bKash, Nagad, Rocket, Upay</span>
+                        </label>
+
+                        <!-- Binance Personal -->
+                        <label class="cursor-pointer border rounded-lg p-3.5 flex flex-col justify-between transition"
+                            :class="gateway === 'binance_personal' 
+                                ? 'border-[#F6821F] ring-2 ring-[#F6821F]/20 bg-[#F6821F]/5 dark:bg-[#F6821F]/10' 
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600">
+                            <input type="radio" name="gateway" value="binance_personal" x-model="gateway" class="sr-only">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-semibold text-xs text-slate-900 dark:text-white">Binance Pay (Personal)</span>
+                                <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center"
+                                     :class="gateway === 'binance_personal' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300 dark:border-slate-600'">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="gateway === 'binance_personal'"></div>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-slate-500">Direct Pay ID transfer (0% fee)</span>
+                        </label>
+
+                        <!-- Binance Merchant -->
+                        <label class="cursor-pointer border rounded-lg p-3.5 flex flex-col justify-between transition"
+                            :class="gateway === 'binance' 
+                                ? 'border-[#F6821F] ring-2 ring-[#F6821F]/20 bg-[#F6821F]/5 dark:bg-[#F6821F]/10' 
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600">
+                            <input type="radio" name="gateway" value="binance" x-model="gateway" class="sr-only">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-semibold text-xs text-slate-900 dark:text-white">Binance Pay (Merchant)</span>
+                                <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center"
+                                     :class="gateway === 'binance' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300 dark:border-slate-600'">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="gateway === 'binance'"></div>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-slate-500">Official QR / Universal App checkout</span>
+                        </label>
+
+                        <!-- SSLCommerz -->
+                        <label class="cursor-pointer border rounded-lg p-3.5 flex flex-col justify-between transition"
+                            :class="gateway === 'sslcommerz' 
+                                ? 'border-[#F6821F] ring-2 ring-[#F6821F]/20 bg-[#F6821F]/5 dark:bg-[#F6821F]/10' 
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600">
+                            <input type="radio" name="gateway" value="sslcommerz" x-model="gateway" class="sr-only">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-semibold text-xs text-slate-900 dark:text-white">SSLCommerz</span>
+                                <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center"
+                                     :class="gateway === 'sslcommerz' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300 dark:border-slate-600'">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="gateway === 'sslcommerz'"></div>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-slate-500">Cards, Internet Banking, MFS</span>
+                        </label>
+
+                        <!-- PipraPay -->
+                        <label class="cursor-pointer border rounded-lg p-3.5 flex flex-col justify-between transition"
+                            :class="gateway === 'piprapay' 
+                                ? 'border-[#F6821F] ring-2 ring-[#F6821F]/20 bg-[#F6821F]/5 dark:bg-[#F6821F]/10' 
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600">
+                            <input type="radio" name="gateway" value="piprapay" x-model="gateway" class="sr-only">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-semibold text-xs text-slate-900 dark:text-white">PipraPay</span>
+                                <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center"
+                                     :class="gateway === 'piprapay' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300 dark:border-slate-600'">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="gateway === 'piprapay'"></div>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-slate-500">Instant automated gateway</span>
+                        </label>
+
+                        <!-- bKash Merchant -->
                         <label class="cursor-pointer border rounded-lg p-3.5 flex flex-col justify-between transition"
                             :class="gateway === 'bkash' 
                                 ? 'border-[#F6821F] ring-2 ring-[#F6821F]/20 bg-[#F6821F]/5 dark:bg-[#F6821F]/10' 
-                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'">
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600">
                             <input type="radio" name="gateway" value="bkash" x-model="gateway" class="sr-only">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="font-semibold text-xs text-slate-900 dark:text-white">bKash Checkout</span>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-semibold text-xs text-slate-900 dark:text-white">bKash Tokenized</span>
                                 <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center"
-                                     :class="gateway === 'bkash' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300'">
+                                     :class="gateway === 'bkash' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300 dark:border-slate-600'">
                                     <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="gateway === 'bkash'"></div>
                                 </div>
                             </div>
-                            <span class="text-[11px] text-slate-500">Instant BDT mobile payment</span>
+                            <span class="text-[11px] text-slate-500">Official PGW Checkout</span>
                         </label>
 
                         <!-- Stripe -->
                         <label class="cursor-pointer border rounded-lg p-3.5 flex flex-col justify-between transition"
                             :class="gateway === 'stripe' 
                                 ? 'border-[#F6821F] ring-2 ring-[#F6821F]/20 bg-[#F6821F]/5 dark:bg-[#F6821F]/10' 
-                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'">
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600">
                             <input type="radio" name="gateway" value="stripe" x-model="gateway" class="sr-only">
-                            <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center justify-between mb-1.5">
                                 <span class="font-semibold text-xs text-slate-900 dark:text-white">Card / Stripe</span>
                                 <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center"
-                                     :class="gateway === 'stripe' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300'">
+                                     :class="gateway === 'stripe' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300 dark:border-slate-600'">
                                     <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="gateway === 'stripe'"></div>
                                 </div>
                             </div>
                             <span class="text-[11px] text-slate-500">Visa, Mastercard, Amex</span>
                         </label>
 
-                        <!-- Binance -->
-                        <label class="cursor-pointer border rounded-lg p-3.5 flex flex-col justify-between transition"
-                            :class="gateway === 'binance' 
-                                ? 'border-[#F6821F] ring-2 ring-[#F6821F]/20 bg-[#F6821F]/5 dark:bg-[#F6821F]/10' 
-                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'">
-                            <input type="radio" name="gateway" value="binance" x-model="gateway" class="sr-only">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="font-semibold text-xs text-slate-900 dark:text-white">Binance Pay</span>
-                                <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center"
-                                     :class="gateway === 'binance' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300'">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="gateway === 'binance'"></div>
-                                </div>
-                            </div>
-                            <span class="text-[11px] text-slate-500">Instant USDT / Crypto</span>
-                        </label>
-
-                        <!-- Manual -->
+                        <!-- Bank Wire / Manual -->
                         <label class="cursor-pointer border rounded-lg p-3.5 flex flex-col justify-between transition"
                             :class="gateway === 'manual' 
                                 ? 'border-[#F6821F] ring-2 ring-[#F6821F]/20 bg-[#F6821F]/5 dark:bg-[#F6821F]/10' 
-                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'">
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600">
                             <input type="radio" name="gateway" value="manual" x-model="gateway" class="sr-only">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="font-semibold text-xs text-slate-900 dark:text-white">Bank Transfer</span>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-semibold text-xs text-slate-900 dark:text-white">Bank Wire</span>
                                 <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center"
-                                     :class="gateway === 'manual' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300'">
+                                     :class="gateway === 'manual' ? 'border-[#F6821F] bg-[#F6821F]' : 'border-slate-300 dark:border-slate-600'">
                                     <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="gateway === 'manual'"></div>
                                 </div>
                             </div>
-                            <span class="text-[11px] text-slate-500">Offline manual deposit</span>
+                            <span class="text-[11px] text-slate-500">Offline corporate wire deposit</span>
                         </label>
-                    </div>
-                    @error('gateway') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    </div>@error('gateway') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Submit CTA Button (Vibrant Orange, 100% visible) -->

@@ -8,10 +8,17 @@
             <h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">System Health & Status</h1>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Live diagnostics for database performance, server metrics, cron jobs, and upstream registrar connectivity.</p>
         </div>
-        <div>
-            <button onclick="window.location.reload()" class="cf-btn cf-btn-secondary h-8 px-3 text-xs flex items-center gap-1.5">
+        <div class="flex items-center gap-2">
+            <form action="{{ route('admin.system-health.backup') }}" method="POST">
+                @csrf
+                <button type="submit" class="cf-btn cf-btn-primary h-8 px-3 text-xs flex items-center gap-1.5 cursor-pointer font-semibold">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                    <span>Create Database Backup</span>
+                </button>
+            </form>
+            <button onclick="window.location.reload()" class="cf-btn cf-btn-secondary h-8 px-3 text-xs flex items-center gap-1.5 cursor-pointer">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                Refresh Metrics
+                <span>Refresh Metrics</span>
             </button>
         </div>
     </div>
@@ -117,5 +124,67 @@
         </div>
     </div>
 
+
+    <!-- Database Disaster Recovery & Backups -->
+    <div class="cf-panel p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Database Disaster Recovery & Backups</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Automated and on-demand compressed MySQL snapshots (.sql.gz).</p>
+            </div>
+            <form action="{{ route('admin.system-health.backup') }}" method="POST">
+                @csrf
+                <button type="submit" class="cf-btn cf-btn-secondary cf-btn-sm text-xs cursor-pointer">
+                    + Take Snapshot Now
+                </button>
+            </form>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-800/50 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 font-medium">
+                    <tr>
+                        <th class="px-4 py-3">Archive Filename</th>
+                        <th class="px-4 py-3">File Size</th>
+                        <th class="px-4 py-3">Created At</th>
+                        <th class="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                    @forelse($backups as $b)
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                            <td class="px-4 py-3 font-mono font-medium text-slate-900 dark:text-white">
+                                {{ $b['filename'] }}
+                            </td>
+                            <td class="px-4 py-3 font-mono text-slate-500 dark:text-slate-400">
+                                {{ $b['size_mb'] }} MB
+                            </td>
+                            <td class="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                                {{ $b['created_at']->format('M d, Y H:i:s') }} ({{ $b['created_at']->diffForHumans() }})
+                            </td>
+                            <td class="px-4 py-3 text-right flex items-center justify-end gap-2">
+                                <a href="{{ route('admin.system-health.backup.download', $b['filename']) }}" class="cf-btn cf-btn-secondary cf-btn-sm text-xs cursor-pointer">
+                                    Download
+                                </a>
+                                <form action="{{ route('admin.system-health.backup.delete', $b['filename']) }}" method="POST" onsubmit="return confirm('Delete this database backup?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="cf-btn cf-btn-secondary cf-btn-sm text-xs text-rose-600 hover:text-rose-700 cursor-pointer">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="px-4 py-8 text-center text-slate-400">
+                                No database snapshots yet. Click "Create Database Backup" above to generate an immediate snapshot.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 @endsection

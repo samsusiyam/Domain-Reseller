@@ -87,12 +87,7 @@
         <!-- Brand Header -->
         <div class="h-14 flex items-center justify-between px-4 border-b shrink-0" style="border-color: var(--border);">
             <a href="{{ route('client.dashboard') }}" class="flex items-center gap-2.5">
-                <div class="w-6 h-6 rounded-[4px] bg-[#F6821F] flex items-center justify-center text-white shrink-0">
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
-                    </svg>
-                </div>
-                <span class="font-semibold text-sm tracking-tight" style="color: var(--text);">Client portal</span>
+                <x-brand-logo class="h-7 w-auto" :show-text="false" />
             </a>
             <button @click="sidebarOpen = false" class="p-1 rounded text-slate-500 hover:text-slate-900 lg:hidden">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -220,6 +215,7 @@
 
         <!-- Page Body -->
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" style="background-color: var(--bg);">
+            <x-announcement-banner />
             @if(session('success'))
                 <div class="mb-4 p-3 rounded-[6px] text-xs flex items-center gap-2"
                      style="background-color: var(--success-bg); border: 1px solid var(--success); color: var(--success);">

@@ -4,45 +4,12 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Domain Header & Sub-Nav -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('client.domains.show', $domain->id) }}" class="text-slate-400 hover:text-slate-600 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    </a>
-                    <h1 class="text-2xl font-bold text-slate-800">{{ $domain->domain_name }}</h1>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
-                        {{ $domain->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
-                        {{ ucfirst($domain->status) }}
-                    </span>
-                </div>
-                <p class="text-sm text-slate-500 mt-1">Manage email forwards and routing aliases for this domain.</p>
-            </div>
-            <div>
-                <a href="{{ route('client.domains.show', $domain->id) }}" class="inline-flex items-center px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition">
-                    Domain Overview
-                </a>
-            </div>
-        </div>
-
-        <!-- Domain Navigation Tabs -->
-        <div class="flex items-center gap-2 border-b border-slate-200 mt-6 -mb-6 overflow-x-auto text-sm">
-            <a href="{{ route('client.domains.show', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">Overview</a>
-            <a href="{{ route('client.domains.nameservers.edit', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">Nameservers</a>
-            <a href="{{ route('client.domains.dns.index', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">DNS Records</a>
-            <a href="{{ route('client.domains.child-ns.index', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">Glue Records</a>
-            <a href="{{ route('client.domains.whois.edit', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">WHOIS Contacts</a>
-            <a href="{{ route('client.domains.email-forwarding.index', $domain->id) }}" class="px-4 py-3 text-brand-600 border-b-2 border-brand-600 font-semibold whitespace-nowrap">Email Forwarding</a>
-            <a href="{{ route('client.domains.url-forwarding.index', $domain->id) }}" class="px-4 py-3 text-slate-600 hover:text-slate-900 border-b-2 border-transparent whitespace-nowrap font-medium">URL Redirection</a>
-        </div>
-    </div>
+    <x-domain-tabs :domain=\$domain active="email-forwarding" />
 
     <!-- Notice -->
-    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+    <div class="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-xl p-4 flex items-start gap-3">
         <svg class="w-5 h-5 text-blue-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        <div class="text-sm text-blue-800">
+        <div class="text-sm text-blue-800 dark:text-blue-300">
             <span class="font-semibold">Notice:</span> For email forwarding to function properly, your domain's MX records must point to our default email routing cluster. When you add your first email forwarder, required DNS entries will be verified.
         </div>
     </div>
@@ -50,17 +17,17 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Add Forwarder Form -->
         <div class="lg:col-span-1">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-6">
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Create New Forwarder</h3>
+            <div class="bg-white dark:bg-[#111827] rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 dark:border-slate-800 p-6 sticky top-6">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Create New Forwarder</h3>
                 <form action="{{ route('client.domains.email-forwarding.store', $domain->id) }}" method="POST" class="space-y-4">
                     @csrf
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Incoming Address</label>
                         <div class="flex rounded-lg shadow-sm border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500">
                             <input type="text" name="source_prefix" placeholder="sales" required
-                                class="flex-1 px-3 py-2 text-sm text-slate-800 border-none focus:outline-none"
+                                class="flex-1 px-3 py-2 text-sm text-slate-800 dark:text-white border-none focus:outline-none"
                                 value="{{ old('source_prefix') }}">
-                            <span class="inline-flex items-center px-3 bg-slate-50 text-slate-500 text-sm border-l border-slate-300">
+                            <span class="inline-flex items-center px-3 bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-sm border-l border-slate-300">
                                 @ {{ $domain->domain_name }}
                             </span>
                         </div>
@@ -87,10 +54,10 @@
 
         <!-- Existing Forwarders Table -->
         <div class="lg:col-span-2">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-white dark:bg-[#111827] rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 dark:border-slate-800 overflow-hidden">
                 <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-800">Active Email Forwarders</h3>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white">Active Email Forwarders</h3>
                         <p class="text-sm text-slate-500 mt-0.5">Incoming emails to these addresses are automatically routed.</p>
                     </div>
                     <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full">
@@ -109,7 +76,7 @@
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm text-slate-600">
-                            <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200 dark:border-slate-800">
                                 <tr>
                                     <th class="px-6 py-3.5">Alias Address</th>
                                     <th class="px-6 py-3.5"></th>
@@ -120,8 +87,8 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 @foreach($forwarders as $forward)
-                                    <tr class="hover:bg-slate-50/50 transition">
-                                        <td class="px-6 py-4 font-mono font-medium text-slate-800">
+                                    <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 transition">
+                                        <td class="px-6 py-4 font-mono font-medium text-slate-800 dark:text-white">
                                             {{ $forward->source_prefix }}@<span class="text-slate-500">{{ $domain->domain_name }}</span>
                                         </td>
                                         <td class="px-2 py-4 text-slate-400">

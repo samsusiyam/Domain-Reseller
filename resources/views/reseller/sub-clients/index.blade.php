@@ -5,13 +5,13 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800">End-Customer Contacts</h1>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-200">End-Customer Contacts</h1>
             <p class="text-sm text-slate-500 mt-1">Directory of WHOIS Registrant, Technical, and Billing contact profiles created via your WHMCS or API orders.</p>
         </div>
     </div>
 
     <!-- Contacts Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-white dark:bg-[#111827] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         @if($contacts->isEmpty())
             <div class="text-center py-16 px-4">
                 <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-3">
@@ -23,7 +23,7 @@
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                             <th class="px-6 py-3.5">Contact Name</th>
                             <th class="px-6 py-3.5">Company / Org</th>
@@ -35,9 +35,9 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @foreach($contacts as $c)
-                            <tr class="hover:bg-slate-50/50 transition">
-                                <td class="px-6 py-4 font-bold text-slate-900">
-                                    <a href="{{ route('reseller.sub-clients.show', $c->id) }}" class="text-indigo-600 hover:text-indigo-800">
+                            <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 transition">
+                                <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">
+                                    <a href="{{ route('reseller.sub-clients.show', $c->id) }}" class="text-[#F6821F] hover:text-[#E07116]">
                                         {{ $c->first_name }} {{ $c->last_name }}
                                     </a>
                                 </td>

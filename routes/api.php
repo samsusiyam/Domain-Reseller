@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('v1')->middleware(['api.auth', 'api.ratelimit', 'api.ip_whitelist'])->group(function () {
+Route::prefix('v1')->middleware([\App\Http\Middleware\LogApiRequests::class, 'api.auth', 'api.ratelimit', 'api.ip_whitelist'])->group(function () {
     // Auth & Account
     Route::get('/auth/test', [ApiAuthController::class, 'test']);
     Route::get('/account/info', [ApiAccountController::class, 'info']);

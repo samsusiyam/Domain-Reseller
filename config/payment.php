@@ -1,49 +1,77 @@
 <?php
 
 return [
-    'default' => env('DEFAULT_PAYMENT_GATEWAY', 'bkash'),
+    'default' => env('PAYMENT_DEFAULT_GATEWAY', 'manual'),
 
     'gateways' => [
         'manual' => [
-            'name' => 'Manual Payment',
+            'name' => 'Manual Payment / Bank Wire',
             'enabled' => env('GATEWAY_MANUAL_ENABLED', true),
-            'instructions' => env('GATEWAY_MANUAL_INSTRUCTIONS', 'Send money to our bank or bKash personal number and enter the Transaction ID.'),
-            'accounts' => [
-                'bank' => [
-                    'bank_name' => env('MANUAL_BANK_NAME', 'Dutch-Bangla Bank Ltd'),
-                    'account_name' => env('MANUAL_ACCOUNT_NAME', 'Domain Reseller BD'),
-                    'account_number' => env('MANUAL_ACCOUNT_NUMBER', '123.120.45678'),
-                    'branch' => env('MANUAL_BANK_BRANCH', 'Dhaka'),
-                ],
-                'bkash_personal' => env('MANUAL_BKASH_PERSONAL', '01700000000'),
-                'nagad_personal' => env('MANUAL_NAGAD_PERSONAL', '01800000000'),
-            ],
         ],
+
+        'bkash_personal' => [
+            'name' => 'bKash Personal (Send Money)',
+            'enabled' => env('GATEWAY_BKASH_PERSONAL_ENABLED', true),
+            'personal_number' => env('BKASH_PERSONAL_NUMBER', '01849693630'),
+        ],
+
         'bkash' => [
-            'name' => 'bKash Tokenized Checkout',
-            'enabled' => env('GATEWAY_BKASH_ENABLED', true),
-            'app_key' => env('BKASH_APP_KEY'),
-            'app_secret' => env('BKASH_APP_SECRET'),
-            'username' => env('BKASH_USERNAME'),
-            'password' => env('BKASH_PASSWORD'),
+            'name' => 'bKash Merchant (Tokenized)',
+            'enabled' => env('GATEWAY_BKASH_ENABLED', false),
+            'app_key' => env('BKASH_APP_KEY', ''),
+            'app_secret' => env('BKASH_APP_SECRET', ''),
+            'username' => env('BKASH_USERNAME', ''),
+            'password' => env('BKASH_PASSWORD', ''),
             'sandbox' => env('BKASH_SANDBOX', true),
-            'currency' => 'BDT',
         ],
-        'stripe' => [
-            'name' => 'Stripe (Credit / Debit Card)',
-            'enabled' => env('GATEWAY_STRIPE_ENABLED', true),
-            'key' => env('STRIPE_KEY'),
-            'secret' => env('STRIPE_SECRET'),
-            'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
-            'currency' => 'USD',
+
+        'sslcommerz' => [
+            'name' => 'SSLCommerz (Cards / MFS / Net Banking)',
+            'enabled' => env('GATEWAY_SSLCOMMERZ_ENABLED', false),
+            'store_id' => env('SSLCOMMERZ_STORE_ID', ''),
+            'store_passwd' => env('SSLCOMMERZ_STORE_PASSWD', ''),
+            'sandbox' => env('SSLCOMMERZ_SANDBOX', true),
         ],
+
+        'piprapay' => [
+            'name' => 'PipraPay (Automated Multi-Channel)',
+            'enabled' => env('GATEWAY_PIPRAPAY_ENABLED', false),
+            'api_key' => env('PIPRAPAY_API_KEY', ''),
+            'api_url' => env('PIPRAPAY_API_URL', 'https://piprapay.com/api'),
+        ],
+
+        'uddoktapay' => [
+            'name' => 'UddoktaPay (bKash / Nagad / Rocket / Upay)',
+            'enabled' => env('GATEWAY_UDDOKTAPAY_ENABLED', true),
+            'api_key' => env('UDDOKTAPAY_API_KEY', ''),
+            'api_url' => env('UDDOKTAPAY_API_URL', 'https://pay.hostnibo.com/api'),
+        ],
+
         'binance' => [
-            'name' => 'Binance Pay (Crypto USDT)',
+            'name' => 'Binance Pay Merchant (USDT / Crypto)',
             'enabled' => env('GATEWAY_BINANCE_ENABLED', true),
-            'api_key' => env('BINANCE_API_KEY'),
-            'secret_key' => env('BINANCE_API_SECRET'),
-            'merchant_id' => env('BINANCE_MERCHANT_ID'),
-            'currency' => 'USDT',
+            'api_key' => env('BINANCE_PAY_API_KEY', ''),
+            'secret_key' => env('BINANCE_PAY_SECRET_KEY', ''),
+            'merchant_id' => env('BINANCE_PAY_MERCHANT_ID', ''),
+        ],
+
+        'binance_personal' => [
+            'name' => 'Binance Pay (Personal / Direct Pay ID)',
+            'enabled' => env('GATEWAY_BINANCE_PERSONAL_ENABLED', true),
+            'pay_id' => env('BINANCE_PERSONAL_PAY_ID', '123456789'),
+            'email' => env('BINANCE_PERSONAL_EMAIL', 'payments@hostnibo.com'),
+            'usdt_address' => env('BINANCE_PERSONAL_USDT_ADDRESS', ''),
+            'network' => env('BINANCE_PERSONAL_NETWORK', 'TRC20 / BEP20'),
+            'api_key' => env('BINANCE_PERSONAL_API_KEY', ''),
+            'secret_key' => env('BINANCE_PERSONAL_SECRET_KEY', ''),
+        ],
+
+        'stripe' => [
+            'name' => 'Credit / Debit Cards (Stripe)',
+            'enabled' => env('GATEWAY_STRIPE_ENABLED', false),
+            'key' => env('STRIPE_KEY', ''),
+            'secret' => env('STRIPE_SECRET', ''),
+            'webhook_secret' => env('STRIPE_WEBHOOK_SECRET', ''),
         ],
     ],
 ];

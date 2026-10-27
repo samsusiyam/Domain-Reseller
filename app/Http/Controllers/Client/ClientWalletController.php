@@ -33,7 +33,7 @@ class ClientWalletController extends Controller
 
         $request->validate([
             'amount' => ['required', 'numeric', "min:{$minDeposit}"],
-            'gateway' => ['required', 'string', 'in:manual,bkash,stripe,binance'],
+            'gateway' => ['required', 'string', 'in:manual,bkash,bkash_personal,sslcommerz,piprapay,uddoktapay,binance,binance_personal,stripe'],
         ]);
 
         $amount = (float) $request->amount;

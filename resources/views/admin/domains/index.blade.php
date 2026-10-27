@@ -5,24 +5,24 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Master Domain Portfolio</h1>
-            <p class="text-xs text-slate-500 mt-1">Supervise all registered, renewed, and incoming domain transfers across upstream registrars.</p>
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Master Domain Portfolio</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Supervise all registered, renewed, and incoming domain transfers across upstream registrars.</p>
         </div>
     </div>
 
     <!-- Filter Bar -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+    <div class="bg-white dark:bg-[#111827] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4">
         <form method="GET" action="{{ route('admin.domains.index') }}" class="flex flex-col sm:flex-row items-center gap-3">
             <div class="relative flex-1 w-full">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by domain name, client name or email..."
-                    class="block w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    class="block w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F6821F] focus:border-[#F6821F]">
             </div>
 
             <div class="w-full sm:w-44">
-                <select name="registrar_id" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <select name="registrar_id" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F6821F] focus:border-[#F6821F]">
                     <option value="">All Registrars</option>
                     @foreach($registrars as $reg)
                         <option value="{{ $reg->id }}" {{ request('registrar_id') == $reg->id ? 'selected' : '' }}>{{ $reg->name }}</option>
@@ -31,7 +31,7 @@
             </div>
 
             <div class="w-full sm:w-40">
-                <select name="status" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <select name="status" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F6821F] focus:border-[#F6821F]">
                     <option value="">All Statuses</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                     <option value="expired" {{ request('status') === 'expired' ? 'selected' : '' }}>Expired</option>
@@ -44,21 +44,21 @@
                 Filter
             </button>
             @if(request('search') || request('registrar_id') || request('status'))
-                <a href="{{ route('admin.domains.index') }}" class="text-xs text-slate-500 hover:text-slate-800 underline">Reset</a>
+                <a href="{{ route('admin.domains.index') }}" class="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 underline">Reset</a>
             @endif
         </form>
     </div>
 
     <!-- Domains Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-white dark:bg-[#111827] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         @if($domains->isEmpty())
             <div class="text-center py-16 px-4 text-slate-400 text-sm">
                 No domain records found.
             </div>
         @else
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+                <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                             <th class="px-6 py-3.5">Domain Name</th>
                             <th class="px-6 py-3.5">Owner / Account</th>
@@ -70,8 +70,8 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @foreach($domains as $dom)
-                            <tr class="hover:bg-slate-50/50 transition">
-                                <td class="px-6 py-4 font-mono font-bold text-slate-900">
+                            <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 transition">
+                                <td class="px-6 py-4 font-mono font-bold text-slate-900 dark:text-white">
                                     <a href="{{ route('admin.domains.show', $dom->id) }}" class="text-indigo-600 hover:text-indigo-800">
                                         {{ $dom->domain_name }}
                                     </a>
@@ -101,7 +101,7 @@
                                 </td>
                                 <td class="px-6 py-4 text-right space-x-2">
                                     <a href="{{ route('admin.domains.show', $dom->id) }}" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold">Manage</a>
-                                    <a href="{{ route('admin.domains.edit', $dom->id) }}" class="text-slate-500 hover:text-slate-800 text-xs font-semibold">Edit</a>
+                                    <a href="{{ route('admin.domains.edit', $dom->id) }}" class="text-slate-500 dark:text-slate-400 hover:text-slate-800 text-xs font-semibold">Edit</a>
                                 </td>
                             </tr>
                         @endforeach
