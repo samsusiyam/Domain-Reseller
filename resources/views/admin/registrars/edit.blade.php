@@ -29,13 +29,15 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <a href="{{ route('admin.registrars.test', $registrar->id) }}"
-               class="cf-btn cf-btn-secondary text-xs inline-flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Test Connection
-            </a>
+            <form action="{{ route('admin.registrars.test-connection', $registrar->id) }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="cf-btn cf-btn-secondary text-xs inline-flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Test Connection
+                </button>
+            </form>
         </div>
     </div>
 
