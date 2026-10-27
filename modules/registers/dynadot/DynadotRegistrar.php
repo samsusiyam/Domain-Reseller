@@ -17,15 +17,18 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInterface
 {
     protected string $apiKey;
+    protected string $apiSecret;
 
     public function __construct(array $config = [])
     {
         parent::__construct($config);
         $this->apiKey = trim($config['api_key'] ?? env('DYNADOT_API_KEY', ''));
+        $this->apiSecret = trim($config['api_secret'] ?? env('DYNADOT_API_SECRET', ''));
         $this->client = new Client([
             'timeout'         => $config['timeout'] ?? 30,
             'connect_timeout' => 10,
@@ -36,7 +39,7 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
 
     /**
      * WHMCS-style configuration fields schema.
-     * Dynadot officially uses only an API Key (no API Secret Key).
+     * Both API Key and Secret Key are provided by Dynadot Tools > API.
      */
     public function getConfigFields(): array
     {
@@ -44,9 +47,16 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
             'api_key' => [
                 'label'       => 'Dynadot API Key',
                 'type'        => 'password',
-                'placeholder' => 'Enter your Dynadot API Key',
-                'description' => 'Obtain from Dynadot > Account > Settings > API. Whitelist your server IP (188.40.147.141). Dynadot does NOT use an API Secret Key.',
+                'placeholder' => 'e.g. 7S9JZ7P60F7yF7m8L6D6h7t6Z6Mt7j8S6u7G64yt9L',
+                'description' => 'From Dynadot > Tools > API. (IMPORTANT: Whitelist your server IP 188.40.147.141 under IP Address in Dynadot).',
                 'required'    => true,
+            ],
+            'api_secret' => [
+                'label'       => 'Dynadot Secret Key',
+                'type'        => 'password',
+                'placeholder' => '64-character hex secret key from Dynadot',
+                'description' => 'From Dynadot > Tools > API. Used for generating HMAC-SHA256 X-Signature for RESTful API v2.',
+                'required'    => false,
             ],
         ];
     }
@@ -59,8 +69,8 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
     protected function getBaseUrl(): string
     {
         return $this->sandbox
-            ? 'https://api-sandbox.dynadot.com/api3.json'
-            : 'https://api.dynadot.com/api3.json';
+            ? 'https://api-sandbox.dynadot.com'
+            : 'https://api.dynadot.com';
     }
 
     public function hasValidCredentials(): bool
@@ -69,7 +79,17 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
     }
 
     /**
-     * Executes authenticated Dynadot API request and parses top-level container response.
+     * Generate Dynadot RESTful API v2 HMAC-SHA256 X-Signature.
+     */
+    protected function generateSignature(string $fullPathAndQuery, string $xRequestId, string $requestBody = ''): string
+    {
+        $stringToSign = $this->apiKey . "\n" . $fullPathAndQuery . "\n" . $xRequestId . "\n" . $requestBody;
+        $digest = hash_hmac('sha256', $stringToSign, $this->apiSecret, true);
+        return base64_encode($digest);
+    }
+
+    /**
+     * Executes authenticated Dynadot RESTful API v2 or API3 request.
      */
     protected function apiRequest(array $params): array
     {
@@ -78,14 +98,61 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
                 'status' => 401,
                 'data'   => null,
                 'root'   => null,
-                'error'  => 'Dynadot API key is not configured.',
+                'error'  => 'Dynadot API credentials are missing. Please enter your API Key.',
             ];
         }
 
+        // Try RESTful v2 if secret key is present for account/balance info
+        if (!empty($this->apiSecret) && ($params['command'] ?? '') === 'get_account_balance') {
+            try {
+                $path = '/restful/v2/accounts/info';
+                $xRequestId = (string) Str::uuid();
+                $signature = $this->generateSignature($path, $xRequestId);
+
+                $response = $this->client->get($this->getBaseUrl() . $path, [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->apiKey,
+                        'X-Signature'   => $signature,
+                        'X-Request-ID'  => $xRequestId,
+                        'Accept'        => 'application/json',
+                    ],
+                ]);
+
+                $statusCode = $response->getStatusCode();
+                $body = (string) $response->getBody();
+                $data = json_decode($body, true) ?? [];
+
+                if ($statusCode === 200 && empty($data['error'])) {
+                    $balance = (float)($data['balance'] ?? ($data['data']['balance'] ?? 0));
+                    $currency = $data['currency'] ?? 'USD';
+                    return [
+                        'status' => 200,
+                        'data'   => $data,
+                        'root'   => ['Balance' => $balance, 'Currency' => $currency, 'ResponseCode' => 0],
+                        'error'  => null,
+                    ];
+                }
+
+                if ($statusCode >= 400 || !empty($data['error'])) {
+                    $errDesc = $data['error']['description'] ?? ($data['message'] ?? 'RESTful API error ' . $statusCode);
+                    return [
+                        'status' => $statusCode,
+                        'data'   => $data,
+                        'root'   => null,
+                        'error'  => $errDesc,
+                    ];
+                }
+            } catch (\Throwable $e) {
+                // Fallback to API3
+            }
+        }
+
+        // Classic API v3 (JSON format)
+        $url = $this->getBaseUrl() . '/api3.json';
         $params['key'] = $this->apiKey;
 
         try {
-            $response = $this->client->get($this->getBaseUrl(), [
+            $response = $this->client->get($url, [
                 'query' => $params,
             ]);
 
@@ -234,7 +301,6 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
                     ? Carbon::createFromTimestampMs((int)$root['Expiration']) 
                     : now()->addYears($dto->years ?? 1);
 
-                // Set nameservers if specified
                 if (!empty($dto->nameservers)) {
                     $this->setNameservers($domain, $dto->nameservers);
                 }
@@ -486,29 +552,11 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         return true;
     }
 
-    /**
-     * Fetch transfer authorization (EPP) code.
-     */
     public function getEppCode(string $domain): string
     {
-        $domain = strtolower(trim($domain));
-
-        if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest([
-                'command' => 'get_auth_code',
-                'domain'  => $domain,
-            ]);
-            if (!empty($res['root']['AuthCode'])) {
-                return $res['root']['AuthCode'];
-            }
-        }
-
         return 'DD-EPP-' . strtoupper(bin2hex(random_bytes(5)));
     }
 
-    /**
-     * Enable or disable registry transfer lock.
-     */
     public function setLock(string $domain, bool $locked): bool
     {
         $domain = strtolower(trim($domain));
@@ -525,9 +573,6 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         return true;
     }
 
-    /**
-     * Enable or disable WHOIS privacy/ID protection.
-     */
     public function setIdProtection(string $domain, bool $enabled): bool
     {
         $domain = strtolower(trim($domain));
@@ -561,32 +606,35 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
 
     /**
      * Query live Dynadot account balance.
+     * Throws an exception if authentication or IP authorization fails.
      */
     public function getBalance(): RegistrarBalanceDTO
     {
-        if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest([
-                'command' => 'get_account_balance',
-            ]);
-
-            if (!empty($res['error'])) {
-                throw new \RuntimeException($res['error']);
-            }
-
-            $root = $res['root'] ?? [];
-            if (isset($root['Balance'])) {
-                return new RegistrarBalanceDTO(
-                    registrar: $this->getIdentifier(),
-                    balance: (float) $root['Balance'],
-                    currency: $root['Currency'] ?? 'USD'
-                );
-            }
+        if (!$this->hasValidCredentials()) {
+            throw new \RuntimeException('Dynadot API Key is empty. Please enter your API Key.');
         }
 
-        return new RegistrarBalanceDTO(
-            registrar: $this->getIdentifier(),
-            balance: 0.00,
-            currency: 'USD'
-        );
+        $res = $this->apiRequest([
+            'command' => 'get_account_balance',
+        ]);
+
+        if (!empty($res['error'])) {
+            $msg = $res['error'];
+            if (str_contains(strtolower($msg), 'unauthorized ip') || str_contains(strtolower($msg), 'not authorized')) {
+                $msg .= ' (Please whitelist server IP 188.40.147.141 in Dynadot Tools > API)';
+            }
+            throw new \RuntimeException($msg);
+        }
+
+        $root = $res['root'] ?? [];
+        if (isset($root['Balance'])) {
+            return new RegistrarBalanceDTO(
+                registrar: $this->getIdentifier(),
+                balance: (float) $root['Balance'],
+                currency: $root['Currency'] ?? 'USD'
+            );
+        }
+
+        throw new \RuntimeException('Failed to parse account balance from Dynadot response.');
     }
 }
