@@ -51,4 +51,9 @@ abstract class AbstractRegistrar implements RegistrarModuleInterface
             'sandbox' => $this->sandbox,
         ]);
     }
+
+    public function getAccountBalance(): RegistrarBalanceDTO
+    {
+        return $this->getBalance();
+    }
 }

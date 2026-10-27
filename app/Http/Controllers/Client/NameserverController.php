@@ -24,6 +24,17 @@ class NameserverController extends Controller
     {
         $this->authorizeDomain($domain);
 
+        // Normalize if submitted as separate fields ns1..ns4
+        if (!$request->has('nameservers')) {
+            $nsList = array_values(array_filter([
+                $request->input('ns1'),
+                $request->input('ns2'),
+                $request->input('ns3'),
+                $request->input('ns4'),
+            ]));
+            $request->merge(['nameservers' => $nsList]);
+        }
+
         $request->validate([
             'nameservers' => ['required', 'array', 'min:2', 'max:5'],
             'nameservers.*' => ['required', 'string', 'regex:/^[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}$/'],

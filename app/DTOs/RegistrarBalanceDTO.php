@@ -24,4 +24,9 @@ class RegistrarBalanceDTO
             'retrieved_at' => $this->retrievedAt?->toIso8601String(),
         ];
     }
+
+    public function formatted(): string
+    {
+        return '$' . number_format($this->balance, 2) . ' ' . $this->currency;
+    }
 }
