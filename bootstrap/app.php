@@ -64,6 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'payment/bkash/callback',
             'payment/stripe/webhook',
             'payment/binance/webhook',
+            'domain/check-transfer-eligibility',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

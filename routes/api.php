@@ -92,3 +92,6 @@ Route::prefix('v1')->middleware([\App\Http\Middleware\LogApiRequests::class, 'ap
     Route::delete('/webhooks/{id}', [ApiWebhookController::class, 'destroy']);
     Route::post('/webhooks/{id}/test', [ApiWebhookController::class, 'test']);
 });
+
+use App\Http\Controllers\Client\DomainSearchController;
+Route::post('/domain/check-transfer-eligibility', [DomainSearchController::class, 'checkTransferEligibility']);

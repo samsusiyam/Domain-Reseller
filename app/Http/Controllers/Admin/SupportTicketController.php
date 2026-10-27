@@ -15,6 +15,50 @@ class SupportTicketController extends Controller
     ) {}
 
     /**
+     * Show form to open new ticket for client.
+     */
+    public function create()
+    {
+        $users = \App\Models\User::select("id", "name", "email")->orderBy("name")->get();
+        return view("admin.tickets.create", compact("users"));
+    }
+
+    /**
+     * Store new ticket created by admin.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            "user_id"    => ["required", "exists:users,id"],
+            "department" => ["required", "in:technical,billing,domains,general"],
+            "priority"   => ["required", "in:low,medium,high,urgent"],
+            "subject"    => ["required", "string", "max:200"],
+            "message"    => ["required", "string"],
+        ]);
+
+        $ticket = SupportTicket::create([
+            "uuid"          => (string) \Illuminate\Support\Str::uuid(),
+            "ticket_number" => "TCK-" . strtoupper(\Illuminate\Support\Str::random(6)),
+            "user_id"       => $validated["user_id"],
+            "department"    => $validated["department"],
+            "priority"      => $validated["priority"],
+            "subject"       => $validated["subject"],
+            "status"        => "answered",
+            "last_reply_at" => now(),
+        ]);
+
+        SupportTicketReply::create([
+            "ticket_id" => $ticket->id,
+            "user_id"   => auth()->id(),
+            "message"   => $validated["message"],
+        ]);
+
+        $this->activityLogger->log("ticket_created_by_admin", "Admin opened Ticket #" . $ticket->ticket_number . " for user #" . $ticket->user_id, $ticket);
+
+        return redirect()->route("admin.tickets.show", $ticket->id)->with("success", "Ticket #" . $ticket->ticket_number . " opened successfully.");
+    }
+
+    /**
      * Lists all support tickets with filters.
      */
     public function index(Request $request)

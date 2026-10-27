@@ -28,6 +28,7 @@ Route::get('/reseller-program', [PricingPageController::class, 'resellerInfo'])-
 // Public Domain & WHOIS Search
 Route::get('/domain/search', [DomainSearchController::class, 'publicSearch'])->name('domain.search');
 Route::get('/domain/transfer', [DomainSearchController::class, 'publicTransfer'])->name('domain.transfer');
+Route::post('/domain/check-transfer-eligibility', [DomainSearchController::class, 'checkTransferEligibility'])->name('domain.transfer.check');
 Route::post('/domain/check', [DomainSearchController::class, 'checkSingle'])->name('domain.check');
 Route::post('/domain/check-bulk', [DomainSearchController::class, 'checkBulk'])->name('domain.check.bulk');
 Route::get('/whois', [WhoisLookupController::class, 'index'])->name('whois.index');
@@ -90,3 +91,6 @@ Route::middleware(['auth'])->group(function () {
 
 Route::match(['get', 'post'], '/payment/callback/{gateway}', [PaymentGatewayController::class, 'callback']);
 Route::post('/payment/webhook/{gateway}', [PaymentGatewayController::class, 'webhook'])->name('payment.webhook');
+
+use App\Http\Controllers\Admin\ClientManagementController;
+Route::match(['get', 'post'], '/impersonate/stop', [ClientManagementController::class, 'stopImpersonate'])->name('impersonate.stop');

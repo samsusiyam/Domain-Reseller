@@ -76,6 +76,21 @@
     </style>
 </head>
 <body class="h-full flex overflow-hidden font-sans" x-data="{ sidebarOpen: false }">
+@if(session('admin_impersonator_id'))
+    <div class="bg-[#F6821F] text-white px-4 py-2 text-xs font-semibold flex items-center justify-between shadow-md z-50">
+        <div class="flex items-center gap-2">
+            <span class="inline-block w-2 h-2 rounded-full bg-white animate-pulse"></span>
+            <span>⚡ You are currently logged in as <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->email }}).</span>
+        </div>
+        <form action="{{ route('impersonate.stop') }}" method="POST" class="inline">
+            @csrf
+            <button type="submit" class="px-3 py-1 bg-black/30 hover:bg-black/50 text-white rounded font-bold transition text-[11px] uppercase tracking-wider">
+                ← Return to Admin Account
+            </button>
+        </form>
+    </div>
+@endif
+
 
     <!-- Mobile Sidebar Backdrop -->
     <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"></div>

@@ -110,8 +110,9 @@ class ClientManagementController extends Controller
         $invoices = $client->invoices()->latest()->take(10)->get();
         $transactions = $client->transactions()->latest()->take(10)->get();
         $tickets = $client->tickets()->latest()->take(10)->get();
+        $orders = $client->orders()->latest()->take(10)->get();
 
-        return view('admin.clients.show', compact('client', 'domains', 'invoices', 'transactions', 'tickets'));
+        return view('admin.clients.show', compact('client', 'domains', 'invoices', 'transactions', 'tickets', 'orders'));
     }
 
     /**
@@ -245,10 +246,25 @@ class ClientManagementController extends Controller
      */
     public function impersonate($id)
     {
-        $client = User::where('role', 'client')->findOrFail($id);
+        $client = User::whereIn('role', ['client', 'reseller'])->findOrFail($id);
         session(['admin_impersonator_id' => Auth::id()]);
         Auth::login($client);
 
-        return redirect()->route('client.dashboard')->with('info', "You are now impersonating {$client->name}.");
+        $targetRoute = $client->isReseller() ? 'reseller.dashboard' : 'client.dashboard';
+        return redirect()->route($targetRoute)->with('info', "You are now impersonating {$client->name}.");
+    }
+
+    public function stopImpersonate()
+    {
+        $adminId = session('admin_impersonator_id');
+        if ($adminId) {
+            $admin = User::find($adminId);
+            if ($admin && $admin->isAdmin()) {
+                session()->forget('admin_impersonator_id');
+                Auth::login($admin);
+                return redirect()->route('admin.clients.index')->with('success', 'Returned to administrator account.');
+            }
+        }
+        return redirect()->route('home');
     }
 }

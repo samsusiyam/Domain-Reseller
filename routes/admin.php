@@ -111,7 +111,11 @@ Route::prefix('registrars')->name('registrars.')->group(function () {
 // Orders & Provisioning
 Route::prefix('orders')->name('orders.')->group(function () {
     Route::get('/', [OrderManagementController::class, 'index'])->name('index');
+    Route::get('/create', [OrderManagementController::class, 'create'])->name('create');
+    Route::post('/', [OrderManagementController::class, 'store'])->name('store');
     Route::get('/{order}', [OrderManagementController::class, 'show'])->name('show');
+    Route::post('/{order}/accept', [OrderManagementController::class, 'accept'])->name('accept');
+    Route::post('/{order}/status', [OrderManagementController::class, 'updateStatus'])->name('status');
     Route::post('/{order}/retry-provision', [OrderManagementController::class, 'retryProvision'])->name('retry-provision');
     Route::post('/{order}/cancel', [OrderManagementController::class, 'cancel'])->name('cancel');
 });
@@ -141,6 +145,8 @@ Route::prefix('payments/manual-requests')->name('payments.manual.')->group(funct
 // Support Tickets
 Route::prefix('tickets')->name('tickets.')->group(function () {
     Route::get('/', [SupportTicketController::class, 'index'])->name('index');
+    Route::get('/create', [SupportTicketController::class, 'create'])->name('create');
+    Route::post('/', [SupportTicketController::class, 'store'])->name('store');
     Route::get('/{ticket}', [SupportTicketController::class, 'show'])->name('show');
     Route::post('/{ticket}/reply', [SupportTicketController::class, 'reply'])->name('reply');
     Route::post('/{ticket}/status', [SupportTicketController::class, 'updateStatus'])->name('status');

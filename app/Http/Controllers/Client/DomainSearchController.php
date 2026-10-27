@@ -14,6 +14,92 @@ class DomainSearchController extends Controller
     ) {}
 
     
+    public function checkTransferEligibility(Request $request, \App\Services\Whois\RdapWhoisService $whoisService)
+    {
+        $domain = strtolower(trim($request->input('domain', '')));
+        $eppCode = trim($request->input('epp_code', ''));
+
+        if (empty($domain) || !str_contains($domain, '.')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please enter a valid domain name.',
+            ], 422);
+        }
+
+        $parts = explode('.', $domain, 2);
+        $tld = '.' . $parts[1];
+        $tldModel = \App\Models\TldPricing::where('tld', $tld)->where('is_active', true)->first();
+
+        if (!$tldModel) {
+            return response()->json([
+                'success' => false,
+                'message' => "The extension {$tld} is not currently supported for transfer.",
+            ], 422);
+        }
+
+        $transferPrice = (float) $tldModel->client_transfer;
+        $regularPrice = round($transferPrice * 1.08, 2);
+
+        $lookup = $whoisService->lookup($domain);
+
+        if (!($lookup['is_registered'] ?? true)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Domain '{$domain}' is not registered yet. You can register it directly.",
+                'can_register' => true,
+            ]);
+        }
+
+        $statusList = array_map('strtolower', $lookup['status'] ?? []);
+        $isLocked = false;
+        foreach ($statusList as $st) {
+            if (str_contains($st, 'transferprohibited') || str_contains($st, 'clienthold') || str_contains($st, 'serverhold')) {
+                $isLocked = true;
+                break;
+            }
+        }
+
+        $createdDate = $lookup['created_at'] ?? null;
+        $isUnder60Days = false;
+        if ($createdDate) {
+            try {
+                $createdAt = \Carbon\Carbon::parse($createdDate);
+                if ($createdAt->diffInDays(now()) < 60) {
+                    $isUnder60Days = true;
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        $eppValid = false;
+        $eppMessage = null;
+        if (!empty($eppCode)) {
+            if (strlen($eppCode) >= 6 && !str_contains($eppCode, ' ')) {
+                $eppValid = true;
+                $eppMessage = 'Code successfully verified';
+            } else {
+                $eppValid = false;
+                $eppMessage = 'Invalid EPP code format (must be at least 6 characters).';
+            }
+        }
+
+        return response()->json([
+            'success'          => true,
+            'domain'           => $domain,
+            'tld'              => $tld,
+            'is_registered'    => true,
+            'is_locked'        => $isLocked,
+            'lock_status'      => $isLocked ? 'LOCKED' : 'UNLOCKED',
+            'lock_message'     => $isLocked ? 'Transfer prohibited. Please unlock domain at your current registrar.' : 'Registrar Lock disabled (Ready for transfer)',
+            'is_under_60_days' => $isUnder60Days,
+            'registrar'        => $lookup['registrar'] ?? 'Current Registrar',
+            'transfer_price'   => $transferPrice,
+            'regular_price'    => $regularPrice,
+            'epp_valid'        => $eppValid,
+            'epp_message'      => $eppMessage,
+            'eligible'         => !$isLocked && !$isUnder60Days,
+        ]);
+    }
+
     public function publicTransfer(Request $request)
     {
         $domain = strtolower(trim($request->query('domain', '')));

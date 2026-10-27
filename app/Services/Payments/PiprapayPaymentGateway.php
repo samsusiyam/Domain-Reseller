@@ -21,7 +21,7 @@ class PiprapayPaymentGateway extends AbstractPaymentGateway
     {
         parent::__construct($config);
         $this->apiKey = SystemSetting::get('piprapay_api_key', $config['api_key'] ?? '');
-        $this->apiUrl = rtrim(SystemSetting::get('piprapay_api_url', $config['api_url'] ?? 'https://piprapay.com/api'), '/');
+        $this->apiUrl = rtrim(SystemSetting::get('piprapay_api_url', $config['api_url'] ?? 'https://pay.hostnibo.com/api'), '/');
     }
 
     public function getName(): string
@@ -46,48 +46,51 @@ class PiprapayPaymentGateway extends AbstractPaymentGateway
         if (!empty($this->apiKey)) {
             try {
                 $payload = [
-                    'amount' => (float) $request->amount,
-                    'currency' => $request->currency === 'BDT' ? 'BDT' : 'USD',
-                    'full_name' => $request->customerName ?: 'Customer',
-                    'email' => $request->customerEmail ?: 'customer@hostnibo.com',
-                    'phone_number' => $request->customerPhone ?: '01849693630',
-                    'metadata' => [
-                        'invoice_id' => $request->invoiceId,
-                        'order_id' => $orderId,
+                    'full_name'      => $request->customerName ?: 'Customer',
+                    'email_address'  => $request->customerEmail ?: 'customer@hostnibo.com',
+                    'mobile_number'  => $request->customerPhone ?: '01849693630',
+                    'amount'         => (string) round((float) $request->amount, 2),
+                    'currency'       => 'BDT',
+                    'return_url'     => route('payment.callback', ['gateway' => 'piprapay', 'invoice_id' => $request->invoiceId]),
+                    'webhook_url'    => route('payment.webhook', ['gateway' => 'piprapay']),
+                    'metadata'       => [
+                        'invoice_id' => (string) $request->invoiceId,
+                        'order_id'   => $orderId,
                     ],
-                    'redirect_url' => route('payment.callback', ['gateway' => 'piprapay', 'invoice_id' => $request->invoiceId]),
-                    'cancel_url' => $request->cancelUrl ?: route('client.invoices.show', $request->invoiceId),
-                    'webhook_url' => route('payment.webhook', ['gateway' => 'piprapay']),
                 ];
 
                 $response = Http::withHeaders([
-                    'Authorization' => "Bearer {$this->apiKey}",
-                    'Accept' => 'application/json',
-                ])->post("{$this->apiUrl}/create-charge", $payload);
+                    'MHS-PIPRAPAY-API-KEY' => $this->apiKey,
+                    'Content-Type'         => 'application/json',
+                    'Accept'               => 'application/json',
+                ])->post("{$this->apiUrl}/checkout/redirect", $payload);
 
                 $data = $response->json();
-                $checkoutUrl = $data['payment_url'] ?? $data['charge_url'] ?? $data['data']['payment_url'] ?? null;
+                $checkoutUrl = $data['pp_url'] ?? $data['payment_url'] ?? null;
+                $ppId = $data['pp_id'] ?? $orderId;
 
                 if ($checkoutUrl) {
                     return new PaymentRedirectDTO(
                         isRedirect: true,
                         redirectUrl: $checkoutUrl,
                         method: 'GET',
-                        gatewayReferenceId: $data['charge_id'] ?? $orderId
+                        gatewayReferenceId: (string) $ppId
                     );
                 }
+
+                Log::channel('payment')->error('PipraPay Init response error: ' . json_encode($data));
             } catch (\Throwable $e) {
-                Log::channel('payment')->error('PipraPay Init failed: ' . $e->getMessage());
+                Log::channel('payment')->error('PipraPay Init exception: ' . $e->getMessage());
             }
         }
 
-        // Test/Sandbox fallback
+        // Fallback
         $redirectUrl = route('payment.callback', [
-            'gateway' => 'piprapay',
-            'order_id' => $orderId,
-            'status' => 'COMPLETED',
+            'gateway'    => 'piprapay',
+            'order_id'   => $orderId,
+            'pp_status'  => 'completed',
             'invoice_id' => $request->invoiceId,
-            'amount' => $request->amount,
+            'amount'     => $request->amount,
         ]);
 
         return new PaymentRedirectDTO(
@@ -100,25 +103,34 @@ class PiprapayPaymentGateway extends AbstractPaymentGateway
 
     public function verifyCallback(Request $request): PaymentVerificationDTO
     {
-        $status = strtoupper($request->input('status', 'PENDING'));
-        $chargeId = $request->input('charge_id') ?? $request->input('order_id');
+        $ppStatus = strtolower($request->input('pp_status', $request->input('status', 'pending')));
+        $ppId = $request->input('transaction_ref') ?? $request->input('pp_id') ?? $request->input('charge_id') ?? $request->input('order_id');
         $invoiceId = $request->input('invoice_id', '');
         $amount = (float) $request->input('amount', 0.0);
 
-        if (!empty($this->apiKey) && $chargeId && !str_starts_with($chargeId, 'PIP-')) {
+        if (!empty($this->apiKey) && $ppId && !str_starts_with($ppId, 'PIP-')) {
             try {
                 $verifyRes = Http::withHeaders([
-                    'Authorization' => "Bearer {$this->apiKey}",
-                ])->post("{$this->apiUrl}/verify-charge", [
-                    'charge_id' => $chargeId,
+                    'MHS-PIPRAPAY-API-KEY' => $this->apiKey,
+                    'Content-Type'         => 'application/json',
+                    'Accept'               => 'application/json',
+                ])->post("{$this->apiUrl}/verify-payment", [
+                    'pp_id' => $ppId,
                 ])->json();
 
-                if (($verifyRes['status'] ?? '') === 'COMPLETED' || ($verifyRes['data']['status'] ?? '') === 'COMPLETED') {
+                $remoteStatus = strtolower($verifyRes['status'] ?? '');
+                $isCompleted = in_array($remoteStatus, ['completed', 'success', 'paid']);
+
+                if ($isCompleted) {
+                    $paidAmount = (float) ($verifyRes['total'] ?? $verifyRes['amount'] ?? $amount);
+                    $metadata = $verifyRes['metadata'] ?? [];
+                    $finalInvoiceId = $metadata['invoice_id'] ?? $invoiceId;
+
                     return new PaymentVerificationDTO(
                         isSuccessful: true,
-                        invoiceId: (string) $invoiceId,
-                        transactionId: (string) $chargeId,
-                        amountPaid: (float) ($verifyRes['amount'] ?? $amount),
+                        invoiceId: (string) $finalInvoiceId,
+                        transactionId: (string) ($verifyRes['pp_id'] ?? $ppId),
+                        amountPaid: $paidAmount,
                         currency: 'BDT',
                         errorMessage: null,
                         rawPayload: $verifyRes
@@ -129,12 +141,12 @@ class PiprapayPaymentGateway extends AbstractPaymentGateway
             }
         }
 
-        $isSuccess = in_array($status, ['COMPLETED', 'SUCCESS', 'PAID']);
+        $isSuccess = in_array($ppStatus, ['completed', 'success', 'paid']);
 
         return new PaymentVerificationDTO(
             isSuccessful: $isSuccess,
             invoiceId: (string) $invoiceId,
-            transactionId: (string) ($chargeId ?: 'TXN-' . bin2hex(random_bytes(4))),
+            transactionId: (string) ($ppId ?: 'TXN-' . bin2hex(random_bytes(4))),
             amountPaid: $amount,
             currency: 'BDT',
             errorMessage: $isSuccess ? null : 'PipraPay transaction could not be verified',
@@ -145,23 +157,42 @@ class PiprapayPaymentGateway extends AbstractPaymentGateway
     public function processWebhook(Request $request): PaymentWebhookResultDTO
     {
         $payload = $request->all();
-        $status = strtoupper($payload['status'] ?? '');
+        $status = strtolower($payload['pp_status'] ?? $payload['status'] ?? '');
         $invoiceId = $payload['metadata']['invoice_id'] ?? $payload['invoice_id'] ?? '';
-        $chargeId = $payload['charge_id'] ?? $payload['transaction_id'] ?? '';
+        $ppId = $payload['transaction_ref'] ?? $payload['pp_id'] ?? $payload['charge_id'] ?? '';
 
-        $isSuccess = in_array($status, ['COMPLETED', 'SUCCESS', 'PAID']);
+        $isSuccess = in_array($status, ['completed', 'success', 'paid']);
 
         return new PaymentWebhookResultDTO(
             handled: true,
             isSuccessful: $isSuccess,
             invoiceId: (string) $invoiceId,
-            transactionId: (string) $chargeId,
+            transactionId: (string) $ppId,
             raw: $payload
         );
     }
 
     public function queryTransaction(string $transactionId): PaymentStatusDTO
     {
+        if (!empty($this->apiKey) && $transactionId) {
+            try {
+                $res = Http::withHeaders([
+                    'MHS-PIPRAPAY-API-KEY' => $this->apiKey,
+                ])->post("{$this->apiUrl}/verify-payment", [
+                    'pp_id' => $transactionId,
+                ])->json();
+
+                return new PaymentStatusDTO(
+                    transactionId: $transactionId,
+                    status: strtolower($res['status'] ?? 'pending'),
+                    amount: (float) ($res['total'] ?? 0.0),
+                    currency: 'BDT'
+                );
+            } catch (\Throwable $e) {
+                // Ignore
+            }
+        }
+
         return new PaymentStatusDTO(
             transactionId: $transactionId,
             status: 'completed',
