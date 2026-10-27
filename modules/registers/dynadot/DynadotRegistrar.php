@@ -430,17 +430,17 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
 
             if ($res['status'] === 200 && empty($res['error'])) {
                 $info = $res['root']['DomainInfo'] ?? ($res['root']['Domain'] ?? []);
-                
-                $expiresAt = !empty($info['Expiration']) 
-                    ? Carbon::createFromTimestampMs((int)$info['Expiration']) 
-                    : now()->addYear();
-                $createdAt = !empty($info['Registration']) 
-                    ? Carbon::createFromTimestampMs((int)$info['Registration']) 
-                    : now()->subMonths(6);
 
-                $isLocked = strtolower($info['Locked'] ?? '') === 'yes';
-                $privacy = strtolower($info['Privacy'] ?? '') !== 'none';
-                $status = $info['Status'] ?? 'active';
+                $expiresAt = !empty($info['Expiration'])
+                    ? Carbon::createFromTimestampMs((int)$info['Expiration'])
+                    : null;
+                $createdAt = !empty($info['Registration'])
+                    ? Carbon::createFromTimestampMs((int)$info['Registration'])
+                    : null;
+
+                $isLocked = strtolower($info['Locked'] ?? 'no') === 'yes';
+                $privacy = strtolower($info['Privacy'] ?? 'none') !== 'none';
+                $status = strtolower($info['Status'] ?? 'active');
 
                 $ns = $this->getNameservers($domain);
 
@@ -451,20 +451,13 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
                     expiresAt: $expiresAt,
                     isLocked: $isLocked,
                     idProtection: $privacy,
-                    nameservers: $ns
+                    nameservers: $ns,
+                    raw: $info
                 );
             }
         }
 
-        return new DomainDetailsDTO(
-            domain: $domain,
-            status: 'active',
-            createdAt: now()->subMonths(3),
-            expiresAt: now()->addMonths(9),
-            isLocked: true,
-            idProtection: false,
-            nameservers: ['ns1.hostnibo.com', 'ns2.hostnibo.com']
-        );
+        throw new \RuntimeException("Unable to fetch domain details from Dynadot API for {$domain}");
     }
 
     /**
@@ -483,14 +476,27 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
             if ($res['status'] === 200 && empty($res['error'])) {
                 $info = $res['root']['DomainInfo'] ?? ($res['root']['Domain'] ?? []);
                 $nsSettings = $info['NameServerSettings'] ?? [];
-                
-                if (!empty($nsSettings['ServerList']) && is_array($nsSettings['ServerList'])) {
-                    return array_values(array_filter($nsSettings['ServerList']));
+
+                $servers = [];
+                if (!empty($nsSettings['NameServers']) && is_array($nsSettings['NameServers'])) {
+                    foreach ($nsSettings['NameServers'] as $item) {
+                        if (is_array($item) && !empty($item['ServerName'])) {
+                            $servers[] = trim($item['ServerName']);
+                        } elseif (is_string($item)) {
+                            $servers[] = trim($item);
+                        }
+                    }
+                } elseif (!empty($nsSettings['ServerList']) && is_array($nsSettings['ServerList'])) {
+                    $servers = array_map('trim', $nsSettings['ServerList']);
+                }
+
+                if (!empty($servers)) {
+                    return array_values(array_filter($servers));
                 }
             }
         }
 
-        return ['ns1.hostnibo.com', 'ns2.hostnibo.com'];
+        return [];
     }
 
     /**
@@ -554,7 +560,14 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
 
     public function getEppCode(string $domain): string
     {
-        return 'DD-EPP-' . strtoupper(bin2hex(random_bytes(5)));
+        $domain = strtolower(trim($domain));
+
+        $model = \App\Models\Domain::where('domain_name', $domain)->first();
+        if ($model && !empty($model->auth_code) && !str_starts_with($model->auth_code, 'DYN-EPP-') && !str_starts_with($model->auth_code, 'DD-EPP-')) {
+            return $model->auth_code;
+        }
+
+        throw new \RuntimeException("Dynadot requires manual EPP code retrieval via Dynadot account dashboard or please set it in admin domain settings.");
     }
 
     public function setLock(string $domain, bool $locked): bool

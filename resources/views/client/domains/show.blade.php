@@ -27,7 +27,14 @@
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         }).then(res => res.json()).then(data => {
             this.loadingEpp = false;
-            this.eppCode = data.epp_code || 'Unable to retrieve';
+            if (data.success && data.epp_code) {
+                this.eppCode = data.epp_code;
+            } else {
+                this.eppCode = data.error || 'Authorization code cannot be retrieved automatically from this registrar. Please contact support.';
+            }
+        }).catch(err => {
+            this.loadingEpp = false;
+            this.eppCode = 'Failed to retrieve EPP code.';
         });
     }
 }">

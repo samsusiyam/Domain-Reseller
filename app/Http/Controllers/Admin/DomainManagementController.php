@@ -77,15 +77,18 @@ class DomainManagementController extends Controller
         $domain = Domain::findOrFail($id);
 
         $validated = $request->validate([
-            'status'         => ['required', 'in:active,expired,pending_transfer,cancelled,fraud'],
-            'registrar_id'   => ['required', 'exists:registrar_modules,id'],
+            'status'            => ['required', 'in:active,expired,pending_transfer,cancelled,fraud'],
+            'registrar_id'      => ['required', 'exists:registrar_modules,id'],
             'registration_date' => ['required', 'date'],
-            'expires_at'     => ['required', 'date', 'after:registration_date'],
-            'is_locked'      => ['required', 'boolean'],
-            'is_private'     => ['required', 'boolean'],
-            'auto_renew'     => ['required', 'boolean'],
+            'expires_at'        => ['required', 'date', 'after:registration_date'],
+            'is_locked'         => ['required', 'boolean'],
+            'is_private'        => ['required', 'boolean'],
+            'auto_renew'        => ['required', 'boolean'],
+            'auth_code'         => ['nullable', 'string', 'max:255'],
         ]);
 
+        $validated['registered_at'] = $validated['registration_date'];
+        $validated['is_auto_renew'] = $validated['auto_renew'];
         $domain->update($validated);
 
         $this->activityLogger->log(
@@ -109,13 +112,24 @@ class DomainManagementController extends Controller
             $registrar = $this->registrarManager->driver($domain->registrar->slug);
             $details = $registrar->getDomainDetails($domain->domain_name);
 
-            $domain->update([
+            $updateData = [
                 'status'     => $details->status,
-                'expires_at' => $details->expiresAt ?? $domain->expires_at,
                 'is_locked'  => $details->isLocked,
                 'is_private' => $details->isPrivate,
-                'nameservers'=> $details->nameservers ?? $domain->nameservers,
-            ]);
+                'last_sync_at' => now(),
+            ];
+
+            if ($details->createdAt) {
+                $updateData['registered_at'] = $details->createdAt;
+            }
+            if ($details->expiresAt) {
+                $updateData['expires_at'] = $details->expiresAt;
+            }
+            if (!empty($details->nameservers)) {
+                $updateData['nameservers'] = $details->nameservers;
+            }
+
+            $domain->update($updateData);
 
             return back()->with('success', 'Domain synchronized with registrar successfully.');
         } catch (\Throwable $e) {

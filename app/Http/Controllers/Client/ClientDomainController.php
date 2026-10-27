@@ -83,13 +83,21 @@ class ClientDomainController extends Controller
     {
         $this->authorizeDomain($domain);
 
-        $authCode = $this->managementService->getAuthCode($domain);
+        try {
+            $authCode = $this->managementService->getAuthCode($domain);
 
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json(['success' => true, 'epp_code' => $authCode]);
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'epp_code' => $authCode]);
+            }
+
+            return back()->with('auth_code', $authCode)->with('success', 'EPP Transfer Authorization Code retrieved.');
+        } catch (\Throwable $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+            }
+
+            return back()->with('error', $e->getMessage());
         }
-
-        return back()->with('auth_code', $authCode)->with('success', 'EPP Transfer Authorization Code retrieved.');
     }
 
     public function renew(Request $request, Domain $domain)
