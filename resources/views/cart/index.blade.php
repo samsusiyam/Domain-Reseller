@@ -3,6 +3,47 @@
 @section('content')
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14" x-data="{
     loading: false,
+    showConfirmModal: false,
+    confirmAction: null,
+    confirmTitle: '',
+    confirmMessage: '',
+    confirmButtonText: 'Confirm',
+
+    openRemoveModal(domain) {
+        this.confirmTitle = 'Remove from Cart';
+        this.confirmMessage = 'Are you sure you want to remove \'' + domain + '\' from your shopping cart?';
+        this.confirmButtonText = 'Remove Domain';
+        this.confirmAction = () => this.executeRemove(domain);
+        this.showConfirmModal = true;
+    },
+
+    openClearModal() {
+        this.confirmTitle = 'Clear Shopping Cart';
+        this.confirmMessage = 'Are you sure you want to remove all domains from your shopping cart?';
+        this.confirmButtonText = 'Clear All';
+        this.confirmAction = () => { window.location.href = '{{ route('domain.search') }}'; };
+        this.showConfirmModal = true;
+    },
+
+    executeRemove(domain) {
+        this.loading = true;
+        this.showConfirmModal = false;
+        fetch('{{ url('/cart/items') }}/' + encodeURIComponent(domain), {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            window.location.reload();
+        })
+        .catch(() => {
+            this.loading = false;
+        });
+    },
+
     updateYears(domain, years) {
         this.loading = true;
         fetch('{{ url('/cart/items') }}/' + encodeURIComponent(domain), {
@@ -13,24 +54,6 @@
                 'Accept': 'application/json'
             },
             body: JSON.stringify({ years: parseInt(years) })
-        })
-        .then(res => res.json())
-        .then(data => {
-            window.location.reload();
-        })
-        .catch(() => {
-            this.loading = false;
-        });
-    },
-    removeItem(domain) {
-        if (!confirm('Remove ' + domain + ' from your cart?')) return;
-        this.loading = true;
-        fetch('{{ url('/cart/items') }}/' + encodeURIComponent(domain), {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
         })
         .then(res => res.json())
         .then(data => {
@@ -95,7 +118,7 @@
                     <span class="font-semibold text-xs uppercase tracking-wider" style="color: var(--text-muted);">
                         Domain Items ({{ count($items) }})
                     </span>
-                    <button type="button" @click="if(confirm('Clear all items?')) { window.location.href='{{ route('domain.search') }}'; }" class="text-xs hover:underline" style="color: var(--danger);">
+                    <button type="button" @click="openClearModal()" class="text-xs hover:underline cursor-pointer" style="color: var(--danger);">
                         Clear all
                     </button>
                 </div>
@@ -142,8 +165,8 @@
 
                                 <!-- Remove Button -->
                                 <button type="button"
-                                        @click="removeItem('{{ $item['domain'] }}')"
-                                        class="p-1.5 rounded hover:bg-[var(--surface)] text-[var(--text-muted)] hover:text-[#DC2626] transition"
+                                        @click="openRemoveModal('{{ $item['domain'] }}')"
+                                        class="p-1.5 rounded hover:bg-[var(--surface)] text-[var(--text-muted)] hover:text-[#DC2626] transition cursor-pointer"
                                         title="Remove domain">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -222,7 +245,7 @@
                             <form action="{{ route('cart.promo.remove') }}" method="POST">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-xs hover:underline" style="color: var(--danger);">Remove</button>
+                                <button type="submit" class="text-xs hover:underline cursor-pointer" style="color: var(--danger);">Remove</button>
                             </form>
                         </div>
                     @else
@@ -254,6 +277,61 @@
 
         </div>
     @endif
+
+    <!-- Sleek Custom Confirmation Modal (Linear / Tailwind style) -->
+    <div x-show="showConfirmModal"
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto"
+         aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Backdrop with smooth blur -->
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+             x-show="showConfirmModal"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="showConfirmModal = false"></div>
+
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-xl text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md p-6"
+                 style="background-color: var(--surface, #1e293b); border: 1px solid var(--border);"
+                 x-show="showConfirmModal"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 @click.stop>
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-base font-semibold" style="color: var(--text);" x-text="confirmTitle"></h3>
+                        <p class="text-xs mt-1.5 leading-relaxed" style="color: var(--text-muted);" x-text="confirmMessage"></p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <button type="button"
+                            @click="showConfirmModal = false"
+                            class="cf-btn cf-btn-secondary px-4 py-2 text-xs font-medium rounded-lg cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="button"
+                            @click="if (confirmAction) confirmAction()"
+                            class="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-lg shadow-sm transition-all cursor-pointer"
+                            x-text="confirmButtonText">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
 @endsection

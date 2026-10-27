@@ -11,7 +11,7 @@
     password: '',
     get strength() {
         let score = 0;
-        if (this.password.length >= 10) score++;
+        if (this.password.length >= 8) score++;
         if (/[A-Z]/.test(this.password) && /[a-z]/.test(this.password)) score++;
         if (/[0-9]/.test(this.password)) score++;
         if (/[^A-Za-z0-9]/.test(this.password)) score++;
@@ -19,7 +19,7 @@
     },
     get strengthLabel() {
         if (!this.password) return '';
-        if (this.strength <= 1) return 'Weak (min 10 chars, letters, numbers, symbols)';
+        if (this.strength <= 1) return 'Weak (min 8 characters)';
         if (this.strength <= 3) return 'Moderate';
         return 'Strong';
     },
@@ -37,27 +37,48 @@
 
     <!-- Role Selection Segmented Control -->
     <div>
-        <label class="block text-xs font-medium mb-1.5" style="color: var(--text);">Account type</label>
-        <div class="grid grid-cols-2 gap-1 p-1 rounded-[6px]" style="background-color: var(--surface); border: 1px solid var(--border);">
+        <label class="block text-xs font-semibold uppercase tracking-wider mb-2" style="color: var(--text);">Account Type</label>
+        <div class="grid grid-cols-2 gap-1.5 p-1.5 rounded-lg" style="background-color: var(--surface); border: 1px solid var(--border);">
             <button type="button"
                     @click="role = 'client'"
-                    :class="role === 'client' ? 'font-medium shadow-sm' : ''"
-                    :style="role === 'client' ? 'background-color: var(--bg); color: var(--text); border: 1px solid var(--border);' : 'color: var(--text-muted);'"
-                    class="py-1.5 text-xs rounded-[4px] transition text-center">
-                Client
+                    :class="role === 'client' 
+                        ? 'bg-[#F6821F] text-white font-semibold shadow-md ring-1 ring-[#F6821F]' 
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'"
+                    class="py-2.5 px-3 text-xs rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 text-center cursor-pointer">
+                <template x-if="role === 'client'">
+                    <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                    </svg>
+                </template>
+                <span>Client (Personal / Business)</span>
             </button>
             <button type="button"
                     @click="role = 'reseller'"
-                    :class="role === 'reseller' ? 'font-medium shadow-sm' : ''"
-                    :style="role === 'reseller' ? 'background-color: var(--bg); color: var(--text); border: 1px solid var(--border);' : 'color: var(--text-muted);'"
-                    class="py-1.5 text-xs rounded-[4px] transition text-center">
-                Reseller (WHMCS/API)
+                    :class="role === 'reseller' 
+                        ? 'bg-[#F6821F] text-white font-semibold shadow-md ring-1 ring-[#F6821F]' 
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'"
+                    class="py-2.5 px-3 text-xs rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 text-center cursor-pointer">
+                <template x-if="role === 'reseller'">
+                    <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                    </svg>
+                </template>
+                <span>Reseller (WHMCS / API)</span>
             </button>
         </div>
         <input type="hidden" name="role" :value="role">
-        <p x-show="role === 'reseller'" class="text-[11px] mt-1.5" style="color: var(--text-muted);">
-            Reseller accounts undergo manual administrator verification before API activation.
-        </p>
+
+        <div class="mt-2 text-[11px] p-2.5 rounded-md flex items-start gap-2" style="background-color: var(--bg); border: 1px solid var(--border);">
+            <svg class="w-4 h-4 text-[#F6821F] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+            </svg>
+            <span x-show="role === 'client'" style="color: var(--text-muted);">
+                Instant domain registration, DNS management, WHOIS privacy & nameserver control.
+            </span>
+            <span x-show="role === 'reseller'" x-cloak style="color: var(--text-muted);">
+                Automated WHMCS registrar module, REST API keys, wholesale discount tiers & webhook events.
+            </span>
+        </div>
     </div>
 
     <div>
@@ -106,7 +127,7 @@
                name="password"
                x-model="password"
                required
-               placeholder="Min 10 characters"
+               placeholder="Min 8 characters"
                class="cf-input h-10 @error('password') border-[#DC2626] @enderror">
 
         <!-- Password Strength Meter -->

@@ -11,6 +11,10 @@
     error: null,
     toast: { show: false, message: '', domain: '' },
 
+    init() {
+        if (this.query) { this.checkSingle(); }
+    },
+
     showToast(msg, domain) {
         this.toast = { show: true, message: msg, domain: domain };
         setTimeout(() => { this.toast.show = false; }, 4000);
@@ -140,30 +144,40 @@
     }
 }" x-init="if (query) { checkSingle(); }">
 
-    <!-- Toast Notification (Non-blocking, fixed bottom right) -->
+    <!-- Global Floating Cart Toast (Non-blocking, fixed bottom right) -->
     <div x-show="toast.show"
          x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 translate-y-2"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 translate-y-0"
-         x-transition:leave-end="opacity-0 translate-y-2"
-         class="cf-toast"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-y-6 scale-95"
+         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+         x-transition:leave-end="opacity-0 translate-y-6 scale-95"
+         class="fixed bottom-6 right-6 z-50 max-w-sm w-full p-4 rounded-xl shadow-2xl backdrop-blur-md flex items-center gap-3 transition-all"
+         style="background-color: var(--surface, #1e293b); border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);"
          role="status"
          aria-live="polite">
-        <div class="w-6 h-6 rounded-full bg-[#16A34A]/10 text-[#16A34A] flex items-center justify-center shrink-0">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="w-8 h-8 rounded-full bg-[#16A34A]/15 text-[#16A34A] flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
         </div>
         <div class="flex-1 min-w-0 text-xs">
-            <span class="font-medium" style="color: var(--text);" x-text="toast.message"></span>
+            <p class="font-semibold" style="color: var(--text);" x-text="toast.message"></p>
+            <p class="text-[11px] mt-0.5" style="color: var(--text-muted);">Added to your shopping session</p>
         </div>
         <a href="{{ route('cart.index') }}"
-           class="cf-btn cf-btn-primary cf-btn-sm shrink-0">
-            View cart
+           class="px-3 py-1.5 text-xs font-semibold text-white bg-[#F6821F] hover:bg-[#E57210] active:bg-[#D56508] rounded-lg shrink-0 shadow-sm transition-all flex items-center gap-1 cursor-pointer">
+            <span>View cart</span>
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
         </a>
+        <button type="button" @click="toast.show = false" class="text-gray-400 hover:text-gray-200 p-1 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
     </div>
 
     <!-- Header Section -->

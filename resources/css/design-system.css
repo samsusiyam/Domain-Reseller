@@ -6,6 +6,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
+  /* Direct Aliases */
+  --bg: #FFFFFF;
+  --surface: #F7F7F8;
+  --border: #E5E7EB;
+  --text: #111827;
+  --danger: #DC2626;
+  --warning: #D97706;
+  --success: #16A34A;
+  --warning-bg: #FFFBEB;
+  --success-bg: #F0FDF4;
+  --danger-bg: #FEF2F2;
+
   /* Color Tokens - Light Mode (Default) */
   --bg-primary: #FFFFFF;
   --bg-surface: #F7F7F8;
@@ -71,6 +83,18 @@
 /* Dark Mode Support via [data-theme="dark"] or .dark */
 [data-theme="dark"],
 .dark {
+  /* Direct Aliases */
+  --bg: #111827;
+  --surface: #1F2937;
+  --border: #374151;
+  --text: #F9FAFB;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --success: #22C55E;
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --success-bg: rgba(34, 197, 94, 0.15);
+  --danger-bg: rgba(239, 68, 68, 0.15);
+
   --bg-primary: #111827;
   --bg-surface: #1F2937;
   --bg-hover: #374151;
@@ -278,7 +302,8 @@ body {
 
 /* Inputs & Selects */
 .cf-input,
-.cf-select {
+.cf-select,
+.cf-textarea {
   height: var(--height-control);
   padding: 0 12px;
   font-family: var(--font-sans);
@@ -292,7 +317,8 @@ body {
 }
 
 .cf-input:focus,
-.cf-select:focus {
+.cf-select:focus,
+.cf-textarea:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-focus-ring);
@@ -305,7 +331,8 @@ body {
   cursor: not-allowed;
 }
 
-.cf-input::placeholder {
+.cf-input::placeholder,
+.cf-textarea::placeholder {
   color: var(--text-muted);
 }
 

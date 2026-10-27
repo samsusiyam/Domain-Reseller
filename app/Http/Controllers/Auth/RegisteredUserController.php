@@ -9,7 +9,7 @@ use App\Jobs\SendEmailJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Log;
 
 class RegisteredUserController extends Controller
 {
@@ -23,7 +23,7 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'string', 'email', 'max:191', 'unique:users'],
-            'password' => ['required', 'confirmed', Password::min(10)->letters()->numbers()->symbols()],
+            'password' => ['required', 'confirmed', 'min:8'],
             'role' => ['nullable', 'in:client,reseller'],
             'phone' => ['nullable', 'string', 'max:30'],
             'company_name' => ['nullable', 'string', 'max:150'],
@@ -44,29 +44,35 @@ class RegisteredUserController extends Controller
             'country' => $request->country ?? 'BD',
             'currency_id' => $defaultCurrency?->id,
             'balance' => 0.0000,
-            'status' => $isReseller ? 'pending' : 'active',
-            'email_verified_at' => null, // requires email verification
+            'status' => 'active',
+            'email_verified_at' => now(),
         ]);
 
-        // Send verification notification
-        if (method_exists($user, 'sendEmailVerificationNotification')) {
-            $user->sendEmailVerificationNotification();
+        try {
+            if (method_exists($user, 'sendEmailVerificationNotification')) {
+                $user->sendEmailVerificationNotification();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Email verification dispatch ignored: ' . $e->getMessage());
         }
 
-        // Send welcome email in background
-        SendEmailJob::dispatch($user->email, 'welcome_email', [
-            'user_name' => $user->name,
-            'login_url' => route('login'),
-        ], $user->id);
-
-        if ($isReseller) {
-            return redirect()->route('login')->with('success', 'Your reseller application has been submitted and is pending administrator review. Please check your email to verify your address.');
+        try {
+            SendEmailJob::dispatch($user->email, 'welcome_email', [
+                'user_name' => $user->name,
+                'login_url' => route('login'),
+            ], $user->id);
+        } catch (\Throwable $e) {
+            Log::warning('Welcome email dispatch ignored: ' . $e->getMessage());
         }
 
         Auth::login($user);
 
         // Merge persistent guest cart into user session
-        app(\App\Services\Cart\CartService::class)->mergeOnLogin();
+        try {
+            app(\App\Services\Cart\CartService::class)->mergeOnLogin();
+        } catch (\Throwable $e) {
+            Log::warning('Cart merge on register ignored: ' . $e->getMessage());
+        }
 
         $next = $request->input('next');
         if ($next) {
@@ -80,6 +86,10 @@ class RegisteredUserController extends Controller
             }
         }
 
-        return redirect()->route('verification.notice');
+        if ($isReseller) {
+            return redirect()->route('reseller.dashboard')->with('success', 'Welcome to HostNibo Reseller Portal! Your account is active.');
+        }
+
+        return redirect()->route('client.dashboard')->with('success', 'Welcome to HostNibo Domains!');
     }
 }

@@ -158,7 +158,8 @@
                               rows="5"
                               required
                               placeholder="Please describe your domain volume, registrar requirements, or issue details..."
-                              class="cf-textarea w-full @error('message') border-[#DC2626] @enderror">{{ old('message') }}</textarea>
+                              style="background-color: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px;"
+                              class="cf-textarea w-full transition focus:outline-none focus:ring-2 focus:ring-[#F6821F] @error('message') border-[#DC2626] @enderror">{{ old('message') }}</textarea>
                     @error('message')
                         <p class="text-xs mt-1 font-medium text-red-500">{{ $message }}</p>
                     @enderror
