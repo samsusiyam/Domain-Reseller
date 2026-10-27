@@ -57,12 +57,14 @@ Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 Route::get('/terms', [LegalController::class, 'terms'])->name('terms');
 Route::get('/privacy', [LegalController::class, 'privacy'])->name('privacy');
+Route::get('/refund-policy', [LegalController::class, 'refund'])->name('refund-policy');
 
 // Currency Switching
 Route::post('/currency/switch', [CurrencySwitchController::class, 'switch'])->name('currency.switch');
 Route::get('/api/rates', [CurrencySwitchController::class, 'rates'])->name('api.rates');
 
 // Payment Gateway Callbacks & Webhooks
+Route::match(['get', 'post'], '/payment/{gateway}/callback', [PaymentGatewayController::class, 'callback'])->name('payment.callback');
 Route::match(['get', 'post'], '/payment/bkash/callback', [PaymentGatewayController::class, 'bkashCallback'])->name('payment.bkash.callback');
 Route::post('/payment/stripe/webhook', [PaymentGatewayController::class, 'stripeWebhook'])->name('payment.stripe.webhook');
 Route::post('/payment/binance/webhook', [PaymentGatewayController::class, 'binanceWebhook'])->name('payment.binance.webhook');

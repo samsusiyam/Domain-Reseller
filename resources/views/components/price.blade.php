@@ -1,12 +1,13 @@
 @props([
-    'amount',
+    'amount' => null,
+    'usd' => null,
     'class' => '',
     'tabular' => true,
     'showEquivalent' => false
 ])
 
 @php
-    $amount = (float) $amount;
+    $amount = (float) ($amount ?? $usd ?? 0);
     $currency = session('currency', request()->cookie('currency', 'USD'));
     $converter = app(\App\Services\Currency\CurrencyConverter::class);
     $rate = $converter->getRate('BDT');

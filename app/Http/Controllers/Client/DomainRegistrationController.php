@@ -98,7 +98,7 @@ class DomainRegistrationController extends Controller
 
         if ($request->input('payment_method') === 'wallet') {
             try {
-                $this->orderService->processPaymentWithWallet($invoice);
+                $this->orderService->payWithBalance($user, $invoice);
                 return redirect()->route('client.invoices.show', $invoice->id)->with('success', 'Domain registered successfully!');
             } catch (\Exception $e) {
                 return redirect()->route('client.invoices.show', $invoice->id)->with('error', $e->getMessage());

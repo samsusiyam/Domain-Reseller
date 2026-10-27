@@ -192,6 +192,21 @@ class User extends Authenticatable implements MustVerifyEmail
         return !is_null($this->two_factor_confirmed_at);
     }
 
+    public function addBalance(float $amount): void
+    {
+        $this->creditBalance($amount);
+    }
+
+    public function getWalletBalanceAttribute(): float
+    {
+        return (float) $this->balance;
+    }
+
+    public function setWalletBalanceAttribute($value): void
+    {
+        $this->attributes['balance'] = $value;
+    }
+
     public function hasSufficientBalance(float $amount): bool
     {
         return (float) $this->balance >= $amount;

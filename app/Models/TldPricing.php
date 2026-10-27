@@ -67,6 +67,11 @@ class TldPricing extends Model
         return $this->belongsTo(RegistrarModule::class, 'registrar_id');
     }
 
+    public function domains(): HasMany
+    {
+        return $this->hasMany(Domain::class, 'tld', 'tld');
+    }
+
     public function resellerPricing(): HasMany
     {
         return $this->hasMany(ResellerPricing::class, 'tld_pricing_id');

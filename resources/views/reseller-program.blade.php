@@ -153,7 +153,7 @@
                 </p>
                 <div class="p-3 rounded-[6px] border text-xs font-mono space-y-1" style="background-color: var(--surface); border-color: var(--border); color: var(--text);">
                     <div>POST /api/v1/domains/register</div>
-                    <div>Host: api.domainreseller.local</div>
+                    <div>Host: api.hostnibo.com</div>
                     <div>Authorization: Bearer dr_live_sec_...</div>
                     <div class="text-[#16A34A]">{ "domain": "brand.com", "years": 1 }</div>
                 </div>

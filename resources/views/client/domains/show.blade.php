@@ -40,7 +40,7 @@
                 <x-badge :color="$domain->status">{{ $domain->status }}</x-badge>
             </div>
             <div class="mt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                <span>Registered: <strong>{{ $domain->registration_date ? $domain->registration_date->format('M d, Y') : 'N/A' }}</strong></span>
+                <span>Registered: <strong>{{ $domain->registered_at ? $domain->registered_at->format('M d, Y') : 'N/A' }}</strong></span>
                 <span>•</span>
                 <span>Expires: <strong class="{{ $domain->expires_at && $domain->expires_at->isPast() ? 'text-rose-600' : 'text-slate-900' }}">{{ $domain->expires_at ? $domain->expires_at->format('M d, Y') : 'N/A' }}</strong></span>
                 @if($domain->expires_at)

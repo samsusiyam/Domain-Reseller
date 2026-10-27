@@ -14,6 +14,21 @@
             if (m === 'dark') document.documentElement.classList.add('dark');
             else document.documentElement.classList.remove('dark');
         })();
+
+        window.toggleTheme = function() {
+            var isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+            var next = isDark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            document.documentElement.style.colorScheme = next;
+            if (next === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme', next);
+            document.cookie = 'theme=' + next + ';path=/;max-age=31536000;SameSite=Lax';
+            window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: next } }));
+        };
     </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -70,7 +85,7 @@
            class="fixed inset-y-0 left-0 z-50 w-60 flex flex-col transition-transform duration-150 lg:static lg:translate-x-0"
            style="background-color: var(--surface); border-right: 1px solid var(--border);">
         <!-- Brand Header -->
-        <div class="h-14 flex items-center px-4 border-b shrink-0" style="border-color: var(--border);">
+        <div class="h-14 flex items-center justify-between px-4 border-b shrink-0" style="border-color: var(--border);">
             <a href="{{ route('client.dashboard') }}" class="flex items-center gap-2.5">
                 <div class="w-6 h-6 rounded-[4px] bg-[#F6821F] flex items-center justify-center text-white shrink-0">
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -79,6 +94,11 @@
                 </div>
                 <span class="font-semibold text-sm tracking-tight" style="color: var(--text);">Client portal</span>
             </a>
+            <button @click="sidebarOpen = false" class="p-1 rounded text-slate-500 hover:text-slate-900 lg:hidden">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
 
         <!-- Navigation Links -->

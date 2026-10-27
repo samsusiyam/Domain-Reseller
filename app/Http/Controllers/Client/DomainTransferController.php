@@ -74,7 +74,7 @@ class DomainTransferController extends Controller
 
         if ($request->input('payment_method') === 'wallet') {
             try {
-                $this->orderService->processPaymentWithWallet($invoice);
+                $this->orderService->payWithBalance($request->user(), $invoice);
                 return redirect()->route('client.invoices.show', $invoice->id)->with('success', 'Domain transfer initiated successfully!');
             } catch (\Exception $e) {
                 return redirect()->route('client.invoices.show', $invoice->id)->with('error', $e->getMessage());

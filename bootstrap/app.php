@@ -60,6 +60,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'webhook/*',
             'api/v1/webhook/*',
+            'payment/*',
             'payment/bkash/callback',
             'payment/stripe/webhook',
             'payment/binance/webhook',

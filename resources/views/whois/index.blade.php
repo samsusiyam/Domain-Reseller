@@ -35,6 +35,15 @@
                 Lookup record
             </button>
         </form>
+
+        <div class="mt-3.5 pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+            <span class="font-medium text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1">Supported Extensions:</span>
+            @foreach(['.com', '.net', '.org', '.com.bd', '.ai', '.xyz', '.store', '.online', '.tech', '.dev', '.io', '.info'] as $chip)
+                <span class="px-2 py-0.5 rounded-[4px] text-[11px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/50">
+                    {{ $chip }}
+                </span>
+            @endforeach
+        </div>
     </div>
 
     @if(session('error'))

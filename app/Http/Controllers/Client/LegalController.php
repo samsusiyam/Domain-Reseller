@@ -18,6 +18,11 @@ class LegalController extends Controller
     /**
      * Show Privacy Policy.
      */
+    public function refund()
+    {
+        return view('legal.refund');
+    }
+
     public function privacy()
     {
         return view('legal.privacy');

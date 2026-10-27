@@ -1,33 +1,16 @@
-<!-- Theme Segmented Control: Light / Dark / System -->
-<div class="theme-segmented-ctrl" role="group" aria-label="Color theme selection">
-    <button type="button"
-            class="theme-segmented-btn"
-            data-theme-btn="light"
-            onclick="window.setTheme('light')"
-            title="Light theme"
-            aria-label="Light theme">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-        </svg>
-    </button>
-    <button type="button"
-            class="theme-segmented-btn"
-            data-theme-btn="dark"
-            onclick="window.setTheme('dark')"
-            title="Dark theme"
-            aria-label="Dark theme">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-        </svg>
-    </button>
-    <button type="button"
-            class="theme-segmented-btn"
-            data-theme-btn="system"
-            onclick="window.setTheme('system')"
-            title="System preference"
-            aria-label="System preference">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3" />
-        </svg>
-    </button>
-</div>
+<!-- Sleek Single-Button Dark/Light Mode Switch -->
+<button type="button"
+        onclick="window.toggleTheme()"
+        data-theme-toggle
+        class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition shadow-sm focus:outline-none"
+        title="Toggle dark/light mode"
+        aria-label="Toggle dark/light mode">
+    <!-- Sun (visible in dark mode) -->
+    <svg class="w-4 h-4 hidden dark:block text-amber-400 transition-transform duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+    </svg>
+    <!-- Moon (visible in light mode) -->
+    <svg class="w-4 h-4 block dark:hidden text-slate-700 transition-transform duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+    </svg>
+</button>

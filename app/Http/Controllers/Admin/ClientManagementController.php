@@ -84,7 +84,7 @@ class ClientManagementController extends Controller
             'postal_code'       => $validated['postal_code'] ?? null,
             'status'            => 'active',
             'email_verified_at' => now(),
-            'wallet_balance'    => 0.0000,
+            'balance' => 0.0000,
         ]);
 
         $this->activityLogger->log(
@@ -217,7 +217,7 @@ class ClientManagementController extends Controller
         }
 
         $newBalance = $type === 'credit' ? $currentBalance + $amount : $currentBalance - $amount;
-        $client->update(['wallet_balance' => $newBalance]);
+        if ($type === 'credit') $client->creditBalance($amount); else $client->deductBalance($amount);
 
         Transaction::create([
             'user_id'          => $client->id,
@@ -225,7 +225,7 @@ class ClientManagementController extends Controller
             'amount'           => $amount,
             'currency'         => 'USD',
             'exchange_rate'    => 1.000000,
-            'payment_method'   => 'manual_adjustment',
+            'gateway' => 'manual', 'amount_in_usd' => $amount,
             'reference_id'     => 'ADJ-' . strtoupper(uniqid()),
             'status'           => 'completed',
             'description'      => $request->input('description') . ' (Adjusted by Admin)',

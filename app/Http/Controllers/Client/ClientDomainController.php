@@ -42,22 +42,30 @@ class ClientDomainController extends Controller
         return view('client.domains.show', compact('domain'));
     }
 
-    public function toggleLock(Domain $domain)
+    public function toggleLock(Request $request, Domain $domain)
     {
         $this->authorizeDomain($domain);
 
         $newLock = !$domain->is_locked;
         $this->managementService->toggleLock($domain, $newLock);
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'is_locked' => $newLock]);
+        }
+
         return back()->with('success', 'Domain lock status updated successfully.');
     }
 
-    public function togglePrivacy(Domain $domain)
+    public function togglePrivacy(Request $request, Domain $domain)
     {
         $this->authorizeDomain($domain);
 
         $newPrivacy = !$domain->is_private;
         $this->managementService->toggleIdProtection($domain, $newPrivacy);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'is_private' => $newPrivacy]);
+        }
 
         return back()->with('success', 'WHOIS ID Privacy status updated successfully.');
     }
@@ -71,18 +79,22 @@ class ClientDomainController extends Controller
         return back()->with('success', 'Auto-renew setting updated.');
     }
 
-    public function fetchEppCode(Domain $domain)
+    public function fetchEppCode(Request $request, Domain $domain)
     {
         $this->authorizeDomain($domain);
 
         $authCode = $this->managementService->getAuthCode($domain);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'epp_code' => $authCode]);
+        }
 
         return back()->with('auth_code', $authCode)->with('success', 'EPP Transfer Authorization Code retrieved.');
     }
 
     public function renew(Request $request, Domain $domain)
     {
-        $this->authorizeDomain($request, $domain);
+        $this->authorizeDomain($domain);
         $request->validate(['years' => 'required|integer|min:1|max:10']);
 
         $res = $this->orderService->createOrder(

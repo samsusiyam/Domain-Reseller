@@ -16,6 +16,21 @@
             if (m === 'dark') document.documentElement.classList.add('dark');
             else document.documentElement.classList.remove('dark');
         })();
+
+        window.toggleTheme = function() {
+            var isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+            var next = isDark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            document.documentElement.style.colorScheme = next;
+            if (next === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme', next);
+            document.cookie = 'theme=' + next + ';path=/;max-age=31536000;SameSite=Lax';
+            window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: next } }));
+        };
     </script>
 
     <!-- Google Fonts: Inter & JetBrains Mono -->
@@ -76,12 +91,11 @@
 
     @stack('styles')
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="flex flex-col min-h-screen" x-data="{ mobileMenuOpen: false }">
 
     <!-- HEADER: 64px, bottom border on scroll, Cloudflare minimal -->
-    <header class="sticky top-0 z-40 transition-colors"
-            style="background-color: var(--bg); border-bottom: 1px solid var(--border);"
-            x-data="{ mobileMenuOpen: false, domainsOpen: false, resourcesOpen: false }">
+    <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#0F1115]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors"
+            x-data="{ domainsOpen: false, resourcesOpen: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
 
@@ -93,7 +107,7 @@
                                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
                             </svg>
                         </div>
-                        <span class="font-semibold text-[16px] tracking-tight" style="color: var(--text);">
+                        <span class="font-bold text-[16px] tracking-tight text-slate-900 dark:text-white">
                             {{ config('app.name', 'DomainReseller') }}
                         </span>
                     </a>
@@ -121,19 +135,18 @@
                                  x-transition:leave="transition ease-in duration-75"
                                  x-transition:leave-start="opacity-100 scale-100"
                                  x-transition:leave-end="opacity-0 scale-95"
-                                 class="absolute left-0 mt-1.5 w-56 rounded-[6px] shadow-dropdown py-1 z-50 text-[13px]"
-                                 style="background-color: var(--bg); border: 1px solid var(--border);">
-                                <a href="{{ route('domain.search') }}" class="block px-3 py-2 transition" style="color: var(--text);">
-                                    <span class="font-medium block">Search</span>
-                                    <span class="text-[11px]" style="color: var(--text-muted);">Find single or bulk domain names</span>
+                                 class="absolute left-0 mt-2 w-64 rounded-xl bg-white dark:bg-[#171A21] border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 z-50 text-[13px] ring-1 ring-black/5">
+                                <a href="{{ route('domain.search') }}" class="block px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors">
+                                    <span class="font-semibold block text-slate-900 dark:text-white">Search</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Find single or bulk domain names</span>
                                 </a>
-                                <a href="{{ route('pricing') }}" class="block px-3 py-2 transition" style="color: var(--text);">
-                                    <span class="font-medium block">Pricing</span>
-                                    <span class="text-[11px]" style="color: var(--text-muted);">Wholesale registration and renewal matrix</span>
+                                <a href="{{ route('pricing') }}" class="block px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors">
+                                    <span class="font-semibold block text-slate-900 dark:text-white">Pricing</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Wholesale registration and renewal matrix</span>
                                 </a>
-                                <a href="{{ route('whois.index') }}" class="block px-3 py-2 transition" style="color: var(--text);">
-                                    <span class="font-medium block">WHOIS</span>
-                                    <span class="text-[11px]" style="color: var(--text-muted);">Inspect registration records and DNS</span>
+                                <a href="{{ route('whois.index') }}" class="block px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors">
+                                    <span class="font-semibold block text-slate-900 dark:text-white">WHOIS</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Inspect registration records and DNS</span>
                                 </a>
                             </div>
                         </div>
@@ -164,19 +177,18 @@
                                  x-transition:leave="transition ease-in duration-75"
                                  x-transition:leave-start="opacity-100 scale-100"
                                  x-transition:leave-end="opacity-0 scale-95"
-                                 class="absolute left-0 mt-1.5 w-56 rounded-[6px] shadow-dropdown py-1 z-50 text-[13px]"
-                                 style="background-color: var(--bg); border: 1px solid var(--border);">
-                                <a href="{{ route('announcements.index') }}" class="block px-3 py-2 transition" style="color: var(--text);">
-                                    <span class="font-medium block">Announcements</span>
-                                    <span class="text-[11px]" style="color: var(--text-muted);">Platform updates and promo releases</span>
+                                 class="absolute left-0 mt-2 w-64 rounded-xl bg-white dark:bg-[#171A21] border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 z-50 text-[13px] ring-1 ring-black/5">
+                                <a href="{{ route('announcements.index') }}" class="block px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors">
+                                    <span class="font-semibold block text-slate-900 dark:text-white">Announcements</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Platform updates and promo releases</span>
                                 </a>
-                                <a href="{{ route('knowledgebase.index') }}" class="block px-3 py-2 transition" style="color: var(--text);">
-                                    <span class="font-medium block">Knowledge base</span>
-                                    <span class="text-[11px]" style="color: var(--text-muted);">Guides, tutorials and API references</span>
+                                <a href="{{ route('knowledgebase.index') }}" class="block px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors">
+                                    <span class="font-semibold block text-slate-900 dark:text-white">Knowledge base</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Guides, tutorials and API references</span>
                                 </a>
-                                <a href="{{ route('contact') }}" class="block px-3 py-2 transition" style="color: var(--text);">
-                                    <span class="font-medium block">Contact</span>
-                                    <span class="text-[11px]" style="color: var(--text-muted);">Support desk, email, and live help</span>
+                                <a href="{{ route('contact') }}" class="block px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors">
+                                    <span class="font-semibold block text-slate-900 dark:text-white">Contact</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Support desk, email, and live help</span>
                                 </a>
                             </div>
                         </div>
@@ -197,13 +209,13 @@
                         $cartItemsCount = count(session('cart', []));
                     @endphp
                     <a href="{{ route('cart.index') }}"
-                       class="relative p-2 rounded-[4px] transition hover:bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--text)]"
+                       class="relative inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition shadow-sm group"
                        title="View shopping cart">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                         </svg>
                         <span id="header-cart-badge"
-                              class="absolute -top-1 -right-1 px-1.5 py-0.2 text-[10px] font-bold bg-[#F6821F] text-white rounded-full {{ $cartItemsCount > 0 ? '' : 'hidden' }}">
+                              class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-extrabold bg-[#F6821F] text-white rounded-full {{ $cartItemsCount > 0 ? '' : 'hidden' }}">
                             {{ $cartItemsCount }}
                         </span>
                     </a>
@@ -261,19 +273,22 @@
 
                 <!-- Mobile Header Right Actions -->
                 <div class="flex items-center gap-2 lg:hidden">
-                    <x-currency-selector />
-                    <x-theme-toggle />
-                    <a href="{{ route('cart.index') }}" class="p-2 relative text-[var(--text-muted)]" title="Shopping Cart">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <a href="{{ route('cart.index') }}"
+                       class="relative inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300"
+                       title="Shopping Cart">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                         </svg>
+                        <span id="mobile-cart-badge"
+                              class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 text-[9px] font-bold bg-[#F6821F] text-white rounded-full flex items-center justify-center {{ $cartItemsCount > 0 ? '' : 'hidden' }}">
+                            {{ $cartItemsCount }}
+                        </span>
                     </a>
                     <button @click="mobileMenuOpen = true"
                             type="button"
-                            class="p-2 rounded-[4px] transition"
-                            style="color: var(--text-muted);"
+                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 transition"
                             title="Open menu">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         </svg>
                     </button>
@@ -282,50 +297,7 @@
             </div>
         </div>
 
-        <!-- Mobile Drawer Menu -->
-        <div x-show="mobileMenuOpen"
-             x-cloak
-             class="fixed inset-0 z-50 lg:hidden"
-             role="dialog"
-             aria-modal="true">
-            <div class="fixed inset-0 bg-black/50" @click="mobileMenuOpen = false"></div>
-            <div class="fixed inset-y-0 right-0 w-full max-w-xs p-6 shadow-modal flex flex-col justify-between"
-                 style="background-color: var(--bg); border-left: 1px solid var(--border);">
-                <div>
-                    <div class="flex items-center justify-between pb-4 border-b" style="border-color: var(--border);">
-                        <span class="font-semibold text-base" style="color: var(--text);">Menu</span>
-                        <button @click="mobileMenuOpen = false" class="p-1 rounded" style="color: var(--text-muted);">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <nav class="mt-4 space-y-1">
-                        <a href="{{ route('domain.search') }}" class="block px-3 py-2 rounded text-sm font-medium" style="color: var(--text);">Domain search</a>
-                        <a href="{{ route('pricing') }}" class="block px-3 py-2 rounded text-sm font-medium" style="color: var(--text);">Pricing matrix</a>
-                        <a href="{{ route('whois.index') }}" class="block px-3 py-2 rounded text-sm font-medium" style="color: var(--text);">WHOIS lookup</a>
-                        <a href="{{ route('reseller.program') }}" class="block px-3 py-2 rounded text-sm font-medium" style="color: var(--text);">Resellers</a>
-                        <a href="{{ route('announcements.index') }}" class="block px-3 py-2 rounded text-sm font-medium" style="color: var(--text);">Announcements</a>
-                        <a href="{{ route('knowledgebase.index') }}" class="block px-3 py-2 rounded text-sm font-medium" style="color: var(--text);">Knowledge base</a>
-                        <a href="{{ route('contact') }}" class="block px-3 py-2 rounded text-sm font-medium" style="color: var(--text);">Contact support</a>
-                    </nav>
-                </div>
-
-                <div class="pt-4 border-t space-y-2" style="border-color: var(--border);">
-                    @auth
-                        <a href="{{ route('client.dashboard') }}" class="cf-btn cf-btn-secondary w-full">Dashboard</a>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="cf-btn cf-btn-danger w-full mt-1">Log out</button>
-                        </form>
-                    @else
-                        <a href="{{ route('login') }}" class="cf-btn cf-btn-secondary w-full">Sign in</a>
-                        <a href="{{ route('register') }}" class="cf-btn cf-btn-primary w-full">Get started</a>
-                    @endauth
-                </div>
-            </div>
-        </div>
+        
     </header>
 
     <!-- Main Content Area -->
@@ -381,7 +353,7 @@
                         Wholesale domain registration platform connecting upstream registries with dual USD and BDT billing.
                     </p>
                     <div class="text-[12px] space-y-1">
-                        <div>Support: <a href="mailto:{{ config('app.support_email', config('mail.from.address', 'support@domainreseller.local')) }}" class="hover:underline font-medium" style="color: var(--text);">{{ config('app.support_email', config('mail.from.address', 'support@domainreseller.local')) }}</a></div>
+                        <div>Support: <a href="mailto:{{ config('app.support_email', config('mail.from.address', 'support@hostnibo.com')) }}" class="hover:underline font-medium" style="color: var(--text);">{{ config('app.support_email', config('mail.from.address', 'support@hostnibo.com')) }}</a></div>
                         <div>WhatsApp: <span class="font-mono font-medium" style="color: var(--text);">{{ config('app.support_whatsapp', '+880 1700-000000') }}</span></div>
                     </div>
                 </div>
@@ -480,6 +452,91 @@
             </div>
         </div>
     </footer>
+
+    <!-- Mobile Drawer Menu -->
+        <div x-show="mobileMenuOpen"
+             x-cloak
+             class="fixed inset-0 z-50 lg:hidden"
+             role="dialog"
+             aria-modal="true">
+            <div class="fixed inset-0 bg-black/60 backdrop-blur-xs" @click="mobileMenuOpen = false"></div>
+            <div class="fixed inset-y-0 right-0 w-full max-w-xs p-5 shadow-2xl flex flex-col justify-between bg-white dark:bg-[#151921] border-l border-slate-200 dark:border-slate-800"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="translate-x-full"
+                 x-transition:enter-end="translate-x-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="translate-x-0"
+                 x-transition:leave-end="translate-x-full">
+                <div>
+                    <div class="flex items-center justify-between pb-3.5 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-[5px] bg-[#F6821F] flex items-center justify-center text-white shrink-0">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
+                                </svg>
+                            </div>
+                            <span class="font-bold text-sm text-slate-900 dark:text-white">{{ config('app.name', 'DomainReseller') }}</span>
+                        </div>
+                        <button @click="mobileMenuOpen = false" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Preferences in Mobile Menu -->
+                    <div class="flex items-center justify-between py-3 border-b border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Preferences</span>
+                        <div class="flex items-center gap-2">
+                            <x-currency-selector />
+                            <x-theme-toggle />
+                        </div>
+                    </div>
+
+                    <nav class="mt-4 space-y-1">
+                        <a href="{{ route('domain.search') }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <span>Domain search</span>
+                            <span class="text-xs text-slate-400">&rarr;</span>
+                        </a>
+                        <a href="{{ route('pricing') }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <span>Pricing matrix</span>
+                            <span class="text-xs text-slate-400">&rarr;</span>
+                        </a>
+                        <a href="{{ route('whois.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <span>WHOIS lookup</span>
+                            <span class="text-xs text-slate-400">&rarr;</span>
+                        </a>
+                        <a href="{{ route('reseller.program') }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <span>Resellers</span>
+                            <span class="text-xs text-[#F6821F] font-bold">WHMCS</span>
+                        </a>
+                        <a href="{{ route('announcements.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <span>Announcements</span>
+                        </a>
+                        <a href="{{ route('knowledgebase.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <span>Knowledge base</span>
+                        </a>
+                        <a href="{{ route('contact') }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <span>Contact support</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                    @auth
+                        <a href="{{ route('client.dashboard') }}" class="cf-btn cf-btn-secondary w-full text-center">Dashboard</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="cf-btn cf-btn-danger w-full mt-1">Log out</button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="cf-btn cf-btn-secondary w-full text-center">Sign in</a>
+                        <a href="{{ route('register') }}" class="cf-btn cf-btn-primary w-full text-center">Get started</a>
+                    @endauth
+                </div>
+            </div>
+        </div>
+
 
     @stack('scripts')
 </body>

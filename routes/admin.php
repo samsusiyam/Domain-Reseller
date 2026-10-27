@@ -1,4 +1,7 @@
 <?php
+use App\Http\Controllers\Admin\ContactInquiryController;
+use App\Http\Controllers\Admin\SystemHealthController;
+
 
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -171,6 +174,12 @@ Route::prefix('activity-logs')->name('activity-logs.')->group(function () {
 
 // System Settings
 Route::prefix('settings')->name('settings.')->group(function () {
+    Route::get('/gateways', [SystemSettingController::class, 'gateways'])->name('gateways');
+    Route::put('/gateways', [SystemSettingController::class, 'updateGateways'])->name('gateways.update');
+
+    Route::get('/nameservers', [SystemSettingController::class, 'nameservers'])->name('nameservers');
+    Route::put('/nameservers', [SystemSettingController::class, 'updateNameservers'])->name('nameservers.update');
+
     Route::get('/general', [SystemSettingController::class, 'general'])->name('general');
     Route::put('/general', [SystemSettingController::class, 'updateGeneral'])->name('general.update');
 
@@ -196,3 +205,14 @@ Route::prefix('reports')->name('reports.')->group(function () {
     Route::get('/tlds', [ReportController::class, 'tlds'])->name('tlds');
     Route::get('/payments', [ReportController::class, 'payments'])->name('payments');
 });
+
+
+// Contact Inquiries
+Route::prefix('inquiries')->name('inquiries.')->group(function () {
+    Route::get('/', [ContactInquiryController::class, 'index'])->name('index');
+    Route::patch('/{inquiry}/status', [ContactInquiryController::class, 'updateStatus'])->name('status');
+    Route::delete('/{inquiry}', [ContactInquiryController::class, 'destroy'])->name('destroy');
+});
+
+// System Health Diagnostics
+Route::get('/system-health', [SystemHealthController::class, 'index'])->name('system-health');

@@ -72,16 +72,16 @@
                     <tbody class="divide-y divide-slate-100 font-mono text-xs">
                         @foreach($transactions as $txn)
                             <tr class="hover:bg-slate-50/50 transition">
-                                <td class="px-6 py-4 font-bold text-slate-900">{{ $txn->reference_id ?? ('TXN-' . $txn->id) }}</td>
+                                <td class="px-6 py-4 font-bold text-slate-900">{{ $txn->transaction_number ?? $txn->gateway_transaction_id ?? ('TXN-' . $txn->id) }}</td>
                                 <td class="px-6 py-4 font-sans">
                                     <div class="font-bold text-slate-800">{{ $txn->user?->name ?? 'None' }}</div>
                                     <div class="text-[11px] text-slate-400 font-mono">{{ $txn->user?->email }}</div>
                                 </td>
                                 <td class="px-6 py-4 uppercase font-sans font-semibold text-[11px] text-slate-600">
-                                    {{ $txn->payment_method ?? 'Wallet' }}
+                                    {{ $txn->gateway ?? $txn->payment_method ?? 'Wallet' }}
                                 </td>
                                 <td class="px-6 py-4 font-sans text-slate-700 font-medium">
-                                    {{ $txn->description ?? 'Transaction' }}
+                                    {{ $txn->payment_details['reason'] ?? $txn->payment_details['notes'] ?? $txn->description ?? 'Transaction' }}
                                 </td>
                                 <td class="px-6 py-4 text-slate-500 font-sans whitespace-nowrap">
                                     {{ $txn->created_at->format('M d, Y H:i') }}

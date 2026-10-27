@@ -117,6 +117,14 @@ class DomainOrderService
     /**
      * Process order fulfillment immediately via account balance.
      */
+    /**
+     * Alias for processPaymentWithWallet
+     */
+    public function processPaymentWithWallet(Invoice $invoice): bool
+    {
+        return $this->payWithBalance($invoice->user, $invoice);
+    }
+
     public function payWithBalance(User $user, Invoice $invoice): bool
     {
         if (!$user->hasSufficientBalance((float) $invoice->balance_due)) {

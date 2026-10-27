@@ -10,7 +10,7 @@
         Please enter one of your emergency recovery codes.
     </p>
 
-    <form method="POST" action="{{ route('two-factor.login') }}" class="space-y-4 mt-5">
+    <form method="POST" action="{{ route('two-factor.verify') }}" class="space-y-4 mt-5">
         @csrf
 
         <div x-show="!recovery">

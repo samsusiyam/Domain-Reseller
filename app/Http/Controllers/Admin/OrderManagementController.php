@@ -102,7 +102,7 @@ class OrderManagementController extends Controller
             'user_id' => $user->id,
             'invoice_id' => $order->invoice?->id,
             'type' => 'credit',
-            'gateway' => 'wallet_refund',
+            'gateway' => 'balance',
             'gateway_transaction_id' => 'REF-' . strtoupper(uniqid()),
             'amount' => $refundAmount,
             'currency' => 'USD',

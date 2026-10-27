@@ -161,10 +161,10 @@
                     </div>
 
                     <div x-show="!customNs" class="text-xs p-3 rounded-[6px] border space-y-1 font-mono" style="background-color: var(--surface); border-color: var(--border); color: var(--text);">
-                        <div>Primary: {{ $defaultNs[0] ?? 'ns1.domainreseller.local' }}</div>
-                        <div>Secondary: {{ $defaultNs[1] ?? 'ns2.domainreseller.local' }}</div>
-                        <input type="hidden" name="ns1" value="{{ $defaultNs[0] ?? 'ns1.domainreseller.local' }}">
-                        <input type="hidden" name="ns2" value="{{ $defaultNs[1] ?? 'ns2.domainreseller.local' }}">
+                        <div>Primary: {{ $defaultNs[0] ?? 'ns1.hostnibo.com' }}</div>
+                        <div>Secondary: {{ $defaultNs[1] ?? 'ns2.hostnibo.com' }}</div>
+                        <input type="hidden" name="ns1" value="{{ $defaultNs[0] ?? 'ns1.hostnibo.com' }}">
+                        <input type="hidden" name="ns2" value="{{ $defaultNs[1] ?? 'ns2.hostnibo.com' }}">
                     </div>
 
                     <div x-show="customNs" x-cloak class="grid grid-cols-1 sm:grid-cols-2 gap-4">

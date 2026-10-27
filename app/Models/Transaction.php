@@ -31,6 +31,10 @@ class Transaction extends Model
         'payment_details',
         'verified_by_admin_id',
         'verified_at',
+        'payment_method',
+        'reference_id',
+        'description',
+        'notes',
     ];
 
     protected $casts = [
@@ -52,7 +56,59 @@ class Transaction extends Model
             if (empty($transaction->transaction_number)) {
                 $transaction->transaction_number = 'TXN-' . strtoupper(date('Ymd')) . '-' . strtoupper(Str::random(6));
             }
+            if (empty($transaction->currency)) {
+                $transaction->currency = 'USD';
+            }
+            if (empty($transaction->exchange_rate)) {
+                $transaction->exchange_rate = 1.000000;
+            }
+            if (!isset($transaction->amount_in_usd) || $transaction->amount_in_usd === null) {
+                $transaction->amount_in_usd = (float) $transaction->amount;
+            }
+            if (empty($transaction->gateway)) {
+                $transaction->gateway = 'manual';
+            }
         });
+    }
+
+    public function getPaymentMethodAttribute(): string
+    {
+        return $this->gateway ?? 'manual';
+    }
+
+    public function setPaymentMethodAttribute($value): void
+    {
+        $valid = ['manual', 'bkash', 'stripe', 'binance', 'balance'];
+        $this->attributes['gateway'] = in_array($value, $valid) ? $value : 'manual';
+    }
+
+    public function getReferenceIdAttribute(): ?string
+    {
+        return $this->transaction_number ?? $this->gateway_transaction_id;
+    }
+
+    public function setReferenceIdAttribute($value): void
+    {
+        $this->attributes['gateway_transaction_id'] = $value;
+    }
+
+    public function getDescriptionAttribute(): string
+    {
+        return $this->payment_details['reason'] ?? $this->payment_details['notes'] ?? 'Transaction';
+    }
+
+    public function setDescriptionAttribute($value): void
+    {
+        $details = $this->payment_details ?? [];
+        $details['reason'] = $value;
+        $this->payment_details = $details;
+    }
+
+    public function setNotesAttribute($value): void
+    {
+        $details = $this->payment_details ?? [];
+        $details['notes'] = $value;
+        $this->payment_details = $details;
     }
 
     public function user(): BelongsTo

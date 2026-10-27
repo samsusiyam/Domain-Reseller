@@ -151,4 +151,104 @@ class SystemSettingController extends Controller
 
         return back()->with('success', 'Security settings saved.');
     }
+
+    /**
+     * Payment Gateways configuration page.
+     */
+    public function gateways()
+    {
+        $settings = [
+            'bkash_enabled'          => SystemSetting::get('bkash_enabled', env('BKASH_ENABLED', 'true')),
+            'bkash_mode'             => SystemSetting::get('bkash_mode', env('BKASH_MODE', 'sandbox')),
+            'bkash_app_key'          => SystemSetting::get('bkash_app_key', env('BKASH_APP_KEY', '')),
+            'bkash_app_secret'       => SystemSetting::get('bkash_app_secret', env('BKASH_APP_SECRET', '')),
+            'bkash_username'         => SystemSetting::get('bkash_username', env('BKASH_USERNAME', '')),
+            'bkash_password'         => SystemSetting::get('bkash_password', env('BKASH_PASSWORD', '')),
+
+            'stripe_enabled'         => SystemSetting::get('stripe_enabled', env('STRIPE_ENABLED', 'true')),
+            'stripe_key'             => SystemSetting::get('stripe_key', env('STRIPE_KEY', '')),
+            'stripe_secret'          => SystemSetting::get('stripe_secret', env('STRIPE_SECRET', '')),
+            'stripe_webhook_secret'  => SystemSetting::get('stripe_webhook_secret', env('STRIPE_WEBHOOK_SECRET', '')),
+
+            'binance_enabled'        => SystemSetting::get('binance_enabled', env('BINANCE_ENABLED', 'true')),
+            'binance_merchant_id'    => SystemSetting::get('binance_merchant_id', env('BINANCE_MERCHANT_ID', '')),
+            'binance_api_key'        => SystemSetting::get('binance_api_key', env('BINANCE_API_KEY', '')),
+            'binance_secret_key'     => SystemSetting::get('binance_secret_key', env('BINANCE_SECRET_KEY', '')),
+
+            'bank_transfer_enabled'  => SystemSetting::get('bank_transfer_enabled', 'true'),
+            'bank_name'              => SystemSetting::get('bank_name', 'City Bank Ltd'),
+            'bank_account_name'     => SystemSetting::get('bank_account_name', 'HostNibo IT'),
+            'bank_account_number'   => SystemSetting::get('bank_account_number', '1100223344001'),
+            'bank_routing_number'   => SystemSetting::get('bank_routing_number', '225272630'),
+            'bank_instructions'     => SystemSetting::get('bank_instructions', 'Send payment with your Invoice ID as reference.'),
+        ];
+
+        return view('admin.settings.gateways', compact('settings'));
+    }
+
+    /**
+     * Save payment gateway settings.
+     */
+    public function updateGateways(Request $request)
+    {
+        $keys = [
+            'bkash_enabled', 'bkash_mode', 'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password',
+            'stripe_enabled', 'stripe_key', 'stripe_secret', 'stripe_webhook_secret',
+            'binance_enabled', 'binance_merchant_id', 'binance_api_key', 'binance_secret_key',
+            'bank_transfer_enabled', 'bank_name', 'bank_account_name', 'bank_account_number', 'bank_routing_number', 'bank_instructions'
+        ];
+
+        foreach ($keys as $k) {
+            if (str_ends_with($k, '_enabled')) {
+                SystemSetting::set($k, $request->boolean($k) ? 'true' : 'false', 'gateway');
+            } else {
+                $val = $request->input($k);
+                if ($val !== null) {
+                    SystemSetting::set($k, $val, 'gateway');
+                }
+            }
+        }
+
+        $this->activityLogger->log('gateway_settings_updated', 'Admin updated payment gateway configuration');
+
+        return back()->with('success', 'Payment gateway settings updated successfully.');
+    }
+
+    /**
+     * Nameserver configuration page.
+     */
+    public function nameservers()
+    {
+        $settings = [
+            'default_ns1' => SystemSetting::get('default_ns1', env('DEFAULT_NS1', 'ns1.hostnibo.com')),
+            'default_ns2' => SystemSetting::get('default_ns2', env('DEFAULT_NS2', 'ns2.hostnibo.com')),
+            'default_ns3' => SystemSetting::get('default_ns3', 'ns3.hostnibo.com'),
+            'default_ns4' => SystemSetting::get('default_ns4', 'ns4.hostnibo.com'),
+        ];
+
+        return view('admin.settings.nameservers', compact('settings'));
+    }
+
+    /**
+     * Save nameserver settings.
+     */
+    public function updateNameservers(Request $request)
+    {
+        $request->validate([
+            'default_ns1' => ['required', 'string', 'max:255'],
+            'default_ns2' => ['required', 'string', 'max:255'],
+            'default_ns3' => ['nullable', 'string', 'max:255'],
+            'default_ns4' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        SystemSetting::set('default_ns1', $request->input('default_ns1'), 'domain');
+        SystemSetting::set('default_ns2', $request->input('default_ns2'), 'domain');
+        SystemSetting::set('default_ns3', $request->input('default_ns3'), 'domain');
+        SystemSetting::set('default_ns4', $request->input('default_ns4'), 'domain');
+
+        $this->activityLogger->log('nameserver_settings_updated', 'Admin updated default nameservers');
+
+        return back()->with('success', 'Default nameservers updated successfully.');
+    }
+
 }

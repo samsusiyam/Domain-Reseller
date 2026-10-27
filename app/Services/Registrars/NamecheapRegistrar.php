@@ -150,13 +150,13 @@ class NamecheapRegistrar extends AbstractRegistrar
             expiresAt: now()->addMonths(10),
             isLocked: true,
             idProtection: true,
-            nameservers: ['ns1.domainreseller.local', 'ns2.domainreseller.local']
+            nameservers: ['ns1.hostnibo.com', 'ns2.hostnibo.com']
         );
     }
 
     public function getNameservers(string $domain): array
     {
-        return ['ns1.domainreseller.local', 'ns2.domainreseller.local'];
+        return ['ns1.hostnibo.com', 'ns2.hostnibo.com'];
     }
 
     public function setNameservers(string $domain, array $nameservers): bool

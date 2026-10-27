@@ -18,8 +18,8 @@ class TransactionManagementController extends Controller
         if ($request->filled('search')) {
             $search = '%' . trim($request->input('search')) . '%';
             $query->where(function ($q) use ($search) {
-                $q->where('reference_id', 'like', $search)
-                  ->orWhere('description', 'like', $search)
+                $q->where('transaction_number', 'like', $search)
+                  ->orWhere('gateway_transaction_id', 'like', $search)
                   ->orWhereHas('user', function ($uq) use ($search) {
                       $uq->where('name', 'like', $search)->orWhere('email', 'like', $search);
                   });

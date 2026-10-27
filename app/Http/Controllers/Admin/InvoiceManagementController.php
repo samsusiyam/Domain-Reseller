@@ -135,7 +135,7 @@ class InvoiceManagementController extends Controller
             'amount'         => $invoice->total_amount,
             'currency'       => $invoice->currency,
             'exchange_rate'  => 1.000000,
-            'payment_method' => 'manual_admin',
+            'gateway' => 'manual', 'amount_in_usd' => $invoice->total_amount,
             'reference_id'   => 'ADM-PAID-' . strtoupper(uniqid()),
             'status'         => 'completed',
             'description'    => "Payment for Invoice #{$invoice->invoice_number} (Marked by Admin)",
@@ -176,7 +176,7 @@ class InvoiceManagementController extends Controller
         $user = $invoice->user;
         $refundAmount = (float)$invoice->total_amount;
 
-        $user->increment('wallet_balance', $refundAmount);
+        $user->creditBalance($refundAmount);
         $invoice->update(['status' => 'refunded']);
 
         Transaction::create([
@@ -186,7 +186,7 @@ class InvoiceManagementController extends Controller
             'amount'         => $refundAmount,
             'currency'       => 'USD',
             'exchange_rate'  => 1.000000,
-            'payment_method' => 'wallet_refund',
+            'gateway' => 'balance', 'amount_in_usd' => $refundAmount,
             'reference_id'   => 'REF-INV-' . strtoupper(uniqid()),
             'status'         => 'completed',
             'description'    => "Refund for Invoice #{$invoice->invoice_number}",

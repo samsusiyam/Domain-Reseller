@@ -20,7 +20,7 @@ class ResellerReportController extends Controller
         $now = Carbon::now();
 
         $tldBreakdown = Domain::where('user_id', $reseller->id)
-            ->join('tld_pricing', 'domains.tld_id', '=', 'tld_pricing.id')
+            ->join('tld_pricing', 'domains.tld', '=', 'tld_pricing.tld')
             ->selectRaw('tld_pricing.tld, count(domains.id) as count')
             ->groupBy('tld_pricing.tld')
             ->get();

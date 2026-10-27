@@ -48,8 +48,8 @@ class CheckoutController extends Controller
         $bdtRate = (float) ($bdtCurrency?->exchange_rate ?? 120.00);
 
         $defaultNs = config('registrars.default_nameservers', [
-            'ns1.domainreseller.local',
-            'ns2.domainreseller.local',
+            'ns1.hostnibo.com',
+            'ns2.hostnibo.com',
         ]);
 
         $idempotencyKey = (string) Str::uuid();
@@ -153,8 +153,8 @@ class CheckoutController extends Controller
         // Prepare order items payload
         $orderItemsPayload = [];
         $nsList = array_filter([
-            $request->input('ns1', 'ns1.domainreseller.local'),
-            $request->input('ns2', 'ns2.domainreseller.local'),
+            $request->input('ns1', 'ns1.hostnibo.com'),
+            $request->input('ns2', 'ns2.hostnibo.com'),
         ]);
 
         foreach ($items as $item) {
@@ -196,15 +196,19 @@ class CheckoutController extends Controller
                 Transaction::create([
                     'user_id' => $user->id,
                     'invoice_id' => $invoice->id,
-                    'gateway' => 'bank_transfer',
-                    'gateway_transaction_id' => $request->input('bank_trx_id'),
+                    'gateway' => 'manual',
+                    'gateway_transaction_id' => $request->input('bank_trx_id', 'BANK-' . strtoupper(Str::random(6))),
                     'type' => 'credit',
                     'amount' => $totals['total'],
                     'currency' => 'USD',
                     'exchange_rate' => 1.0,
                     'amount_in_usd' => $totals['total'],
                     'status' => 'pending',
-                    'notes' => $request->input('bank_notes'),
+                    'payment_details' => [
+                        'method' => 'bank_transfer',
+                        'bank_trx_id' => $request->input('bank_trx_id'),
+                        'notes' => $request->input('bank_notes'),
+                    ],
                 ]);
 
                 $this->cartService->clear();

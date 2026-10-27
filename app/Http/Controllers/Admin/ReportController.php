@@ -28,8 +28,8 @@ class ReportController extends Controller
             ->get();
 
         $gatewayStats = Transaction::where('status', 'completed')
-            ->selectRaw("payment_method, sum(amount) as total, count(*) as count")
-            ->groupBy('payment_method')
+            ->selectRaw("gateway, sum(amount) as total, count(*) as count")
+            ->groupBy('gateway')
             ->get();
 
         return view('admin.reports.revenue', compact('monthlyRevenue', 'gatewayStats'));
@@ -44,7 +44,7 @@ class ReportController extends Controller
             ->groupBy('status')
             ->get();
 
-        $tldBreakdown = Domain::join('tld_pricing', 'domains.tld_id', '=', 'tld_pricing.id')
+        $tldBreakdown = Domain::join('tld_pricing', 'domains.tld', '=', 'tld_pricing.tld')
             ->selectRaw("tld_pricing.tld, count(domains.id) as count")
             ->groupBy('tld_pricing.tld')
             ->orderByDesc('count')
@@ -112,8 +112,8 @@ class ReportController extends Controller
      */
     public function payments(Request $request)
     {
-        $gateways = Transaction::selectRaw("payment_method, count(*) as total_attempts, sum(case when status='completed' then 1 else 0 end) as successful, sum(case when status='completed' then amount else 0 end) as volume")
-            ->groupBy('payment_method')
+        $gateways = Transaction::selectRaw("gateway, count(*) as total_attempts, sum(case when status='completed' then 1 else 0 end) as successful, sum(case when status='completed' then amount else 0 end) as volume")
+            ->groupBy('gateway')
             ->get();
 
         return view('admin.reports.payments', compact('gateways'));

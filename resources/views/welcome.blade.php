@@ -165,24 +165,22 @@
         </div>
     </section>
 
-    <!-- 2. LOGOS STRIP: "Connected to" + registrar logos in grayscale (One row, small) -->
-    <section class="border-y py-4" style="background-color: var(--surface); border-color: var(--border);">
+    <!-- 2. LOGOS STRIP: Connected upstream registries -->
+    <section class="border-y py-3.5 bg-slate-50/75 dark:bg-[#12151C]/75 border-slate-200 dark:border-slate-800 transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-wrap items-center justify-center sm:justify-between gap-6 text-[12px]" style="color: var(--text-muted);">
-                <span class="font-medium shrink-0 uppercase tracking-wider text-[11px]">Connected upstream to:</span>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3 text-[12px]">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium shrink-0 uppercase tracking-wider text-[11px]">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Upstream Registries:</span>
+                </div>
 
-                <div class="flex flex-wrap items-center gap-6 sm:gap-8 font-mono font-semibold text-[13px] tracking-wider grayscale opacity-80" style="color: var(--text-muted);">
-                    <span class="hover:text-[var(--text)] transition">NAMECHEAP</span>
-                    <span>/</span>
-                    <span class="hover:text-[var(--text)] transition">SPACESHIP</span>
-                    <span>/</span>
-                    <span class="hover:text-[var(--text)] transition">DYNADOT</span>
-                    <span>/</span>
-                    <span class="hover:text-[var(--text)] transition">COSMOTOWN</span>
-                    <span>/</span>
-                    <span class="hover:text-[var(--text)] transition">ATAKDOMAIN</span>
-                    <span>/</span>
-                    <span class="hover:text-[var(--text)] transition">NAMESILO</span>
+                <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-slate-600 dark:text-slate-300 font-mono text-[12px] font-medium">
+                    <span class="px-2.5 py-1 rounded-md bg-white dark:bg-[#1A1E26] border border-slate-200 dark:border-slate-800 shadow-xs">Namecheap</span>
+                    <span class="px-2.5 py-1 rounded-md bg-white dark:bg-[#1A1E26] border border-slate-200 dark:border-slate-800 shadow-xs">Spaceship</span>
+                    <span class="px-2.5 py-1 rounded-md bg-white dark:bg-[#1A1E26] border border-slate-200 dark:border-slate-800 shadow-xs">Dynadot</span>
+                    <span class="px-2.5 py-1 rounded-md bg-white dark:bg-[#1A1E26] border border-slate-200 dark:border-slate-800 shadow-xs">Cosmotown</span>
+                    <span class="px-2.5 py-1 rounded-md bg-white dark:bg-[#1A1E26] border border-slate-200 dark:border-slate-800 shadow-xs">AtakDomain</span>
+                    <span class="px-2.5 py-1 rounded-md bg-white dark:bg-[#1A1E26] border border-slate-200 dark:border-slate-800 shadow-xs">NameSilo</span>
                 </div>
             </div>
         </div>

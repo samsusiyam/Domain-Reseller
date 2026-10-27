@@ -81,7 +81,7 @@ class ResellerManagementController extends Controller
             'country'           => $validated['country'] ?? 'US',
             'status'            => 'active',
             'email_verified_at' => now(),
-            'wallet_balance'    => 0.0000,
+            'balance' => 0.0000,
         ]);
 
         $this->activityLogger->log(
@@ -231,7 +231,7 @@ class ResellerManagementController extends Controller
         }
 
         $newBalance = $type === 'credit' ? $currentBalance + $amount : $currentBalance - $amount;
-        $reseller->update(['wallet_balance' => $newBalance]);
+        if ($type === 'credit') $reseller->creditBalance($amount); else $reseller->deductBalance($amount);
 
         Transaction::create([
             'user_id'        => $reseller->id,
@@ -239,7 +239,7 @@ class ResellerManagementController extends Controller
             'amount'         => $amount,
             'currency'       => 'USD',
             'exchange_rate'  => 1.000000,
-            'payment_method' => 'manual_adjustment',
+            'gateway' => 'manual', 'amount_in_usd' => $amount,
             'reference_id'   => 'RES-ADJ-' . strtoupper(uniqid()),
             'status'         => 'completed',
             'description'    => $request->input('description') . ' (Wholesale Credit Adjusted by Admin)',

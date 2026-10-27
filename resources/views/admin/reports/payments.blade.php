@@ -35,7 +35,7 @@
                     @forelse($gateways as $gw)
                         <tr class="hover:bg-slate-50/50 transition">
                             <td class="px-6 py-4 font-bold uppercase text-slate-900 text-xs">
-                                {{ $gw->payment_method ?? 'Wallet Balance' }}
+                                {{ $gw->gateway ?? $gw->payment_method ?? 'Wallet Balance' }}
                             </td>
                             <td class="px-6 py-4 text-center font-bold text-slate-700">
                                 {{ number_format($gw->total_attempts) }}

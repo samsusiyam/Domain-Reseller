@@ -53,7 +53,7 @@ return [
     ],
 
     'default_nameservers' => [
-        env('DEFAULT_NS1', 'ns1.domainreseller.local'),
-        env('DEFAULT_NS2', 'ns2.domainreseller.local'),
+        env('DEFAULT_NS1', 'ns1.hostnibo.com'),
+        env('DEFAULT_NS2', 'ns2.hostnibo.com'),
     ],
 ];

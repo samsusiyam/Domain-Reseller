@@ -15,6 +15,21 @@
             if (m === 'dark') document.documentElement.classList.add('dark');
             else document.documentElement.classList.remove('dark');
         })();
+
+        window.toggleTheme = function() {
+            var isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+            var next = isDark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            document.documentElement.style.colorScheme = next;
+            if (next === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme', next);
+            document.cookie = 'theme=' + next + ';path=/;max-age=31536000;SameSite=Lax';
+            window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: next } }));
+        };
     </script>
 
     <!-- Google Fonts: Inter & JetBrains Mono -->
@@ -124,10 +139,10 @@
 
     <!-- LEFT SIDEBAR: 240px (collapsible to 56px), 1px border, white bg -->
     <aside :class="[
-               sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-               sidebarCollapsed ? 'lg:w-14' : 'lg:w-60'
+               sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0',
+               sidebarCollapsed ? 'lg:w-14 w-64' : 'lg:w-60 w-64'
            ]"
-           class="fixed inset-y-0 left-0 z-50 w-60 bg-white border-r border-[#E5E7EB] flex flex-col transition-all duration-150 ease-in-out shrink-0 select-none">
+           class="fixed inset-y-0 left-0 z-50 lg:static lg:z-auto bg-white border-r border-[#E5E7EB] flex flex-col transition-all duration-200 ease-in-out shrink-0 select-none">
 
         <!-- Sidebar Top: Brand Logo + Name only -->
         <div class="h-14 flex items-center justify-between px-3.5 border-b border-[#E5E7EB] shrink-0">
@@ -154,6 +169,16 @@
                 </svg>
                 <svg x-show="sidebarCollapsed" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+            </button>
+
+            <!-- Mobile Close Button -->
+            <button @click="sidebarOpen = false"
+                    type="button"
+                    title="Close sidebar"
+                    class="inline-flex lg:hidden items-center justify-center w-7 h-7 text-[#6B7280] hover:text-[#111827] hover:bg-[#F7F7F8] rounded-[4px] transition">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
@@ -283,6 +308,14 @@
                         </svg>
                         <span x-show="!sidebarCollapsed" class="truncate">Tickets</span>
                     </a>
+                    <a href="{{ route('admin.inquiries.index') }}"
+                       title="Inquiries"
+                       class="group flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition-colors {{ request()->routeIs('admin.inquiries.*') ? 'bg-[#FFF7ED] text-[#F6821F] font-medium border-l-2 border-[#F6821F]' : 'border-l-2 border-transparent text-[#6B7280] hover:text-[#111827] hover:bg-[#F7F7F8]' }}">
+                        <svg class="w-4 h-4 shrink-0 {{ request()->routeIs('admin.inquiries.*') ? 'text-[#F6821F]' : 'text-[#6B7280] group-hover:text-[#111827]' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                        </svg>
+                        <span x-show="!sidebarCollapsed" class="truncate">Inquiries</span>
+                    </a>
                     <a href="{{ route('admin.email-templates.index') }}"
                        title="Email templates"
                        class="group flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition-colors {{ request()->routeIs('admin.email-templates.*') ? 'bg-[#FFF7ED] text-[#F6821F] font-medium border-l-2 border-[#F6821F]' : 'border-l-2 border-transparent text-[#6B7280] hover:text-[#111827] hover:bg-[#F7F7F8]' }}">
@@ -331,6 +364,14 @@
                         </svg>
                         <span x-show="!sidebarCollapsed" class="truncate">Audit log</span>
                     </a>
+                    <a href="{{ route('admin.system-health') }}"
+                       title="System Health"
+                       class="group flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition-colors {{ request()->routeIs('admin.system-health') ? 'bg-[#FFF7ED] text-[#F6821F] font-medium border-l-2 border-[#F6821F]' : 'border-l-2 border-transparent text-[#6B7280] hover:text-[#111827] hover:bg-[#F7F7F8]' }}">
+                        <svg class="w-4 h-4 shrink-0 {{ request()->routeIs('admin.system-health') ? 'text-[#F6821F]' : 'text-[#6B7280] group-hover:text-[#111827]' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                        <span x-show="!sidebarCollapsed" class="truncate">System health</span>
+                    </a>
                 </div>
             </div>
 
@@ -347,6 +388,22 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span x-show="!sidebarCollapsed" class="truncate">General settings</span>
+                    </a>
+                    <a href="{{ route('admin.settings.gateways') }}"
+                       title="Payment gateways"
+                       class="group flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition-colors {{ request()->routeIs('admin.settings.gateways*') ? 'bg-[#FFF7ED] text-[#F6821F] font-medium border-l-2 border-[#F6821F]' : 'border-l-2 border-transparent text-[#6B7280] hover:text-[#111827] hover:bg-[#F7F7F8]' }}">
+                        <svg class="w-4 h-4 shrink-0 {{ request()->routeIs('admin.settings.gateways*') ? 'text-[#F6821F]' : 'text-[#6B7280] group-hover:text-[#111827]' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                        </svg>
+                        <span x-show="!sidebarCollapsed" class="truncate">Payment gateways</span>
+                    </a>
+                    <a href="{{ route('admin.settings.nameservers') }}"
+                       title="Nameservers"
+                       class="group flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition-colors {{ request()->routeIs('admin.settings.nameservers*') ? 'bg-[#FFF7ED] text-[#F6821F] font-medium border-l-2 border-[#F6821F]' : 'border-l-2 border-transparent text-[#6B7280] hover:text-[#111827] hover:bg-[#F7F7F8]' }}">
+                        <svg class="w-4 h-4 shrink-0 {{ request()->routeIs('admin.settings.nameservers*') ? 'text-[#F6821F]' : 'text-[#6B7280] group-hover:text-[#111827]' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.75 5.1a2.25 2.25 0 011.8-1.1h8.9a2.25 2.25 0 011.8 1.1l2.1 3.45c.6.98.9 2.1.9 3.2" />
+                        </svg>
+                        <span x-show="!sidebarCollapsed" class="truncate">Nameservers</span>
                     </a>
                     <a href="{{ route('admin.settings.currencies') }}"
                        title="Currencies"
