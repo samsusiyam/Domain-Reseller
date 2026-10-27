@@ -16,7 +16,14 @@ return [
             'client_ip' => env('NAMECHEAP_CLIENT_IP'),
             'sandbox' => env('NAMECHEAP_SANDBOX', true),
             'timeout' => 30,
+            'unstoppabledomains' => [
+            'name' => 'Unstoppable Domains',
+            'api_key' => env('UNSTOPPABLE_API_KEY'),
+            'reseller_id' => env('UNSTOPPABLE_RESELLER_ID', 'hostnibo'),
+            'sandbox' => env('UNSTOPPABLE_SANDBOX', true),
+            'timeout' => 30,
         ],
+    ],
         'spaceship' => [
             'name' => 'Spaceship',
             'api_key' => env('SPACESHIP_API_KEY'),

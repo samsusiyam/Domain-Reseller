@@ -73,4 +73,9 @@ class RegistrarManager extends Manager
     {
         return new CosmotownRegistrar($this->getMergedConfig('cosmotown'));
     }
+
+    public function createUnstoppabledomainsDriver(): RegistrarModuleInterface
+    {
+        return new UnstoppableDomainsRegistrar($this->getMergedConfig('unstoppabledomains'));
+    }
 }

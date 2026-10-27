@@ -72,6 +72,24 @@
                             <label class="block text-xs text-slate-600 mb-1">API Secret Key</label>
                             <input type="password" name="config[api_key]" value="{{ old('config.api_key', $config['api_key'] ?? '') }}" class="w-full px-3 py-2 font-mono text-xs border border-slate-300 rounded-lg">
                         </div>
+                    @elseif($registrar->slug === 'cosmotown')
+                        <div>
+                            <label class="block text-xs text-slate-600 mb-1">Cosmotown API Key</label>
+                            <input type="password" name="config[api_key]" value="{{ old('config.api_key', $config['api_key'] ?? '') }}" class="w-full px-3 py-2 font-mono text-xs border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-600 mb-1">Cosmotown API Secret</label>
+                            <input type="password" name="config[api_secret]" value="{{ old('config.api_secret', $config['api_secret'] ?? '') }}" class="w-full px-3 py-2 font-mono text-xs border border-slate-300 rounded-lg">
+                        </div>
+                    @elseif($registrar->slug === 'unstoppabledomains')
+                        <div>
+                            <label class="block text-xs text-slate-600 mb-1">Unstoppable API Key (Bearer Token)</label>
+                            <input type="password" name="config[api_key]" value="{{ old('config.api_key', $config['api_key'] ?? '') }}" class="w-full px-3 py-2 font-mono text-xs border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-600 mb-1">Reseller ID / Partner Identifier</label>
+                            <input type="text" name="config[reseller_id]" value="{{ old('config.reseller_id', $config['reseller_id'] ?? 'hostnibo') }}" class="w-full px-3 py-2 font-mono text-xs border border-slate-300 rounded-lg">
+                        </div>
                     @elseif($registrar->slug === 'namesilo')
                         <div>
                             <label class="block text-xs text-slate-600 mb-1">API Key</label>

@@ -73,16 +73,24 @@ class RegistrarModuleController extends Controller
                 'last_balance_sync_at' => now(),
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => "Successfully connected to {$registrarModel->name}! Current Balance: {$balance->formatted()}",
-                'balance' => $balance->balance,
-            ]);
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Successfully connected to {$registrarModel->name}! Current Balance: {$balance->formatted()}",
+                    'balance' => $balance->balance,
+                ]);
+            }
+
+            return back()->with('success', "Successfully connected to {$registrarModel->name}! Current Balance: {$balance->formatted()}");
         } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => "Connection failed: " . $e->getMessage(),
-            ], 422);
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Connection failed: " . $e->getMessage(),
+                ], 422);
+            }
+
+            return back()->with('error', "Connection to {$registrarModel->name} failed: " . $e->getMessage());
         }
     }
 

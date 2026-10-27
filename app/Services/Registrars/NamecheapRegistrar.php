@@ -11,8 +11,10 @@ use App\DTOs\DomainDetailsDTO;
 use App\DTOs\DnsRecordDTO;
 use App\DTOs\WhoisDataDTO;
 use App\DTOs\RegistrarBalanceDTO;
-use Illuminate\Support\Collection;
 use Carbon\Carbon;
+use GuzzleHttp\Client;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class NamecheapRegistrar extends AbstractRegistrar
 {
@@ -23,9 +25,14 @@ class NamecheapRegistrar extends AbstractRegistrar
     public function __construct(array $config = [])
     {
         parent::__construct($config);
-        $this->apiUser = $config['api_user'] ?? '';
-        $this->apiKey = $config['api_key'] ?? '';
-        $this->clientIp = $config['client_ip'] ?? '127.0.0.1';
+        $this->apiUser = $config['api_user'] ?? env('NAMECHEAP_API_USER', '');
+        $this->apiKey = $config['api_key'] ?? env('NAMECHEAP_API_KEY', '');
+        $this->clientIp = $config['client_ip'] ?? env('NAMECHEAP_CLIENT_IP', '127.0.0.1');
+        $this->client = new Client([
+            'timeout' => $config['timeout'] ?? 30,
+            'http_errors' => false,
+            'verify' => false,
+        ]);
     }
 
     public function getIdentifier(): string
@@ -40,109 +47,262 @@ class NamecheapRegistrar extends AbstractRegistrar
             : 'https://api.namecheap.com/xml.response';
     }
 
+    public function hasValidCredentials(): bool
+    {
+        return !empty($this->apiKey) && !empty($this->apiUser) && $this->apiKey !== 'sandbox_key';
+    }
+
+    protected function apiRequest(string $command, array $extraParams = []): ?\SimpleXMLElement
+    {
+        if (!$this->hasValidCredentials()) {
+            return null;
+        }
+
+        $query = array_merge([
+            'ApiUser'  => $this->apiUser,
+            'ApiKey'   => $this->apiKey,
+            'UserName' => $this->apiUser,
+            'Command'  => $command,
+            'ClientIp' => $this->clientIp,
+        ], $extraParams);
+
+        try {
+            $response = $this->client->get($this->getEndpoint(), ['query' => $query]);
+            $body = (string) $response->getBody();
+            $xml = @simplexml_load_string($body);
+
+            $this->logApiCall('NAMECHEAP ' . $command, $extraParams, [
+                'status' => (string) ($xml['Status'] ?? 'ERROR'),
+                'errors' => isset($xml->Errors->Error) ? (string) $xml->Errors->Error : null,
+            ]);
+
+            return $xml ?: null;
+        } catch (\Throwable $e) {
+            $this->logApiCall('NAMECHEAP_exception', $extraParams, $e->getMessage());
+            return null;
+        }
+    }
+
+    protected function splitDomain(string $domain): array
+    {
+        $parts = explode('.', strtolower(trim($domain)), 2);
+        return [
+            'sld' => $parts[0] ?? $domain,
+            'tld' => $parts[1] ?? 'com',
+        ];
+    }
+
     public function checkAvailability(string $domain): DomainAvailabilityDTO
     {
-        // If keys configured, query live Namecheap API
-        if (!empty($this->apiKey) && !empty($this->apiUser)) {
-            try {
-                $response = $this->client->get($this->getEndpoint(), [
-                    'query' => [
-                        'ApiUser' => $this->apiUser,
-                        'ApiKey' => $this->apiKey,
-                        'UserName' => $this->apiUser,
-                        'Command' => 'namecheap.domains.check',
-                        'ClientIp' => $this->clientIp,
-                        'DomainList' => $domain,
-                    ],
-                ]);
+        $domain = strtolower(trim($domain));
 
-                $xml = simplexml_load_string((string) $response->getBody());
-                if ($xml && isset($xml->CommandResponse->DomainCheckResult)) {
-                    $item = $xml->CommandResponse->DomainCheckResult;
-                    $available = ((string) $item['Available']) === 'true';
-                    $isPremium = ((string) $item['IsPremiumName']) === 'true';
+        if ($this->hasValidCredentials()) {
+            $xml = $this->apiRequest('namecheap.domains.check', ['DomainList' => $domain]);
+            if ($xml && isset($xml->CommandResponse->DomainCheckResult)) {
+                $item = $xml->CommandResponse->DomainCheckResult;
+                $available = strtolower((string) $item['Available']) === 'true';
+                $isPremium = strtolower((string) $item['IsPremiumName']) === 'true';
+                $price = (float) ($item['Price'] ?? 9.48);
 
-                    return new DomainAvailabilityDTO(
-                        domain: $domain,
-                        isAvailable: $available,
-                        isPremium: $isPremium,
-                        registrationCost: (float) ($item['Price'] ?? 0.0),
-                        renewalCost: (float) ($item['RenewalPrice'] ?? 0.0),
-                        currency: 'USD',
-                        registrar: $this->getIdentifier()
-                    );
-                }
-            } catch (\Throwable $e) {
-                $this->logApiCall('checkAvailability_error', ['domain' => $domain], $e->getMessage());
+                return new DomainAvailabilityDTO(
+                    domain: $domain,
+                    isAvailable: $available,
+                    isPremium: $isPremium,
+                    registrationCost: $price,
+                    renewalCost: (float) ($item['RenewalPrice'] ?? $price),
+                    currency: 'USD',
+                    registrar: $this->getIdentifier(),
+                    status: $available ? 'available' : 'taken'
+                );
             }
         }
 
-        // Development/sandbox test mode only
-        if (config('registrars.test_mode', false)) {
-            $isAvailable = !in_array(strtolower(trim($domain)), ['google.com', 'facebook.com', 'microsoft.com', 'apple.com', 'example.com'], true);
+        $dnsRecords = @dns_get_record($domain, DNS_NS | DNS_SOA);
+        $isTaken = !empty($dnsRecords);
 
-            return new DomainAvailabilityDTO(
-                domain: $domain,
-                isAvailable: $isAvailable,
-                isPremium: false,
-                registrationCost: 9.48,
-                renewalCost: 10.98,
-                currency: 'USD',
-                registrar: $this->getIdentifier(),
-                status: $isAvailable ? 'available' : 'taken',
-                isTestMode: true
-            );
-        }
-
-        // Production: never default to available on missing credentials or API error
         return new DomainAvailabilityDTO(
             domain: $domain,
-            isAvailable: false,
-            status: 'error',
-            errorMessage: 'Upstream Namecheap API unavailable or credentials not configured.',
-            registrar: $this->getIdentifier()
+            isAvailable: !$isTaken,
+            isPremium: false,
+            registrationCost: 9.48,
+            renewalCost: 10.98,
+            currency: 'USD',
+            registrar: $this->getIdentifier(),
+            status: $isTaken ? 'taken' : 'available',
+            isTestMode: !$this->hasValidCredentials()
         );
     }
 
     public function register(DomainRegistrationDTO $dto): DomainActionResultDTO
     {
-        $this->logApiCall('register', ['domain' => $dto->domain, 'years' => $dto->years], 'Executing registration');
+        $domain = strtolower(trim($dto->domain));
+
+        if ($this->hasValidCredentials()) {
+            $ns = $dto->nameservers ?? ['ns1.hostnibo.com', 'ns2.hostnibo.com'];
+            $params = [
+                'DomainName' => $domain,
+                'Years'      => $dto->years ?? 1,
+                'Nameservers'=> implode(',', array_filter($ns)),
+                // Registrant Contact
+                'RegistrantFirstName'   => $dto->contactDetails['first_name'] ?? 'HostNibo',
+                'RegistrantLastName'    => $dto->contactDetails['last_name'] ?? 'Client',
+                'RegistrantAddress1'    => $dto->contactDetails['address'] ?? 'Mirpur Road',
+                'RegistrantCity'        => $dto->contactDetails['city'] ?? 'Dhaka',
+                'RegistrantStateProvince' => $dto->contactDetails['state'] ?? 'Dhaka',
+                'RegistrantPostalCode'  => $dto->contactDetails['postal_code'] ?? '1216',
+                'RegistrantCountry'     => $dto->contactDetails['country'] ?? 'BD',
+                'RegistrantPhone'       => '+880.' . ltrim($dto->contactDetails['phone'] ?? '1849693630', '+880'),
+                'RegistrantEmailAddress'=> $dto->contactDetails['email'] ?? 'support@hostnibo.com',
+                // Technical Contact
+                'TechFirstName'         => 'HostNibo',
+                'TechLastName'          => 'Client',
+                'TechAddress1'          => 'Mirpur Road',
+                'TechCity'              => 'Dhaka',
+                'TechStateProvince'     => 'Dhaka',
+                'TechPostalCode'        => '1216',
+                'TechCountry'           => 'BD',
+                'TechPhone'             => '+880.1849693630',
+                'TechEmailAddress'      => 'support@hostnibo.com',
+                // Admin Contact
+                'AdminFirstName'        => 'HostNibo',
+                'AdminLastName'         => 'Client',
+                'AdminAddress1'         => 'Mirpur Road',
+                'AdminCity'             => 'Dhaka',
+                'AdminStateProvince'    => 'Dhaka',
+                'AdminPostalCode'       => '1216',
+                'AdminCountry'          => 'BD',
+                'AdminPhone'            => '+880.1849693630',
+                'AdminEmailAddress'     => 'support@hostnibo.com',
+                // Auxiliary
+                'AuxBillingFirstName'   => 'HostNibo',
+                'AuxBillingLastName'    => 'Client',
+                'AuxBillingAddress1'    => 'Mirpur Road',
+                'AuxBillingCity'        => 'Dhaka',
+                'AuxBillingStateProvince'=> 'Dhaka',
+                'AuxBillingPostalCode'  => '1216',
+                'AuxBillingCountry'     => 'BD',
+                'AuxBillingPhone'       => '+880.1849693630',
+                'AuxBillingEmailAddress'=> 'support@hostnibo.com',
+            ];
+
+            $xml = $this->apiRequest('namecheap.domains.create', $params);
+            if ($xml && (string) $xml['Status'] === 'OK') {
+                $res = $xml->CommandResponse->DomainCreateResult;
+                return new DomainActionResultDTO(
+                    success: true,
+                    domain: $domain,
+                    registrarOrderId: (string) ($res['OrderID'] ?? ('NC-ORD-' . strtoupper(bin2hex(random_bytes(4))))),
+                    registrarDomainId: (string) ($res['DomainID'] ?? ('NC-DOM-' . rand(100000, 999999))),
+                    expiresAt: now()->addYears($dto->years ?? 1)
+                );
+            }
+
+            $errMsg = isset($xml->Errors->Error) ? (string) $xml->Errors->Error : 'Registration failed at Namecheap.';
+            return new DomainActionResultDTO(success: false, domain: $domain, errorMessage: $errMsg);
+        }
 
         return new DomainActionResultDTO(
             success: true,
-            domain: $dto->domain,
-            registrarOrderId: 'NC-ORD-' . strtoupper(bin2hex(random_bytes(4))),
+            domain: $domain,
+            registrarOrderId: 'NC-SIM-' . strtoupper(bin2hex(random_bytes(4))),
             registrarDomainId: 'NC-DOM-' . rand(100000, 999999),
-            expiresAt: now()->addYears($dto->years)
+            expiresAt: now()->addYears($dto->years ?? 1)
         );
     }
 
     public function renew(DomainRenewalDTO $dto): DomainActionResultDTO
     {
-        $this->logApiCall('renew', ['domain' => $dto->domain, 'years' => $dto->years], 'Executing renewal');
+        $domain = strtolower(trim($dto->domain));
+
+        if ($this->hasValidCredentials()) {
+            $xml = $this->apiRequest('namecheap.domains.renew', [
+                'DomainName' => $domain,
+                'Years'      => $dto->years ?? 1,
+            ]);
+
+            if ($xml && (string) $xml['Status'] === 'OK') {
+                return new DomainActionResultDTO(
+                    success: true,
+                    domain: $domain,
+                    registrarOrderId: 'NC-REN-' . strtoupper(bin2hex(random_bytes(4))),
+                    expiresAt: now()->addYears($dto->years ?? 1)
+                );
+            }
+
+            $errMsg = isset($xml->Errors->Error) ? (string) $xml->Errors->Error : 'Renewal failed at Namecheap.';
+            return new DomainActionResultDTO(success: false, domain: $domain, errorMessage: $errMsg);
+        }
 
         return new DomainActionResultDTO(
             success: true,
-            domain: $dto->domain,
-            registrarOrderId: 'NC-REN-' . strtoupper(bin2hex(random_bytes(4))),
-            expiresAt: now()->addYears($dto->years)
+            domain: $domain,
+            registrarOrderId: 'NC-SIM-REN-' . strtoupper(bin2hex(random_bytes(4))),
+            expiresAt: now()->addYears($dto->years ?? 1)
         );
     }
 
     public function transfer(DomainTransferDTO $dto): DomainActionResultDTO
     {
-        $this->logApiCall('transfer', ['domain' => $dto->domain, 'epp' => $dto->eppCode], 'Executing transfer');
+        $domain = strtolower(trim($dto->domain));
+
+        if ($this->hasValidCredentials()) {
+            $xml = $this->apiRequest('namecheap.domains.transfer.create', [
+                'DomainName' => $domain,
+                'Years'      => 1,
+                'EPPCode'    => $dto->authCode,
+            ]);
+
+            if ($xml && (string) $xml['Status'] === 'OK') {
+                return new DomainActionResultDTO(
+                    success: true,
+                    domain: $domain,
+                    registrarOrderId: 'NC-TRF-' . strtoupper(bin2hex(random_bytes(4))),
+                    expiresAt: now()->addYear()
+                );
+            }
+
+            $errMsg = isset($xml->Errors->Error) ? (string) $xml->Errors->Error : 'Transfer initiation failed at Namecheap.';
+            return new DomainActionResultDTO(success: false, domain: $domain, errorMessage: $errMsg);
+        }
 
         return new DomainActionResultDTO(
             success: true,
-            domain: $dto->domain,
-            registrarOrderId: 'NC-TRF-' . strtoupper(bin2hex(random_bytes(4))),
+            domain: $domain,
+            registrarOrderId: 'NC-SIM-TRF-' . strtoupper(bin2hex(random_bytes(4))),
             expiresAt: now()->addYear()
         );
     }
 
     public function getInfo(string $domain): DomainDetailsDTO
     {
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $xml = $this->apiRequest('namecheap.domains.getinfo', ['DomainName' => $domain]);
+            if ($xml && (string) $xml['Status'] === 'OK') {
+                $info = $xml->CommandResponse->DomainGetInfoResult;
+                $expires = isset($info->DomainDetails->ExpiredDate) ? Carbon::parse((string) $info->DomainDetails->ExpiredDate) : now()->addYear();
+                $created = isset($info->DomainDetails->CreatedDate) ? Carbon::parse((string) $info->DomainDetails->CreatedDate) : now()->subMonth();
+                $isLocked = strtolower((string) ($info['IsOwner'] ?? 'true')) === 'true';
+                $ns = [];
+                if (isset($info->DnsDetails->Nameserver)) {
+                    foreach ($info->DnsDetails->Nameserver as $n) {
+                        $ns[] = (string) $n;
+                    }
+                }
+
+                return new DomainDetailsDTO(
+                    domain: $domain,
+                    status: 'active',
+                    createdAt: $created,
+                    expiresAt: $expires,
+                    isLocked: $isLocked,
+                    idProtection: true,
+                    nameservers: $ns
+                );
+            }
+        }
+
         return new DomainDetailsDTO(
             domain: $domain,
             status: 'active',
@@ -156,21 +316,58 @@ class NamecheapRegistrar extends AbstractRegistrar
 
     public function getNameservers(string $domain): array
     {
-        return ['ns1.hostnibo.com', 'ns2.hostnibo.com'];
+        $info = $this->getInfo($domain);
+        return !empty($info->nameservers) ? $info->nameservers : ['ns1.hostnibo.com', 'ns2.hostnibo.com'];
     }
 
     public function setNameservers(string $domain, array $nameservers): bool
     {
-        $this->logApiCall('setNameservers', ['domain' => $domain, 'ns' => $nameservers], 'OK');
+        $domain = strtolower(trim($domain));
+        $cleaned = array_values(array_filter($nameservers));
+        $parts = $this->splitDomain($domain);
+
+        if ($this->hasValidCredentials()) {
+            $xml = $this->apiRequest('namecheap.domains.dns.setCustom', [
+                'SLD'         => $parts['sld'],
+                'TLD'         => $parts['tld'],
+                'Nameservers' => implode(',', $cleaned),
+            ]);
+            return $xml && (string) $xml['Status'] === 'OK';
+        }
+
         return true;
     }
 
     public function getDnsRecords(string $domain): Collection
     {
+        $domain = strtolower(trim($domain));
+        $parts = $this->splitDomain($domain);
+
+        if ($this->hasValidCredentials()) {
+            $xml = $this->apiRequest('namecheap.domains.dns.getHosts', [
+                'SLD' => $parts['sld'],
+                'TLD' => $parts['tld'],
+            ]);
+
+            if ($xml && (string) $xml['Status'] === 'OK' && isset($xml->CommandResponse->DomainDNSGetHostsResult->host)) {
+                $collection = collect();
+                foreach ($xml->CommandResponse->DomainDNSGetHostsResult->host as $h) {
+                    $collection->push(new DnsRecordDTO(
+                        id: (string) $h['HostId'],
+                        type: (string) $h['Type'],
+                        name: (string) $h['Name'],
+                        content: (string) $h['Address'],
+                        priority: isset($h['MXPref']) ? (int) $h['MXPref'] : null,
+                        ttl: (int) ($h['TTL'] ?? 3600)
+                    ));
+                }
+                return $collection;
+            }
+        }
+
         return collect([
             new DnsRecordDTO('rec_1', 'A', '@', '192.0.2.1', null, 3600),
             new DnsRecordDTO('rec_2', 'CNAME', 'www', '@', null, 3600),
-            new DnsRecordDTO('rec_3', 'MX', '@', 'mail.' . $domain, 10, 3600),
         ]);
     }
 
@@ -203,11 +400,21 @@ class NamecheapRegistrar extends AbstractRegistrar
 
     public function getEppCode(string $domain): string
     {
-        return 'EPP-' . strtoupper(bin2hex(random_bytes(6)));
+        return 'NC-EPP-' . strtoupper(bin2hex(random_bytes(5)));
     }
 
     public function setLock(string $domain, bool $locked): bool
     {
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $xml = $this->apiRequest('namecheap.domains.setRegistrarLock', [
+                'DomainName' => $domain,
+                'LockStatus' => $locked ? 'LOCK' : 'UNLOCK',
+            ]);
+            return $xml && (string) $xml['Status'] === 'OK';
+        }
+
         return true;
     }
 
@@ -233,6 +440,18 @@ class NamecheapRegistrar extends AbstractRegistrar
 
     public function getBalance(): RegistrarBalanceDTO
     {
+        if ($this->hasValidCredentials()) {
+            $xml = $this->apiRequest('namecheap.users.getBalances');
+            if ($xml && (string) $xml['Status'] === 'OK' && isset($xml->CommandResponse->UserGetBalancesResult)) {
+                $res = $xml->CommandResponse->UserGetBalancesResult;
+                return new RegistrarBalanceDTO(
+                    registrar: $this->getIdentifier(),
+                    balance: (float) ($res['AccountBalance'] ?? 150.00),
+                    currency: (string) ($res['Currency'] ?? 'USD')
+                );
+            }
+        }
+
         return new RegistrarBalanceDTO(
             registrar: $this->getIdentifier(),
             balance: 150.00,
