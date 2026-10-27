@@ -620,7 +620,7 @@
                             </svg>
                             <span>New Promo Code</span>
                         </a>
-                    </div></div>
+                    </div>
                 </div>
 
                 <!-- "View storefront" Ghost Button -->
