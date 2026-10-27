@@ -74,16 +74,9 @@
     </div>
 
     <!-- Brand Logo Header -->
-    <div class="sm:mx-auto sm:w-full sm:max-w-[400px] text-center mb-6">
-        <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-[6px] bg-[#F6821F] flex items-center justify-center text-white shrink-0">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
-                </svg>
-            </div>
-            <span class="font-semibold text-[17px] tracking-tight" style="color: var(--text);">
-                {{ config('app.name', 'DomainReseller') }}
-            </span>
+    <div class="sm:mx-auto sm:w-full sm:max-w-[400px] text-center mb-6 flex justify-center">
+        <a href="{{ route('home') }}" class="inline-flex items-center justify-center hover:opacity-90 transition">
+            <x-brand-logo class="h-9 w-auto max-h-9" :show-text="false" />
         </a>
     </div>
 

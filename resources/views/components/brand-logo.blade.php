@@ -16,17 +16,17 @@
         @if(!empty($logoLight))
             <img src="{{ asset($logoLight) }}"
                  alt="{{ $appName }}"
-                 class="{{ $class }} {{ !empty($logoDark) ? 'dark:hidden' : '' }} object-contain block max-h-8">
+                 class="{{ $class }} {{ !empty($logoDark) ? 'dark:hidden' : '' }} object-contain">
         @endif
 
         @if(!empty($logoDark))
             <img src="{{ asset($logoDark) }}"
                  alt="{{ $appName }}"
-                 class="{{ $class }} {{ !empty($logoLight) ? 'hidden dark:block' : '' }} object-contain max-h-8">
+                 class="{{ $class }} {{ !empty($logoLight) ? 'hidden dark:block' : '' }} object-contain">
         @elseif(!empty($logoLight))
             <img src="{{ asset($logoLight) }}"
                  alt="{{ $appName }}"
-                 class="{{ $class }} object-contain block max-h-8">
+                 class="{{ $class }} object-contain">
         @endif
     @else
         <!-- Flame Accent Mark Fallback -->
