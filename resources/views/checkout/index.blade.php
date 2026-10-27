@@ -102,6 +102,17 @@
                             </div>
                         </div>
 
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium mb-1.5" style="color: var(--text);">Organization (optional)</label>
+                                <input type="text" name="organization" value="{{ old('organization') }}" placeholder="Company or Entity" class="cf-input h-10">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium mb-1.5" style="color: var(--text);">State / Province</label>
+                                <input type="text" name="state" value="{{ old('state', 'Dhaka') }}" placeholder="State or Province" class="cf-input h-10">
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block text-xs font-medium mb-1.5" style="color: var(--text);">Address</label>
                             <input type="text" name="address_1" value="{{ old('address_1', $user->address_line_1 ?? 'House 12, Road 4') }}" class="cf-input h-10">
@@ -125,6 +136,13 @@
                                 <label class="block text-xs font-medium mb-1.5" style="color: var(--text);">Postal code</label>
                                 <input type="text" name="postal_code" value="{{ old('postal_code', $user->postal_code ?? '1200') }}" class="cf-input h-10">
                             </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <label class="flex items-center gap-2 text-xs cursor-pointer" style="color: var(--text-muted);">
+                                <input type="checkbox" name="use_same_contacts" value="1" checked class="rounded accent-[#F6821F]">
+                                <span>Use same contact profile for administrative, technical, and billing WHOIS records</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -283,8 +301,8 @@
 
             </div>
 
-            <!-- Right: Order Summary (4 cols) -->
-            <div class="lg:col-span-4 space-y-4">
+            <!-- Right: Order Summary (4 cols, sticky) -->
+            <div class="lg:col-span-4 space-y-4 sticky top-20">
                 <div class="cf-panel p-5">
                     <h3 class="font-semibold text-sm mb-3" style="color: var(--text);">Review order</h3>
 
@@ -315,7 +333,7 @@
                         @endif
                     </div>
 
-                    <div class="flex justify-between items-baseline mb-5">
+                    <div class="flex justify-between items-baseline mb-4">
                         <span class="text-sm font-semibold" style="color: var(--text);">Total amount</span>
                         <div class="text-right">
                             <span class="text-xl font-bold font-mono tracking-tight" style="color: var(--text);">
@@ -325,6 +343,13 @@
                                 ~ ৳<span x-text="totalBdt"></span> BDT
                             </div>
                         </div>
+                    </div>
+
+                    <div class="mb-4 pt-2 border-t" style="border-color: var(--border);">
+                        <label class="flex items-start gap-2 cursor-pointer text-xs" style="color: var(--text-muted);">
+                            <input type="checkbox" name="terms" required class="mt-0.5 rounded-[4px] border-[1px] accent-[#F6821F]">
+                            <span>I agree to the <a href="{{ route('terms') }}" target="_blank" class="hover:underline font-medium" style="color: var(--accent);">Terms of service</a> and ICANN WHOIS accuracy guidelines.</span>
+                        </label>
                     </div>
 
                     <button type="submit"
@@ -337,7 +362,7 @@
                 </div>
 
                 <div class="text-center text-[11px] space-y-1" style="color: var(--text-muted);">
-                    <p>By submitting, you agree to the ICANN Registration agreement.</p>
+                    <p>Direct automated registry provisioning.</p>
                 </div>
             </div>
 

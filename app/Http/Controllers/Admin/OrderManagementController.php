@@ -96,18 +96,20 @@ class OrderManagementController extends Controller
         $refundAmount = (float) $order->total_amount;
 
         // Refund to wallet
-        $user->increment('wallet_balance', $refundAmount);
+        $user->addBalance($refundAmount);
 
         Transaction::create([
-            'user_id'        => $user->id,
-            'type'           => 'credit',
-            'amount'         => $refundAmount,
-            'currency'       => 'USD',
-            'exchange_rate'  => 1.000000,
-            'payment_method' => 'wallet_refund',
-            'reference_id'   => 'REF-' . strtoupper(uniqid()),
-            'status'         => 'completed',
-            'description'    => "Refund for cancelled Order #{$order->order_number}",
+            'user_id' => $user->id,
+            'invoice_id' => $order->invoice?->id,
+            'type' => 'credit',
+            'gateway' => 'wallet_refund',
+            'gateway_transaction_id' => 'REF-' . strtoupper(uniqid()),
+            'amount' => $refundAmount,
+            'currency' => 'USD',
+            'exchange_rate' => 1.000000,
+            'amount_in_usd' => $refundAmount,
+            'status' => 'completed',
+            'payment_details' => ['reason' => "Refund for cancelled Order #{$order->order_number}"],
         ]);
 
         $order->update(['status' => 'cancelled']);

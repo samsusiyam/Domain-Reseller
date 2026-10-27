@@ -48,8 +48,9 @@ class DomainPricingService
     {
         $subtotal = 0.0;
         foreach ($items as $item) {
+            $tld = $item['tld'] ?? (str_contains($item['domain'] ?? '', '.') ? '.' . ltrim(substr(strrchr($item['domain'], '.'), 1), '.') : '');
             $pricing = $this->calculateItemPrice(
-                $item['tld'],
+                $tld,
                 $item['action'] ?? 'register',
                 $item['years'] ?? 1,
                 $user

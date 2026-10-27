@@ -31,6 +31,10 @@
 }">
     @csrf
 
+    @if(request('next'))
+        <input type="hidden" name="next" value="{{ request('next') }}">
+    @endif
+
     <!-- Role Selection Segmented Control -->
     <div>
         <label class="block text-xs font-medium mb-1.5" style="color: var(--text);">Account type</label>
@@ -156,6 +160,6 @@
 
 <div class="mt-5 pt-4 text-center text-xs" style="border-top: 1px solid var(--border); color: var(--text-muted);">
     Already have an account?
-    <a href="{{ route('login') }}" class="font-medium hover:underline ml-1" style="color: var(--accent);">Sign in</a>
+    <a href="{{ route('login', request('next') ? ['next' => request('next')] : []) }}" class="font-medium hover:underline ml-1" style="color: var(--accent);">Sign in</a>
 </div>
 @endsection

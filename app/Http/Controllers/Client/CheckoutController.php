@@ -116,17 +116,28 @@ class CheckoutController extends Controller
         }
 
         if (!$contact) {
+            $phoneInput = $request->input('phone', $user->phone ?? '+8801700000000');
+            $phoneCountry = '880';
+            $phoneNumber = preg_replace('/[^0-9]/', '', $phoneInput);
+            if (str_starts_with($phoneNumber, '880')) {
+                $phoneNumber = substr($phoneNumber, 3);
+            }
+
             $contact = Contact::create([
                 'user_id' => $user->id,
-                'first_name' => $request->input('first_name', $user->name),
-                'last_name' => $request->input('last_name', ''),
+                'contact_type' => !empty($request->input('organization')) ? 'company' : 'individual',
+                'first_name' => $request->input('first_name', explode(' ', $user->name)[0] ?? 'User'),
+                'last_name' => $request->input('last_name', explode(' ', $user->name, 2)[1] ?? 'Client'),
+                'company_name' => $request->input('organization'),
                 'email' => $request->input('email', $user->email),
-                'phone' => $request->input('phone', $user->phone ?? '+8801700000000'),
-                'address_1' => $request->input('address_1', $user->address_line_1 ?? 'Main Street'),
+                'phone_country_code' => $phoneCountry,
+                'phone_number' => $phoneNumber ?: '1700000000',
+                'address_line_1' => $request->input('address_1', $user->address_line_1 ?? 'Main Street'),
                 'city' => $request->input('city', $user->city ?? 'Dhaka'),
+                'state' => $request->input('state', 'Dhaka'),
                 'country' => $request->input('country', $user->country ?? 'BD'),
                 'postal_code' => $request->input('postal_code', $user->postal_code ?? '1200'),
-                'type' => 'registrant',
+                'is_default' => true,
             ]);
         }
 
@@ -149,6 +160,7 @@ class CheckoutController extends Controller
         foreach ($items as $item) {
             $orderItemsPayload[] = [
                 'domain' => $item['domain'],
+                'tld' => $item['tld'] ?? (str_contains($item['domain'], '.') ? '.' . ltrim(substr(strrchr($item['domain'], '.'), 1), '.') : '.com'),
                 'action' => $item['action'],
                 'years' => $item['years'],
                 'epp_code' => $item['epp_code'] ?? null,

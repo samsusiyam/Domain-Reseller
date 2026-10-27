@@ -9,6 +9,10 @@
 <form method="POST" action="{{ route('login') }}" class="space-y-4" x-data="{ showPass: false }">
     @csrf
 
+    @if(request('next'))
+        <input type="hidden" name="next" value="{{ request('next') }}">
+    @endif
+
     <div>
         <label for="email" class="block text-xs font-medium mb-1.5" style="color: var(--text);">Email address</label>
         <input id="email"
@@ -72,6 +76,6 @@
 
 <div class="mt-5 pt-4 text-center text-xs" style="border-top: 1px solid var(--border); color: var(--text-muted);">
     Don't have an account?
-    <a href="{{ route('register') }}" class="font-medium hover:underline ml-1" style="color: var(--accent);">Create an account</a>
+    <a href="{{ route('register', request('next') ? ['next' => request('next')] : []) }}" class="font-medium hover:underline ml-1" style="color: var(--accent);">Create an account</a>
 </div>
 @endsection

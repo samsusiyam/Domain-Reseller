@@ -44,6 +44,9 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
         $user = Auth::user();
 
+        // Merge persistent guest cart into user session
+        app(\App\Services\Cart\CartService::class)->mergeOnLogin();
+
         LoginHistory::create([
             'user_id' => $user->id,
             'email' => $user->email,
@@ -56,6 +59,19 @@ class AuthenticatedSessionController extends Controller
         if ($user->hasTwoFactorEnabled()) {
             $request->session()->put('2fa_verified', false);
             return redirect()->route('two-factor.challenge');
+        }
+
+        // Support intended redirect or explicit ?next=/checkout parameter
+        $next = $request->input('next');
+        if ($next) {
+            $parsed = parse_url($next);
+            $path = $parsed['path'] ?? '/';
+            if (isset($parsed['query'])) {
+                $path .= '?' . $parsed['query'];
+            }
+            if (str_starts_with($path, '/') && !str_starts_with($path, '//')) {
+                return redirect($path);
+            }
         }
 
         if ($user->isAdmin()) {

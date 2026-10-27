@@ -65,6 +65,21 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
+        // Merge persistent guest cart into user session
+        app(\App\Services\Cart\CartService::class)->mergeOnLogin();
+
+        $next = $request->input('next');
+        if ($next) {
+            $parsed = parse_url($next);
+            $path = $parsed['path'] ?? '/';
+            if (isset($parsed['query'])) {
+                $path .= '?' . $parsed['query'];
+            }
+            if (str_starts_with($path, '/') && !str_starts_with($path, '//')) {
+                return redirect($path);
+            }
+        }
+
         return redirect()->route('verification.notice');
     }
 }
