@@ -620,6 +620,13 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
 
         if (!empty($res['error'])) {
             $msg = $res['error'];
+            if (str_contains(strtolower($msg), 'no balance')) {
+                return new RegistrarBalanceDTO(
+                    registrar: $this->getIdentifier(),
+                    balance: 0.00,
+                    currency: 'USD'
+                );
+            }
             if (str_contains(strtolower($msg), 'unauthorized ip') || str_contains(strtolower($msg), 'not authorized')) {
                 $msg .= ' (Please whitelist server IP 188.40.147.141 in Dynadot Tools > API)';
             }
