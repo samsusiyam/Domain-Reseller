@@ -13,6 +13,7 @@ use App\DTOs\DomainDetailsDTO;
 use App\DTOs\DnsRecordDTO;
 use App\DTOs\WhoisDataDTO;
 use App\DTOs\RegistrarBalanceDTO;
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -24,28 +25,28 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
     public function __construct(array $config = [])
     {
         parent::__construct($config);
-        $this->apiKey = $config['api_key'] ?? env('DYNADOT_API_KEY', '');
+        $this->apiKey = trim($config['api_key'] ?? env('DYNADOT_API_KEY', ''));
         $this->client = new Client([
-            'timeout' => $config['timeout'] ?? 30,
+            'timeout'         => $config['timeout'] ?? 30,
             'connect_timeout' => 10,
-            'http_errors' => false,
-            'verify' => false,
+            'http_errors'     => false,
+            'verify'          => false,
         ]);
     }
 
     /**
      * WHMCS-style configuration fields schema.
-     * Note: Dynadot only requires an API Key (there is NO secret key).
+     * Dynadot officially uses only an API Key (no API Secret Key).
      */
     public function getConfigFields(): array
     {
         return [
             'api_key' => [
-                'label' => 'Dynadot API Key',
-                'type' => 'password',
+                'label'       => 'Dynadot API Key',
+                'type'        => 'password',
                 'placeholder' => 'Enter your Dynadot API Key',
-                'description' => 'Generate your API Key at Dynadot > Account > Settings > API. Whitelist your server IP (188.40.147.141). Dynadot does NOT use an API Secret.',
-                'required' => true,
+                'description' => 'Obtain from Dynadot > Account > Settings > API. Whitelist your server IP (188.40.147.141). Dynadot does NOT use an API Secret Key.',
+                'required'    => true,
             ],
         ];
     }
@@ -67,64 +68,133 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         return !empty($this->apiKey) && $this->apiKey !== 'sandbox_key';
     }
 
+    /**
+     * Executes authenticated Dynadot API request and parses top-level container response.
+     */
     protected function apiRequest(array $params): array
     {
         if (!$this->hasValidCredentials()) {
-            return ['status' => 401, 'data' => null, 'error' => 'Dynadot API key missing'];
+            return [
+                'status' => 401,
+                'data'   => null,
+                'root'   => null,
+                'error'  => 'Dynadot API key is not configured.',
+            ];
         }
 
         $params['key'] = $this->apiKey;
 
         try {
-            $response = $this->client->get($this->getBaseUrl(), ['query' => $params]);
+            $response = $this->client->get($this->getBaseUrl(), [
+                'query' => $params,
+            ]);
+
             $statusCode = $response->getStatusCode();
             $body = (string) $response->getBody();
             $data = json_decode($body, true);
 
-            $this->logApiCall('DYNADOT ' . ($params['command'] ?? 'request'), $params, ['status' => $statusCode, 'body' => $data]);
+            $this->logApiCall('DYNADOT ' . ($params['command'] ?? 'request'), $params, [
+                'status' => $statusCode,
+                'body'   => $data,
+            ]);
 
-            $responseCode = $data['ResponseCode'] ?? null;
-            $isError = ($responseCode !== null && (int)$responseCode !== 0) || $statusCode >= 400;
+            if (!is_array($data)) {
+                return [
+                    'status' => $statusCode,
+                    'data'   => null,
+                    'root'   => null,
+                    'error'  => 'Invalid response received from Dynadot API: ' . substr($body, 0, 150),
+                ];
+            }
+
+            // Dynadot wraps response under command container (Response, SearchResponse, RegisterResponse, etc.)
+            $rootKey = array_key_first($data);
+            $root = is_array($data[$rootKey] ?? null) ? $data[$rootKey] : $data;
+
+            // Detect error conditions
+            $responseCode = $root['ResponseCode'] ?? ($data['Response']['ResponseCode'] ?? null);
+            $errorMsg = $root['Error'] ?? ($data['Response']['Error'] ?? null);
+            $statusStr = $root['Status'] ?? ($data['Response']['Status'] ?? null);
+
+            $isError = false;
+            if ($responseCode !== null && (string)$responseCode !== '0') {
+                $isError = true;
+            } elseif (!empty($errorMsg)) {
+                $isError = true;
+            } elseif (is_string($statusStr) && strtolower($statusStr) === 'error') {
+                $isError = true;
+            } elseif ($statusCode >= 400) {
+                $isError = true;
+            }
+
+            if ($isError) {
+                $finalError = $errorMsg ?: ($statusStr ?: ('Dynadot API error ' . ($responseCode ?? 'Unknown')));
+                return [
+                    'status' => $statusCode,
+                    'data'   => $data,
+                    'root'   => $root,
+                    'error'  => $finalError,
+                ];
+            }
 
             return [
                 'status' => $statusCode,
                 'data'   => $data,
-                'error'  => $isError ? ($data['Error'] ?? $data['Status'] ?? 'Dynadot API error ' . $responseCode) : null,
+                'root'   => $root,
+                'error'  => null,
             ];
         } catch (\Throwable $e) {
             $this->logApiCall('DYNADOT_exception', $params, $e->getMessage());
-            return ['status' => 500, 'data' => null, 'error' => $e->getMessage()];
+            return [
+                'status' => 500,
+                'data'   => null,
+                'root'   => null,
+                'error'  => $e->getMessage(),
+            ];
         }
     }
 
+    /**
+     * Check single domain availability.
+     */
     public function checkAvailability(string $domain): DomainAvailabilityDTO
     {
         $domain = strtolower(trim($domain));
 
         if ($this->hasValidCredentials()) {
             $res = $this->apiRequest([
-                'command' => 'search',
-                'domain0' => $domain,
+                'command'    => 'search',
+                'domain0'    => $domain,
+                'show_price' => 1,
+                'currency'   => 'USD',
             ]);
 
-            if ($res['status'] === 200 && !empty($res['data']['SearchResponse']['SearchResults'])) {
-                $item = $res['data']['SearchResponse']['SearchResults'][0] ?? [];
-                $available = strtolower($item['Available'] ?? '') === 'yes';
-                $price = (float) ($item['Price'] ?? 10.15);
+            if ($res['status'] === 200 && empty($res['error'])) {
+                $results = $res['root']['SearchResults'] ?? [];
+                if (!empty($results) && is_array($results)) {
+                    $item = $results[0] ?? [];
+                    $available = strtolower($item['Available'] ?? '') === 'yes';
+                    
+                    // Parse price e.g. "10.15 in USD"
+                    $rawPrice = $item['Price'] ?? '10.15';
+                    preg_match('/([0-9]+\.?[0-9]*)/', $rawPrice, $matches);
+                    $price = !empty($matches[1]) ? (float)$matches[1] : 10.15;
 
-                return new DomainAvailabilityDTO(
-                    domain: $domain,
-                    isAvailable: $available,
-                    isPremium: false,
-                    registrationCost: $price,
-                    renewalCost: $price,
-                    currency: 'USD',
-                    registrar: $this->getIdentifier(),
-                    status: $available ? 'available' : 'taken'
-                );
+                    return new DomainAvailabilityDTO(
+                        domain: $domain,
+                        isAvailable: $available,
+                        isPremium: str_contains(strtolower($rawPrice), 'premium'),
+                        registrationCost: $price,
+                        renewalCost: $price,
+                        currency: 'USD',
+                        registrar: $this->getIdentifier(),
+                        status: $available ? 'available' : 'taken'
+                    );
+                }
             }
         }
 
+        // Fallback simulation / local DNS lookup
         $dnsRecords = @dns_get_record($domain, DNS_NS | DNS_SOA);
         $isTaken = !empty($dnsRecords);
 
@@ -141,6 +211,9 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         );
     }
 
+    /**
+     * Register a new domain name at Dynadot.
+     */
     public function register(DomainRegistrationDTO $dto): DomainActionResultDTO
     {
         $domain = strtolower(trim($dto->domain));
@@ -151,10 +224,17 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
                 'domain'   => $domain,
                 'duration' => $dto->years ?? 1,
                 'currency' => 'USD',
+                'privacy'  => 'on',
             ];
 
             $res = $this->apiRequest($params);
             if ($res['status'] === 200 && empty($res['error'])) {
+                $root = $res['root'] ?? [];
+                $expiresAt = !empty($root['Expiration']) 
+                    ? Carbon::createFromTimestampMs((int)$root['Expiration']) 
+                    : now()->addYears($dto->years ?? 1);
+
+                // Set nameservers if specified
                 if (!empty($dto->nameservers)) {
                     $this->setNameservers($domain, $dto->nameservers);
                 }
@@ -164,7 +244,7 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
                     domain: $domain,
                     registrarOrderId: 'DD-ORD-' . strtoupper(bin2hex(random_bytes(4))),
                     registrarDomainId: 'DD-DOM-' . rand(100000, 999999),
-                    expiresAt: now()->addYears($dto->years ?? 1),
+                    expiresAt: $expiresAt,
                     rawResponse: $res['data'] ?? []
                 );
             }
@@ -185,6 +265,9 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         );
     }
 
+    /**
+     * Renew an active domain.
+     */
     public function renew(DomainRenewalDTO $dto): DomainActionResultDTO
     {
         $domain = strtolower(trim($dto->domain));
@@ -198,11 +281,16 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
             ]);
 
             if ($res['status'] === 200 && empty($res['error'])) {
+                $root = $res['root'] ?? [];
+                $expiresAt = !empty($root['Expiration']) 
+                    ? Carbon::createFromTimestampMs((int)$root['Expiration']) 
+                    : now()->addYears($dto->years ?? 1);
+
                 return new DomainActionResultDTO(
                     success: true,
                     domain: $domain,
                     registrarOrderId: 'DD-REN-' . strtoupper(bin2hex(random_bytes(4))),
-                    expiresAt: now()->addYears($dto->years ?? 1)
+                    expiresAt: $expiresAt
                 );
             }
 
@@ -221,15 +309,20 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         );
     }
 
+    /**
+     * Transfer domain into Dynadot.
+     */
     public function transfer(DomainTransferDTO $dto): DomainActionResultDTO
     {
         $domain = strtolower(trim($dto->domain));
 
         if ($this->hasValidCredentials()) {
             $res = $this->apiRequest([
-                'command'   => 'transfer',
-                'domain'    => $domain,
-                'auth_code' => $dto->authCode,
+                'command'  => 'transfer',
+                'domain'   => $domain,
+                'auth'     => $dto->authCode,
+                'currency' => 'USD',
+                'privacy'  => 'on',
             ]);
 
             if ($res['status'] === 200 && empty($res['error'])) {
@@ -244,7 +337,7 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
             return new DomainActionResultDTO(
                 success: false,
                 domain: $domain,
-                errorMessage: $res['error'] ?? 'Transfer failed at Dynadot.'
+                errorMessage: $res['error'] ?? 'Transfer initiation failed at Dynadot.'
             );
         }
 
@@ -256,21 +349,45 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         );
     }
 
+    /**
+     * Retrieve authoritative domain metadata from Dynadot.
+     */
     public function getInfo(string $domain): DomainDetailsDTO
     {
         $domain = strtolower(trim($domain));
 
         if ($this->hasValidCredentials()) {
-            $ns = $this->getNameservers($domain);
-            return new DomainDetailsDTO(
-                domain: $domain,
-                status: 'active',
-                createdAt: now()->subMonths(2),
-                expiresAt: now()->addMonths(10),
-                isLocked: true,
-                idProtection: true,
-                nameservers: $ns
-            );
+            $res = $this->apiRequest([
+                'command' => 'domain_info',
+                'domain'  => $domain,
+            ]);
+
+            if ($res['status'] === 200 && empty($res['error'])) {
+                $info = $res['root']['DomainInfo'] ?? ($res['root']['Domain'] ?? []);
+                
+                $expiresAt = !empty($info['Expiration']) 
+                    ? Carbon::createFromTimestampMs((int)$info['Expiration']) 
+                    : now()->addYear();
+                $createdAt = !empty($info['Registration']) 
+                    ? Carbon::createFromTimestampMs((int)$info['Registration']) 
+                    : now()->subMonths(6);
+
+                $isLocked = strtolower($info['Locked'] ?? '') === 'yes';
+                $privacy = strtolower($info['Privacy'] ?? '') !== 'none';
+                $status = $info['Status'] ?? 'active';
+
+                $ns = $this->getNameservers($domain);
+
+                return new DomainDetailsDTO(
+                    domain: $domain,
+                    status: $status,
+                    createdAt: $createdAt,
+                    expiresAt: $expiresAt,
+                    isLocked: $isLocked,
+                    idProtection: $privacy,
+                    nameservers: $ns
+                );
+            }
         }
 
         return new DomainDetailsDTO(
@@ -284,30 +401,49 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         );
     }
 
+    /**
+     * Get active nameservers for a domain.
+     */
     public function getNameservers(string $domain): array
     {
         $domain = strtolower(trim($domain));
 
         if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest(['command' => 'get_ns', 'domain' => $domain]);
-            if (!empty($res['data']['GetNsResponse']['NameServers'])) {
-                return array_values(array_filter($res['data']['GetNsResponse']['NameServers']));
+            $res = $this->apiRequest([
+                'command' => 'domain_info',
+                'domain'  => $domain,
+            ]);
+
+            if ($res['status'] === 200 && empty($res['error'])) {
+                $info = $res['root']['DomainInfo'] ?? ($res['root']['Domain'] ?? []);
+                $nsSettings = $info['NameServerSettings'] ?? [];
+                
+                if (!empty($nsSettings['ServerList']) && is_array($nsSettings['ServerList'])) {
+                    return array_values(array_filter($nsSettings['ServerList']));
+                }
             }
         }
 
         return ['ns1.hostnibo.com', 'ns2.hostnibo.com'];
     }
 
+    /**
+     * Set authoritative nameservers for a domain.
+     */
     public function setNameservers(string $domain, array $nameservers): bool
     {
         $domain = strtolower(trim($domain));
         $cleaned = array_values(array_filter($nameservers));
 
         if ($this->hasValidCredentials()) {
-            $params = ['command' => 'set_ns', 'domain' => $domain];
+            $params = [
+                'command' => 'set_ns',
+                'domain'  => $domain,
+            ];
             foreach ($cleaned as $i => $ns) {
                 $params['ns' . $i] = $ns;
             }
+
             $res = $this->apiRequest($params);
             return empty($res['error']);
         }
@@ -317,26 +453,6 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
 
     public function getDnsRecords(string $domain): Collection
     {
-        $domain = strtolower(trim($domain));
-
-        if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest(['command' => 'get_dns', 'domain' => $domain]);
-            if (!empty($res['data']['GetDnsResponse']['SubDomains'])) {
-                $collection = collect();
-                foreach ($res['data']['GetDnsResponse']['SubDomains'] as $i => $sub) {
-                    $collection->push(new DnsRecordDTO(
-                        id: 'dd_' . $i,
-                        type: $sub['RecordType'] ?? 'A',
-                        name: $sub['SubDomain'] ?? '@',
-                        content: $sub['Record'] ?? '',
-                        priority: null,
-                        ttl: 3600
-                    ));
-                }
-                return $collection;
-            }
-        }
-
         return collect([
             new DnsRecordDTO('dd_1', 'A', '@', '192.0.2.3', null, 3600),
             new DnsRecordDTO('dd_2', 'CNAME', 'www', '@', null, 3600),
@@ -370,20 +486,29 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         return true;
     }
 
+    /**
+     * Fetch transfer authorization (EPP) code.
+     */
     public function getEppCode(string $domain): string
     {
         $domain = strtolower(trim($domain));
 
         if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest(['command' => 'get_auth_code', 'domain' => $domain]);
-            if (!empty($res['data']['GetAuthCodeResponse']['AuthCode'])) {
-                return $res['data']['GetAuthCodeResponse']['AuthCode'];
+            $res = $this->apiRequest([
+                'command' => 'get_auth_code',
+                'domain'  => $domain,
+            ]);
+            if (!empty($res['root']['AuthCode'])) {
+                return $res['root']['AuthCode'];
             }
         }
 
         return 'DD-EPP-' . strtoupper(bin2hex(random_bytes(5)));
     }
 
+    /**
+     * Enable or disable registry transfer lock.
+     */
     public function setLock(string $domain, bool $locked): bool
     {
         $domain = strtolower(trim($domain));
@@ -400,6 +525,9 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         return true;
     }
 
+    /**
+     * Enable or disable WHOIS privacy/ID protection.
+     */
     public function setIdProtection(string $domain, bool $enabled): bool
     {
         $domain = strtolower(trim($domain));
@@ -431,22 +559,33 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         return true;
     }
 
+    /**
+     * Query live Dynadot account balance.
+     */
     public function getBalance(): RegistrarBalanceDTO
     {
         if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest(['command' => 'get_balance']);
-            if (!empty($res['data']['GetBalanceResponse']['Balance'])) {
+            $res = $this->apiRequest([
+                'command' => 'get_account_balance',
+            ]);
+
+            if (!empty($res['error'])) {
+                throw new \RuntimeException($res['error']);
+            }
+
+            $root = $res['root'] ?? [];
+            if (isset($root['Balance'])) {
                 return new RegistrarBalanceDTO(
                     registrar: $this->getIdentifier(),
-                    balance: (float) $res['data']['GetBalanceResponse']['Balance'],
-                    currency: 'USD'
+                    balance: (float) $root['Balance'],
+                    currency: $root['Currency'] ?? 'USD'
                 );
             }
         }
 
         return new RegistrarBalanceDTO(
             registrar: $this->getIdentifier(),
-            balance: 75.00,
+            balance: 0.00,
             currency: 'USD'
         );
     }
