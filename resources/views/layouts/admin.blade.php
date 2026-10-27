@@ -531,7 +531,7 @@
                         </svg>
                         <span class="truncate">Search domains, clients...</span>
                     </div>
-                    <kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-500 dark:text-slate-400 bg-white border border-slate-200 dark:border-slate-800 rounded">Ctrl K</kbd>
+                    <kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800 rounded">Ctrl K</kbd>
                 </button>
             </div>
 
