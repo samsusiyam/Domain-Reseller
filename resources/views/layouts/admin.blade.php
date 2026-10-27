@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full antialiased">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Overview' }} — {{ config('app.name', 'DomainReseller') }}</title>
@@ -735,8 +736,19 @@
         <main class="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#0B0F19] p-4 sm:p-6 lg:p-8">
             <div class="max-w-7xl mx-auto space-y-6">
                 <!-- Session Alerts -->
+                @if(session('info'))
+                    <div class="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-[6px] text-[13px] text-blue-800 dark:text-blue-300 flex items-center justify-between" role="alert">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            <span class="font-medium">{{ session('info') }}</span>
+                        </div>
+                        <button type="button" @click="$el.parentElement.remove()" class="text-blue-600 dark:text-blue-400 hover:opacity-75">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                @endif
                 @if(session('success'))
-                    <div class="p-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-[6px] text-[13px] text-[#166534] flex items-center justify-between" role="alert">
+                    <div class="p-3 bg-[#F0FDF4] dark:bg-emerald-950/40 border border-[#BBF7D0] dark:border-emerald-800 rounded-[6px] text-[13px] text-[#166534] dark:text-emerald-300 flex items-center justify-between" role="alert">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-[#16A34A]"></span>
                             <span>{{ session('success') }}</span>
@@ -747,7 +759,7 @@
                     </div>
                 @endif
                 @if(session('error'))
-                    <div class="p-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[6px] text-[13px] text-[#991B1B] flex items-center justify-between" role="alert">
+                    <div class="p-3 bg-[#FEF2F2] dark:bg-rose-950/40 border border-[#FECACA] dark:border-rose-800 rounded-[6px] text-[13px] text-[#991B1B] dark:text-rose-300 flex items-center justify-between" role="alert">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-[#DC2626]"></span>
                             <span>{{ session('error') }}</span>

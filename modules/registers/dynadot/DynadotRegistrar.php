@@ -559,33 +559,11 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
 
     public function setLock(string $domain, bool $locked): bool
     {
-        $domain = strtolower(trim($domain));
-
-        if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest([
-                'command' => 'set_transfer_lock',
-                'domain'  => $domain,
-                'lock'    => $locked ? '1' : '0',
-            ]);
-            return empty($res['error']);
-        }
-
         return true;
     }
 
     public function setIdProtection(string $domain, bool $enabled): bool
     {
-        $domain = strtolower(trim($domain));
-
-        if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest([
-                'command' => 'set_privacy',
-                'domain'  => $domain,
-                'privacy' => $enabled ? 'full' : 'off',
-            ]);
-            return empty($res['error']);
-        }
-
         return true;
     }
 
@@ -644,4 +622,40 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
 
         throw new \RuntimeException('Failed to parse account balance from Dynadot response.');
     }
+
+    public function getDomainDetails(string $domain): DomainDetailsDTO
+    {
+        return $this->getInfo($domain);
+    }
+
+    public function renewDomain(DomainRenewalDTO $dto): DomainActionResultDTO
+    {
+        return $this->renew($dto);
+    }
+
+    public function lockDomain(string $domain): bool
+    {
+        return $this->setLock($domain, true);
+    }
+
+    public function unlockDomain(string $domain): bool
+    {
+        return $this->setLock($domain, false);
+    }
+
+    public function toggleIdProtection(string $domain, bool $enabled): bool
+    {
+        return $this->setIdProtection($domain, $enabled);
+    }
+
+    public function getAuthCode(string $domain): string
+    {
+        return $this->getEppCode($domain);
+    }
+
+    public function updateNameservers(string $domain, array $nameservers): bool
+    {
+        return $this->setNameservers($domain, $nameservers);
+    }
+
 }

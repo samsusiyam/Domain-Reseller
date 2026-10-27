@@ -56,4 +56,39 @@ abstract class AbstractRegistrar implements RegistrarModuleInterface
     {
         return $this->getBalance();
     }
+
+    public function getDomainDetails(string $domain): DomainDetailsDTO
+    {
+        return $this->getInfo($domain);
+    }
+
+    public function renewDomain(DomainRenewalDTO $dto): DomainActionResultDTO
+    {
+        return $this->renew($dto);
+    }
+
+    public function lockDomain(string $domain): bool
+    {
+        return $this->setLock($domain, true);
+    }
+
+    public function unlockDomain(string $domain): bool
+    {
+        return $this->setLock($domain, false);
+    }
+
+    public function toggleIdProtection(string $domain, bool $enabled): bool
+    {
+        return $this->setIdProtection($domain, $enabled);
+    }
+
+    public function getAuthCode(string $domain): string
+    {
+        return $this->getEppCode($domain);
+    }
+
+    public function updateNameservers(string $domain, array $nameservers): bool
+    {
+        return $this->setNameservers($domain, $nameservers);
+    }
 }
