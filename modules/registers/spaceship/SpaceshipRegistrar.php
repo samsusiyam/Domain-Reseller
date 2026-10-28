@@ -74,11 +74,14 @@ class SpaceshipRegistrar extends AbstractRegistrar
             return ['status' => 401, 'data' => null, 'error' => 'Credentials missing'];
         }
 
+        $url = rtrim($this->baseUrl, '/') . '/' . ltrim($uri, '/');
+
         $headers = [
             'X-API-Key'    => $this->apiKey,
             'X-API-Secret' => $this->apiSecret,
             'Accept'       => 'application/json',
             'Content-Type' => 'application/json',
+            'User-Agent'   => 'HostNibo/1.0',
         ];
 
         $options = ['headers' => $headers];
@@ -90,7 +93,7 @@ class SpaceshipRegistrar extends AbstractRegistrar
         }
 
         try {
-            $response = $this->client->request($method, $uri, $options);
+            $response = $this->client->request($method, $url, $options);
             $statusCode = $response->getStatusCode();
             $body = (string) $response->getBody();
             $data = json_decode($body, true);
@@ -371,9 +374,18 @@ class SpaceshipRegistrar extends AbstractRegistrar
                 $idProtection = ($d['privacyProtection']['level'] ?? 'none') !== 'none';
                 $nameservers = $d['nameservers']['hosts'] ?? [];
 
+                $rawStatus = strtolower($d['lifecycleStatus'] ?? 'active');
+                $status = match ($rawStatus) {
+                    'registered' => 'active',
+                    'expired' => 'expired',
+                    'redemption' => 'redemption',
+                    'pending' => 'pending',
+                    default => 'active',
+                };
+
                 return new DomainDetailsDTO(
                     domain: $domain,
-                    status: $d['lifecycleStatus'] ?? 'active',
+                    status: $status,
                     createdAt: !empty($d['registrationDate']) ? Carbon::parse($d['registrationDate']) : now()->subMonth(),
                     expiresAt: !empty($d['expirationDate']) ? Carbon::parse($d['expirationDate']) : now()->addYear(),
                     isLocked: $isLocked,

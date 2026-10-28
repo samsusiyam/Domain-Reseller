@@ -76,10 +76,13 @@ class CosmotownRegistrar extends AbstractRegistrar
             return ['status' => 401, 'data' => null, 'error' => 'Cosmotown credentials missing'];
         }
 
+        $url = rtrim($this->baseUrl, '/') . '/' . ltrim($uri, '/');
+
         $headers = [
             'X-API-TOKEN'  => $this->apiKey,
             'Accept'       => 'application/json',
             'Content-Type' => 'application/json',
+            'User-Agent'   => 'HostNibo/1.0',
         ];
 
         $options = ['headers' => $headers];
@@ -91,7 +94,7 @@ class CosmotownRegistrar extends AbstractRegistrar
         }
 
         try {
-            $response = $this->client->request($method, $uri, $options);
+            $response = $this->client->request($method, $url, $options);
             $statusCode = $response->getStatusCode();
             $body = (string) $response->getBody();
             $data = json_decode($body, true);
