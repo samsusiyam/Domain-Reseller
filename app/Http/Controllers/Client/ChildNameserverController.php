@@ -36,9 +36,12 @@ class ChildNameserverController extends Controller
             ? $request->hostname
             : $request->hostname . '.' . $domain->domain_name;
 
-        $this->managementService->createChildNameserver($domain, $fullHostname, $request->ip_address);
-
-        return back()->with('success', "Child nameserver {$fullHostname} registered successfully.");
+        try {
+            $this->managementService->createChildNameserver($domain, $fullHostname, $request->ip_address);
+            return back()->with('success', "Child nameserver {$fullHostname} registered successfully.");
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function destroy(Domain $domain, int $nsId)
@@ -46,9 +49,12 @@ class ChildNameserverController extends Controller
         $this->authorizeDomain($domain);
         $child = $domain->childNameservers()->findOrFail($nsId);
 
-        $this->managementService->deleteChildNameserver($child);
-
-        return back()->with('success', 'Child nameserver deleted.');
+        try {
+            $this->managementService->deleteChildNameserver($child);
+            return back()->with('success', 'Child nameserver deleted successfully.');
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     protected function authorizeDomain(Domain $domain): void

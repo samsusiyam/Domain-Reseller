@@ -666,23 +666,65 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
 
     public function createChildNameserver(string $domain, string $hostname, string $ip): bool
     {
-        return true;
+        $hostname = strtolower(trim($hostname));
+        $ip = trim($ip);
+
+        if ($this->hasValidCredentials()) {
+            $path = '/restful/v2/nameservers/register';
+            $res = $this->restRequest('POST', $path, [
+                'nameserver' => [
+                    'server_name' => $hostname,
+                    'ip'          => $ip,
+                ]
+            ]);
+
+            if (isset($res['code']) && $res['code'] === 200) {
+                return true;
+            }
+
+            if (isset($res['error']['description']) && str_contains(strtolower($res['error']['description']), 'already')) {
+                return $this->updateChildNameserver($domain, $hostname, $ip);
+            }
+        }
+
+        return false;
     }
 
     public function updateChildNameserver(string $domain, string $hostname, string $newIp): bool
     {
-        return true;
+        $hostname = strtolower(trim($hostname));
+        $newIp = trim($newIp);
+
+        if ($this->hasValidCredentials()) {
+            $path = "/restful/v2/nameservers/{$hostname}/set_ip";
+            $res = $this->restRequest('PUT', $path, [
+                'ip_list' => [$newIp]
+            ]);
+
+            if (isset($res['code']) && $res['code'] === 200) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function deleteChildNameserver(string $domain, string $hostname): bool
     {
-        return true;
+        $hostname = strtolower(trim($hostname));
+
+        if ($this->hasValidCredentials()) {
+            $path = "/restful/v2/nameservers/{$hostname}";
+            $res = $this->restRequest('DELETE', $path);
+
+            if (isset($res['code']) && $res['code'] === 200) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    /**
-     * Query live Dynadot account balance.
-     * Throws an exception if authentication or IP authorization fails.
-     */
     public function getBalance(): RegistrarBalanceDTO
     {
         if (!$this->hasValidCredentials()) {
