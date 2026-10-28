@@ -2,6 +2,8 @@
 
 namespace App\Services\Registrars;
 
+use App\Services\Registrars\AbstractRegistrar;
+use App\Contracts\RegistrarModuleInterface;
 use App\DTOs\DomainAvailabilityDTO;
 use App\DTOs\DomainRegistrationDTO;
 use App\DTOs\DomainRenewalDTO;
@@ -22,16 +24,34 @@ class SpaceshipRegistrar extends AbstractRegistrar
     protected string $apiSecret;
     protected string $baseUrl = 'https://spaceship.dev/api/v1';
 
+    public function getConfigFields(): array
+    {
+        return [
+            'api_key' => [
+                'label'       => 'Spaceship API Key',
+                'type'        => 'text',
+                'placeholder' => 'Enter Spaceship API Key',
+                'required'    => true,
+            ],
+            'api_secret' => [
+                'label'       => 'Spaceship API Secret',
+                'type'        => 'password',
+                'placeholder' => 'Enter Spaceship API Secret',
+                'required'    => true,
+            ],
+        ];
+    }
+
     public function __construct(array $config = [])
     {
         parent::__construct($config);
         $this->apiKey = $config['api_key'] ?? env('SPACESHIP_API_KEY', '');
         $this->apiSecret = $config['api_secret'] ?? env('SPACESHIP_API_SECRET', '');
         $this->client = new Client([
-            'base_uri' => $this->baseUrl,
-            'timeout'  => $config['timeout'] ?? 30,
+            'base_uri'    => $this->baseUrl,
+            'timeout'     => $config['timeout'] ?? 30,
             'http_errors' => false,
-            'verify'   => false,
+            'verify'      => false,
         ]);
     }
 
@@ -78,10 +98,10 @@ class SpaceshipRegistrar extends AbstractRegistrar
             $this->logApiCall($method . ' ' . $uri, array_merge($query, $payload), ['status' => $statusCode, 'body' => $data]);
 
             return [
-                'status' => $statusCode,
-                'data'   => $data,
-                'headers'=> $response->getHeaders(),
-                'error'  => $statusCode >= 400 ? ($data['detail'] ?? $data['message'] ?? 'HTTP Error ' . $statusCode) : null,
+                'status'  => $statusCode,
+                'data'    => $data,
+                'headers' => $response->getHeaders(),
+                'error'   => $statusCode >= 400 ? ($data['detail'] ?? $data['message'] ?? 'HTTP Error ' . $statusCode) : null,
             ];
         } catch (\Throwable $e) {
             $this->logApiCall($method . ' ' . $uri . '_exception', $payload, $e->getMessage());
@@ -97,35 +117,30 @@ class SpaceshipRegistrar extends AbstractRegistrar
         $domain = strtolower(trim($domain));
 
         if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest('GET', '/domains/' . rawurlencode($domain));
+            $res = $this->apiRequest('GET', '/domains/' . rawurlencode($domain) . '/available');
 
-            // In Spaceship API: 404 means domain does not exist in registry -> available!
-            if ($res['status'] === 404) {
+            if ($res['status'] === 200 && !empty($res['data'])) {
+                $isAvail = ($res['data']['result'] ?? '') === 'available';
+                $isPremium = !empty($res['data']['premiumPricing']);
+                $price = 8.98;
+                if ($isPremium && !empty($res['data']['premiumPricing'][0]['price'])) {
+                    $price = (float) $res['data']['premiumPricing'][0]['price'];
+                }
+
                 return new DomainAvailabilityDTO(
                     domain: $domain,
-                    isAvailable: true,
-                    isPremium: false,
-                    registrationCost: 8.98,
-                    renewalCost: 10.48,
+                    isAvailable: $isAvail,
+                    isPremium: $isPremium,
+                    registrationCost: $price,
+                    renewalCost: $price,
                     currency: 'USD',
                     registrar: $this->getIdentifier(),
-                    status: 'available'
-                );
-            }
-
-            if ($res['status'] === 200) {
-                return new DomainAvailabilityDTO(
-                    domain: $domain,
-                    isAvailable: false,
-                    isPremium: false,
-                    currency: 'USD',
-                    registrar: $this->getIdentifier(),
-                    status: 'taken'
+                    status: $isAvail ? 'available' : 'taken'
                 );
             }
         }
 
-        // Test mode or fallback to DNS delegation check
+        // Fallback to DNS check in test mode
         $dnsRecords = @dns_get_record($domain, DNS_NS | DNS_SOA);
         $isTaken = !empty($dnsRecords);
 
@@ -166,14 +181,14 @@ class SpaceshipRegistrar extends AbstractRegistrar
             ];
 
             $contactRes = $this->apiRequest('POST', '/contacts', $contactPayload);
-            if ($contactRes['status'] === 200 || $contactRes['status'] === 201) {
+            if (in_array($contactRes['status'], [200, 201])) {
                 $contactId = $contactRes['data']['id'] ?? null;
             }
 
             // 2. Submit domain registration
             $registerPayload = [
                 'autoRenew'         => false,
-                'years'             => $dto->years ?? 1,
+                'years'             => (int) ($dto->years ?? 1),
                 'privacyProtection' => [
                     'level'       => 'high',
                     'userConsent' => true,
@@ -195,7 +210,6 @@ class SpaceshipRegistrar extends AbstractRegistrar
             if (in_array($regRes['status'], [200, 201, 202])) {
                 $asyncOpId = $regRes['headers']['spaceship-async-operationid'][0] ?? null;
 
-                // Set nameservers if custom
                 if (!empty($dto->nameservers)) {
                     $this->setNameservers($domain, $dto->nameservers);
                 }
@@ -218,7 +232,6 @@ class SpaceshipRegistrar extends AbstractRegistrar
             );
         }
 
-        // Test mode simulation
         return new DomainActionResultDTO(
             success: true,
             domain: $domain,
@@ -237,10 +250,16 @@ class SpaceshipRegistrar extends AbstractRegistrar
 
         if ($this->hasValidCredentials()) {
             $payload = [
-                'years' => $dto->years ?? 1,
+                'years' => (int) ($dto->years ?? 1),
             ];
+
             if (!empty($dto->currentExpirationDate)) {
-                $payload['currentExpirationDate'] = $dto->currentExpirationDate;
+                $payload['currentExpirationDate'] = Carbon::parse($dto->currentExpirationDate)->toIso8601String();
+            } else {
+                $info = $this->getInfo($domain);
+                if ($info && $info->expiresAt) {
+                    $payload['currentExpirationDate'] = $info->expiresAt->toIso8601String();
+                }
             }
 
             $res = $this->apiRequest('POST', '/domains/' . rawurlencode($domain) . '/renew', $payload);
@@ -276,10 +295,40 @@ class SpaceshipRegistrar extends AbstractRegistrar
         $domain = strtolower(trim($dto->domain));
 
         if ($this->hasValidCredentials()) {
-            $payload = [
-                'authCode'  => $dto->authCode,
-                'autoRenew' => false,
+            // Resolve contact ID
+            $contactPayload = [
+                'firstName'    => $dto->contactDetails['first_name'] ?? 'HostNibo',
+                'lastName'     => $dto->contactDetails['last_name'] ?? 'Client',
+                'organization' => $dto->contactDetails['company_name'] ?? 'HostNibo Networks',
+                'email'        => $dto->contactDetails['email'] ?? 'support@hostnibo.com',
+                'phone'        => '+880.' . ltrim($dto->contactDetails['phone'] ?? '1849693630', '+880'),
+                'address1'     => $dto->contactDetails['address'] ?? 'Block C, Mirpur',
+                'city'         => $dto->contactDetails['city'] ?? 'Dhaka',
+                'state'        => $dto->contactDetails['state'] ?? 'Dhaka',
+                'postalCode'   => $dto->contactDetails['postal_code'] ?? '1216',
+                'country'      => $dto->contactDetails['country'] ?? 'BD',
             ];
+
+            $contactRes = $this->apiRequest('POST', '/contacts', $contactPayload);
+            $contactId = $contactRes['data']['id'] ?? null;
+
+            $payload = [
+                'authCode'          => $dto->authCode,
+                'autoRenew'         => false,
+                'privacyProtection' => [
+                    'level'       => 'high',
+                    'userConsent' => true,
+                ],
+            ];
+
+            if ($contactId) {
+                $payload['contacts'] = [
+                    'registrant' => $contactId,
+                    'admin'      => $contactId,
+                    'tech'       => $contactId,
+                    'billing'    => $contactId,
+                ];
+            }
 
             $res = $this->apiRequest('POST', '/domains/' . rawurlencode($domain) . '/transfer', $payload);
             if (in_array($res['status'], [200, 201, 202])) {
@@ -344,6 +393,14 @@ class SpaceshipRegistrar extends AbstractRegistrar
             idProtection: true,
             nameservers: ['ns1.hostnibo.com', 'ns2.hostnibo.com']
         );
+    }
+
+    /**
+     * Get domain details alias for AbstractRegistrar.
+     */
+    public function getDomainDetails(string $domain): DomainDetailsDTO
+    {
+        return $this->getInfo($domain);
     }
 
     /**
@@ -518,8 +575,8 @@ class SpaceshipRegistrar extends AbstractRegistrar
 
         if ($this->hasValidCredentials()) {
             $res = $this->apiRequest('PUT', '/domains/' . rawurlencode($domain) . '/privacy/preference', [
-                'level'       => $enabled ? 'high' : 'none',
-                'userConsent' => $enabled,
+                'privacyLevel' => $enabled ? 'high' : 'public',
+                'userConsent'  => true,
             ]);
             return in_array($res['status'], [200, 202, 204]);
         }
@@ -528,18 +585,34 @@ class SpaceshipRegistrar extends AbstractRegistrar
     }
 
     /**
-     * Create child nameserver (glue record).
+     * Helper to extract host part of child nameserver.
+     */
+    protected function extractHostPart(string $domain, string $hostname): string
+    {
+        $domain = strtolower(trim($domain));
+        $hostname = strtolower(trim($hostname));
+        $host = preg_replace('/\.' . preg_quote($domain, '/') . '$/i', '', $hostname);
+        if (empty($host) || $host === $domain) {
+            $parts = explode('.', $hostname);
+            $host = $parts[0];
+        }
+        return $host;
+    }
+
+    /**
+     * Create child nameserver (glue record) on registry.
      */
     public function createChildNameserver(string $domain, string $hostname, string $ip): bool
     {
         $domain = strtolower(trim($domain));
+        $host = $this->extractHostPart($domain, $hostname);
 
         if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest('POST', '/domains/' . rawurlencode($domain) . '/personal-nameservers', [
-                'host'        => $hostname,
-                'ipAddresses' => [$ip],
+            $res = $this->apiRequest('PUT', '/domains/' . rawurlencode($domain) . '/personal-nameservers/' . rawurlencode($host), [
+                'host' => $host,
+                'ips'  => [(string) $ip],
             ]);
-            return in_array($res['status'], [200, 201, 204]);
+            return in_array($res['status'], [200, 201, 202, 204]);
         }
 
         return true;
@@ -559,9 +632,10 @@ class SpaceshipRegistrar extends AbstractRegistrar
     public function deleteChildNameserver(string $domain, string $hostname): bool
     {
         $domain = strtolower(trim($domain));
+        $host = $this->extractHostPart($domain, $hostname);
 
         if ($this->hasValidCredentials()) {
-            $res = $this->apiRequest('DELETE', '/domains/' . rawurlencode($domain) . '/personal-nameservers/' . rawurlencode($hostname));
+            $res = $this->apiRequest('DELETE', '/domains/' . rawurlencode($domain) . '/personal-nameservers/' . rawurlencode($host));
             return in_array($res['status'], [200, 204]);
         }
 
