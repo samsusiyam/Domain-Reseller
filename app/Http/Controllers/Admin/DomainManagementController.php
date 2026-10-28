@@ -225,6 +225,7 @@ class DomainManagementController extends Controller
         try {
             $registrar = $this->registrarManager->driver($domain->registrar->slug);
             $authCode = $registrar->getAuthCode($domain->domain_name);
+            $domain->update(['auth_code' => $authCode]);
 
             if (request()->wantsJson()) {
                 return response()->json(['success' => true, 'epp_code' => $authCode]);

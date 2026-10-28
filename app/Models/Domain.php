@@ -50,7 +50,6 @@ class Domain extends Model
         'is_private' => 'boolean',
         'is_auto_renew' => 'boolean',
         'nameservers' => 'array',
-        'auth_code' => 'encrypted',
         'registered_at' => 'datetime',
         'expires_at' => 'datetime',
         'next_due_date' => 'date',
@@ -156,4 +155,23 @@ class Domain extends Model
     {
         return $this->status === 'active';
     }
+
+    public function getAuthCodeAttribute($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($value);
+        } catch (\Throwable $e) {
+            return $value;
+        }
+    }
+
+    public function setAuthCodeAttribute($value)
+    {
+        $this->attributes['auth_code'] = !empty($value) ? \Illuminate\Support\Facades\Crypt::encryptString($value) : null;
+    }
+
 }

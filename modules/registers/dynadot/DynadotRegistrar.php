@@ -66,6 +66,59 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
         return 'dynadot';
     }
 
+        /**
+     * Perform an official Dynadot RESTful v2 API request with HMAC-SHA256 X-Signature.
+     */
+    protected function restRequest(string $method, string $path, array $body = []): ?array
+    {
+        $apiKey = $this->config['api_key'] ?? '';
+        $secretKey = $this->config['secret_key'] ?? ($this->config['api_secret'] ?? '');
+
+        if (empty($apiKey) || empty($secretKey)) {
+            return null;
+        }
+
+        $method = strtoupper($method);
+        $jsonBody = !empty($body) ? json_encode($body, JSON_UNESCAPED_SLASHES) : '';
+
+        $stringToSign = $apiKey . "\n" . $path . "\n\n" . $jsonBody;
+        $sig = base64_encode(hash_hmac('sha256', $stringToSign, $secretKey, true));
+
+        $url = 'https://api.dynadot.com' . $path;
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
+        $headers = [
+            "Authorization: Bearer {$apiKey}",
+            "X-Signature: {$sig}",
+            "Accept: application/json",
+        ];
+
+        if (!empty($jsonBody)) {
+            $headers[] = "Content-Type: application/json";
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonBody);
+        }
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300 && !empty($response)) {
+            return json_decode($response, true);
+        }
+
+        if (!empty($response)) {
+            $err = json_decode($response, true);
+            $msg = $err['error']['description'] ?? ($err['message'] ?? 'Dynadot REST API error');
+            \Log::warning("Dynadot REST error ({$method} {$path}): {$msg}");
+        }
+
+        return null;
+    }
     protected function getBaseUrl(): string
     {
         return $this->sandbox
@@ -562,22 +615,53 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
     {
         $domain = strtolower(trim($domain));
 
+        if ($this->hasValidCredentials()) {
+            $path = "/restful/v2/domains/{$domain}/transfer_auth_code";
+            $res = $this->restRequest('GET', $path);
+
+            if (!empty($res['data']['auth_code'])) {
+                $code = trim($res['data']['auth_code']);
+                \App\Models\Domain::where('domain_name', $domain)->update(['auth_code' => $code]);
+                return $code;
+            }
+        }
+
         $model = \App\Models\Domain::where('domain_name', $domain)->first();
         if ($model && !empty($model->auth_code) && !str_starts_with($model->auth_code, 'DYN-EPP-') && !str_starts_with($model->auth_code, 'DD-EPP-')) {
             return $model->auth_code;
         }
 
-        throw new \RuntimeException("Dynadot requires manual EPP code retrieval via Dynadot account dashboard or please set it in admin domain settings.");
+        throw new \RuntimeException("Unable to fetch live EPP code from Dynadot for {$domain}. Please verify API Secret Key.");
     }
 
     public function setLock(string $domain, bool $locked): bool
     {
-        return true;
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $path = "/restful/v2/domains/{$domain}/domain_lock";
+            $res = $this->restRequest('PUT', $path, ['lock' => $locked]);
+            if (isset($res['code']) && $res['code'] === 200) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function setIdProtection(string $domain, bool $enabled): bool
     {
-        return true;
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $path = "/restful/v2/domains/{$domain}/privacy";
+            $res = $this->restRequest('PUT', $path, ['privacy_level' => $enabled ? 'full' : 'none']);
+            if (isset($res['code']) && $res['code'] === 200) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function createChildNameserver(string $domain, string $hostname, string $ip): bool

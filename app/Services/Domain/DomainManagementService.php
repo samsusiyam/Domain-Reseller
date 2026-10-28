@@ -159,7 +159,7 @@ class DomainManagementService
 
     public function getAuthCode(Domain $domain): string
     {
-        if (!empty($domain->auth_code)) {
+        if (!empty($domain->auth_code) && !str_starts_with($domain->auth_code, 'DYN-EPP-') && !str_starts_with($domain->auth_code, 'DD-EPP-')) {
             return $domain->auth_code;
         }
 
