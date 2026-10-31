@@ -10,14 +10,7 @@
         </div>
     </div>
 
-    <!-- Navigation Sub-Tabs -->
-    <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
-        <a href="{{ route('admin.settings.general') }}" class="px-3.5 py-2 text-[#F6821F] border-b-2 border-[#F6821F] font-semibold">General & Branding</a>
-        <a href="{{ route('admin.settings.email') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Email & SMTP</a>
-        <a href="{{ route('admin.settings.security') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Security & 2FA</a>
-        <a href="{{ route('admin.settings.currencies') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Currencies & FX Rates</a>
-        <a href="{{ route('admin.settings.gateways') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Payment Gateways</a>
-    </div>
+    <x-admin-settings-tabs active="general" />
 
     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 sm:p-8">
         <form action="{{ route('admin.settings.general.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
@@ -36,7 +29,7 @@
                             Light Theme Logo (Dark text on light background)
                         </label>
                         @php $logoLight = \App\Models\SystemSetting::get('logo_light'); @endphp
-                        <div class="h-16 flex items-center justify-center bg-white rounded-lg border border-slate-200 mb-3 px-4">
+                        <div class="h-16 flex items-center justify-center bg-white dark:bg-[#111827] rounded-lg border border-slate-200 dark:border-slate-800 mb-3 px-4">
                             @if($logoLight)
                                 <img src="{{ asset($logoLight) }}" alt="Light Mode Logo" class="max-h-12 w-auto object-contain">
                             @else
@@ -44,7 +37,7 @@
                             @endif
                         </div>
                         <input type="file" name="logo_light" accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                               class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-orange-50 file:text-[#F6821F] hover:file:bg-orange-100 cursor-pointer">
+                               class="block w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-orange-50 file:text-[#F6821F] hover:file:bg-orange-100 cursor-pointer">
                         <p class="text-[11px] text-slate-400 mt-1">Recommended: Transparent PNG or SVG (~250x60px)</p>
                     </div>
 
@@ -58,11 +51,11 @@
                             @if($logoDark)
                                 <img src="{{ asset($logoDark) }}" alt="Dark Mode Logo" class="max-h-12 w-auto object-contain">
                             @else
-                                <span class="text-xs text-slate-500 italic">No logo uploaded (using default fallback)</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400 italic">No logo uploaded (using default fallback)</span>
                             @endif
                         </div>
                         <input type="file" name="logo_dark" accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                               class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-orange-50 file:text-[#F6821F] hover:file:bg-orange-100 cursor-pointer">
+                               class="block w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-orange-50 file:text-[#F6821F] hover:file:bg-orange-100 cursor-pointer">
                         <p class="text-[11px] text-slate-400 mt-1">Recommended: White/light transparent PNG or SVG</p>
                     </div>
                 </div>

@@ -75,8 +75,8 @@
     <div x-show="result" x-cloak class="bg-white dark:bg-[#111827] p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-                <div class="flex items-center gap-3">
-                    <span class="text-xl font-black text-slate-900 dark:text-white" x-text="result?.domain"></span>
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <span class="text-xl font-black text-slate-900 dark:text-white break-all" x-text="result?.domain"></span>
                     <template x-if="result?.is_available">
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
                             Available

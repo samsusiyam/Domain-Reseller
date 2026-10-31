@@ -19,7 +19,7 @@
             <form action="{{ route('admin.tlds.sync-costs') }}" method="POST">
                 @csrf
                 <button type="submit" class="cf-btn cf-btn-secondary cf-btn-sm text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer">
-                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     <span>Sync Wholesale Costs</span>
                 </button>
             </form>
@@ -69,7 +69,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                     @foreach($tlds as $tld)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition" x-show="!search || '{{ strtolower($tld->tld) }}'.includes(search.toLowerCase())">
+                        <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/40 transition" x-show="!search || '{{ strtolower($tld->tld) }}'.includes(search.toLowerCase())">
                             <td class="px-5 py-4 font-mono font-bold text-sm text-slate-900 dark:text-white">
                                 {{ $tld->tld }}
                             </td>
@@ -89,7 +89,7 @@
                             </td>
                             <td class="px-5 py-4 text-center">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium
-                                    {{ $tld->is_active ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800' }}">
+                                    {{ $tld->is_active ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:text-slate-400 dark:bg-slate-800' }}">
                                     {{ $tld->is_active ? 'Active' : 'Disabled' }}
                                 </span>
                             </td>
@@ -120,7 +120,7 @@
                         <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Auto Profit Margin Engine</h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Calculate retail & reseller prices from wholesale costs.</p>
                     </div>
-                    <button type="button" @click="marginModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <button type="button" @click="marginModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-200">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>

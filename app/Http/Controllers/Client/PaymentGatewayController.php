@@ -273,4 +273,58 @@ class PaymentGatewayController extends Controller
     {
         return $this->webhook($request, 'binance');
     }
+
+    /**
+     * Handle payment checkout initialization from cart/checkout.
+     */
+    public function checkout(Request $request, Invoice $invoice, string $gateway)
+    {
+        if ($invoice->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+
+        if ($invoice->isPaid()) {
+            return redirect()->route('client.invoices.show', $invoice->id)->with('info', 'This invoice has already been paid.');
+        }
+
+        if ($gateway === 'balance') {
+            try {
+                $this->orderService->payWithBalance(Auth::user(), $invoice);
+                return redirect()->route('client.invoices.show', $invoice->id)->with('success', 'Paid successfully with account balance!');
+            } catch (\Throwable $e) {
+                return redirect()->route('client.invoices.show', $invoice->id)->with('error', $e->getMessage());
+            }
+        }
+
+        try {
+            $driver = $this->paymentManager->driver($gateway);
+            $supportedCurrs = $driver->getSupportedCurrencies();
+            $targetCurr = in_array('BDT', $supportedCurrs) && !in_array('USD', $supportedCurrs) ? 'BDT' : 'USD';
+            $amount = $targetCurr === 'BDT'
+                ? app(\App\Services\Currency\CurrencyConverter::class)->usdToBdt((float)$invoice->balance_due)
+                : (float)$invoice->balance_due;
+
+            $paymentReq = new \App\DTOs\PaymentRequestDTO(
+                invoiceId: (string) $invoice->id,
+                amount: $amount,
+                currency: $targetCurr,
+                returnUrl: route('payment.callback', ['gateway' => $gateway]),
+                cancelUrl: route('client.invoices.show', $invoice->id),
+                customerEmail: Auth::user()->email,
+                customerName: Auth::user()->name,
+                customerPhone: Auth::user()->phone ?? '01700000000'
+            );
+
+            $redirect = $driver->initializePayment($paymentReq);
+
+            if ($redirect->isRedirect && !empty($redirect->redirectUrl)) {
+                return redirect()->away($redirect->redirectUrl);
+            }
+
+            return redirect()->route('client.invoices.show', $invoice->id)->with('error', 'Unable to initialize ' . ucfirst($gateway) . ' gateway.');
+        } catch (\Throwable $e) {
+            return redirect()->route('client.invoices.show', $invoice->id)->with('error', 'Payment gateway error: ' . $e->getMessage());
+        }
+    }
+
 }

@@ -167,12 +167,15 @@ body {
 .cf-table-wrapper {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   background-color: var(--bg-primary);
 }
 
 .cf-table {
   width: 100%;
+  min-width: 620px;
   border-collapse: collapse;
   text-align: left;
   font-size: var(--font-size-base);
@@ -416,4 +419,142 @@ body {
 .cf-breadcrumb-current {
   color: var(--text-primary);
   font-weight: 500;
+}
+
+/* ==========================================================================
+   CRITICAL FAILSAFE & RESILIENCE RULES (Protects layout without Tailwind CDN)
+   ========================================================================== */
+.hidden { display: none !important; }
+[x-cloak] { display: none !important; }
+
+/* SVG Bounds Protection: Never let an SVG blow up to viewport width */
+svg {
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 100%;
+}
+header svg, nav svg {
+    max-width: 24px;
+    max-height: 24px;
+}
+svg.w-3\.5 { width: 14px !important; height: 14px !important; }
+svg.w-4 { width: 16px !important; height: 16px !important; }
+svg.w-5 { width: 20px !important; height: 20px !important; }
+svg.w-6 { width: 24px !important; height: 24px !important; }
+
+/* Pure CSS Brand Logo Switching */
+html:not(.dark) .brand-logo-dark { display: none !important; }
+html.dark .brand-logo-light { display: none !important; }
+html[data-theme=light] .brand-logo-dark { display: none !important; }
+html[data-theme=dark] .brand-logo-light { display: none !important; }
+
+/* Responsive Navigation fallbacks */
+@media (max-width: 1023px) {
+    .hidden.lg\:flex,
+    nav.hidden.lg\:flex,
+    div.hidden.lg\:flex {
+        display: none !important;
+    }
+}
+@media (min-width: 1024px) {
+    .lg\:hidden {
+        display: none !important;
+    }
+}
+
+/* Table Responsive Fallbacks */
+@media (max-width: 640px) {
+    .hidden.sm\:table-cell {
+        display: none !important;
+    }
+}
+@media (max-width: 768px) {
+    .hidden.md\:table-cell {
+        display: none !important;
+    }
+}
+
+
+/* Pure CSS 100% Reliable Brand Logo Switching */
+.brand-logo-light { display: inline-block !important; }
+.brand-logo-dark { display: none !important; }
+
+html.dark .brand-logo-light,
+html[data-theme="dark"] .brand-logo-light,
+.dark .brand-logo-light {
+    display: none !important;
+}
+
+html.dark .brand-logo-dark,
+html[data-theme="dark"] .brand-logo-dark,
+.dark .brand-logo-dark {
+    display: inline-block !important;
+}
+
+
+/* ==========================================================================
+   THEME TOGGLE ICON RULES (100% Reliable in Light and Dark)
+   ========================================================================== */
+.theme-sun-icon {
+    display: none !important;
+}
+.theme-moon-icon {
+    display: block !important;
+}
+
+html.dark .theme-sun-icon,
+html[data-theme="dark"] .theme-sun-icon,
+.dark .theme-sun-icon {
+    display: block !important;
+}
+
+html.dark .theme-moon-icon,
+html[data-theme="dark"] .theme-moon-icon,
+.dark .theme-moon-icon {
+    display: none !important;
+}
+
+/* ==========================================================================
+   CURRENCY TOGGLE COMPONENT (Vibrant Orange Active State, Never White Block)
+   ========================================================================== */
+.currency-toggle-group {
+    background-color: #F1F5F9 !important;
+    border: 1px solid #E2E8F0 !important;
+}
+html.dark .currency-toggle-group,
+html[data-theme="dark"] .currency-toggle-group,
+.dark .currency-toggle-group {
+    background-color: #1E293B !important;
+    border-color: #334155 !important;
+}
+
+.currency-btn {
+    border: none !important;
+    outline: none !important;
+    background-color: transparent !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    transition: all 150ms ease-in-out !important;
+}
+html.dark .currency-btn,
+html[data-theme="dark"] .currency-btn,
+.dark .currency-btn {
+    color: #94A3B8 !important;
+}
+
+.currency-btn:hover {
+    color: #0F172A !important;
+}
+html.dark .currency-btn:hover,
+html[data-theme="dark"] .currency-btn:hover,
+.dark .currency-btn:hover {
+    color: #F8FAFC !important;
+}
+
+.currency-btn.is-active,
+.currency-btn[aria-pressed="true"] {
+    background-color: #F6821F !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
 }

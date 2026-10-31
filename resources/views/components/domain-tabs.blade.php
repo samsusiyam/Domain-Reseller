@@ -29,4 +29,9 @@
        class="px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors {{ $active === 'url-forwarding' ? 'bg-orange-50 text-[#F6821F] dark:bg-orange-950/30 dark:text-[#F6821F] font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
         URL Redirects
     </a>
+    <a href="{{ route('client.domains.push', $domain->id) }}"
+       class="px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 {{ $active === 'push' ? 'bg-orange-50 text-[#F6821F] dark:bg-orange-950/30 dark:text-[#F6821F] font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+        <svg class="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <span>Push Domain</span>
+    </a>
 </div>

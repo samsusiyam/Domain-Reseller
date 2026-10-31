@@ -10,6 +10,7 @@ class DomainAvailabilityDTO
         public bool $isPremium = false,
         public float $registrationCost = 0.0,
         public float $renewalCost = 0.0,
+        public float $transferCost = 0.0,
         public string $currency = 'USD',
         public string $registrar = '',
         public string $status = 'available', // 'available' | 'taken' | 'error'
@@ -40,6 +41,7 @@ class DomainAvailabilityDTO
             'is_premium' => $this->isPremium,
             'registration_cost' => $this->registrationCost,
             'renewal_cost' => $this->renewalCost,
+            'transfer_cost' => $this->transferCost,
             'currency' => $this->currency,
             'registrar' => $this->registrar,
             'error_message' => $this->errorMessage,

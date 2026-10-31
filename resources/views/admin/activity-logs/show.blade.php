@@ -3,25 +3,25 @@
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
     <div class="flex items-center gap-3">
-        <a href="{{ route('admin.activity-logs.index') }}" class="text-slate-400 hover:text-slate-600 transition">
+        <a href="{{ route('admin.activity-logs.index') }}" class="text-slate-400 hover:text-slate-600 dark:text-slate-300 transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         </a>
         <div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Audit Log Entry #{{ $log->id }}</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Recorded on {{ $log->created_at->format('M d, Y H:i:s') }}</p>
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Audit Log Entry #{{ $log->id }}</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Recorded on {{ $log->created_at->format('M d, Y H:i:s') }}</p>
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
+    <div class="bg-white dark:bg-[#111827] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
                 <span class="text-slate-400 uppercase font-semibold block">Actor / User</span>
-                <span class="font-bold text-slate-900 text-sm">{{ $log->user?->name ?? 'System Automated' }}</span>
-                <span class="text-slate-500 font-mono block">{{ $log->user?->email }}</span>
+                <span class="font-bold text-slate-900 dark:text-white text-sm">{{ $log->user?->name ?? 'System Automated' }}</span>
+                <span class="text-slate-500 dark:text-slate-400 font-mono block">{{ $log->user?->email }}</span>
             </div>
             <div>
                 <span class="text-slate-400 uppercase font-semibold block">Origin IP Address</span>
-                <span class="font-mono font-bold text-slate-900 text-sm">{{ $log->ip_address ?? '127.0.0.1' }}</span>
+                <span class="font-mono font-bold text-slate-900 dark:text-white text-sm">{{ $log->ip_address ?? '127.0.0.1' }}</span>
             </div>
             <div>
                 <span class="text-slate-400 uppercase font-semibold block">Log Category</span>
@@ -29,7 +29,7 @@
             </div>
             <div>
                 <span class="text-slate-400 uppercase font-semibold block">Action Event</span>
-                <span class="font-bold text-slate-800 text-sm font-mono">{{ $log->description }}</span>
+                <span class="font-bold text-slate-800 dark:text-white text-sm font-mono">{{ $log->description }}</span>
             </div>
         </div>
 

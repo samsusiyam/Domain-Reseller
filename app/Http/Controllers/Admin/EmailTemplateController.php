@@ -72,7 +72,7 @@ class EmailTemplateController extends Controller
             'login_url'      => route('login'),
         ];
 
-        SendEmailJob::dispatch($template->template_key, $user->email, $mockData, $user->id);
+        SendEmailJob::dispatch($user->email, $template->template_key, $mockData, $user->id);
 
         if (request()->wantsJson()) {
             return response()->json(['success' => true, 'message' => "Test email dispatched to {$user->email}"]);

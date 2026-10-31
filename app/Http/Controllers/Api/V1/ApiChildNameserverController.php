@@ -91,7 +91,7 @@ class ApiChildNameserverController extends BaseApiController
             return $this->sendError("Child nameserver '{$hostname}' not found.", [], 404);
         }
 
-        $child->update(['ip_address' => trim($request->input('ip_address'))]);
+        $this->managementService->updateChildNameserver($child, trim($request->input('ip_address')));
 
         return $this->sendResponse([
             'id'         => $child->id,

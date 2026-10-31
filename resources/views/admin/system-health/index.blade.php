@@ -28,7 +28,7 @@
         <!-- Database -->
         <div class="cf-panel p-4">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Database</span>
+                <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Database</span>
                 <span class="w-2 h-2 rounded-full {{ $dbStatus ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
             </div>
             <div class="text-lg font-bold text-slate-900 dark:text-white">{{ $dbStatus ? 'Connected' : 'Error' }}</div>
@@ -41,7 +41,7 @@
         <!-- Crontab Scheduler -->
         <div class="cf-panel p-4">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Cron Scheduler</span>
+                <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cron Scheduler</span>
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             </div>
             <div class="text-lg font-bold text-slate-900 dark:text-white">Active</div>
@@ -53,7 +53,7 @@
         <!-- PHP Engine -->
         <div class="cf-panel p-4">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">PHP Version</span>
+                <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">PHP Version</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400">ea-php84</span>
             </div>
             <div class="text-lg font-bold text-slate-900 dark:text-white">{{ $serverInfo['php_version'] }}</div>
@@ -65,7 +65,7 @@
         <!-- Storage -->
         <div class="cf-panel p-4">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Disk Space</span>
+                <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Disk Space</span>
                 <span class="text-[11px] font-semibold text-slate-700 dark:text-slate-300">{{ $diskPercent }}%</span>
             </div>
             <div class="text-lg font-bold text-slate-900 dark:text-white">{{ round($diskFree / 1024 / 1024 / 1024, 1) }} GB free</div>
@@ -91,7 +91,7 @@
                             <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400">DOWN</span>
                         @endif
                     </div>
-                    <div class="text-[11px] text-slate-500 font-mono">
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                         Latency: {{ $r['latency'] ? $r['latency'] . 'ms' : 'Timeout' }}
                     </div>
                 </div>
@@ -104,19 +104,19 @@
         <h2 class="text-sm font-semibold text-slate-900 dark:text-white mb-3">Environment & Framework</h2>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
             <div>
-                <span class="text-slate-500 block text-[11px]">Application Name</span>
+                <span class="text-slate-500 dark:text-slate-400 block text-[11px]">Application Name</span>
                 <span class="font-medium text-slate-900 dark:text-white">{{ config('app.name') }}</span>
             </div>
             <div>
-                <span class="text-slate-500 block text-[11px]">Laravel Framework</span>
+                <span class="text-slate-500 dark:text-slate-400 block text-[11px]">Laravel Framework</span>
                 <span class="font-medium text-slate-900 dark:text-white">{{ $serverInfo['laravel_version'] }}</span>
             </div>
             <div>
-                <span class="text-slate-500 block text-[11px]">Environment</span>
+                <span class="text-slate-500 dark:text-slate-400 block text-[11px]">Environment</span>
                 <span class="font-medium text-slate-900 dark:text-white capitalize">{{ $serverInfo['environment'] }}</span>
             </div>
             <div>
-                <span class="text-slate-500 block text-[11px]">Debug Mode</span>
+                <span class="text-slate-500 dark:text-slate-400 block text-[11px]">Debug Mode</span>
                 <span class="font-medium {{ $serverInfo['debug_mode'] ? 'text-amber-500' : 'text-emerald-500' }}">
                     {{ $serverInfo['debug_mode'] ? 'Enabled' : 'Disabled (Secure)' }}
                 </span>
@@ -152,7 +152,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                     @forelse($backups as $b)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                        <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/40">
                             <td class="px-4 py-3 font-mono font-medium text-slate-900 dark:text-white">
                                 {{ $b['filename'] }}
                             </td>

@@ -82,6 +82,18 @@ class ApiWhoisController extends BaseApiController
 
         $domainModel->update(['registrant_contact_id' => $contact->id]);
 
+        try {
+            $dto = new \App\DTOs\WhoisDataDTO(
+                registrant: $contact->toArray(),
+                admin:      $contact->toArray(),
+                tech:       $contact->toArray(),
+                billing:    $contact->toArray()
+            );
+            $this->registrarManager->driver($domainModel->registrar->slug)->updateWhois($domainModel->domain_name, $dto);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("ApiWhoisController updateWhois error: " . $e->getMessage());
+        }
+
         return $this->sendResponse($contact, 'WHOIS contact details updated successfully.');
     }
 

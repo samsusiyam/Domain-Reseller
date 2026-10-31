@@ -41,7 +41,7 @@
                     Filter
                 </button>
                 @if(request('search') || request('status'))
-                    <a href="{{ route('admin.clients.index') }}" class="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline">Reset</a>
+                    <a href="{{ route('admin.clients.index') }}" class="text-xs text-slate-500 hover:text-slate-800 dark:text-white dark:hover:text-slate-200 underline">Reset</a>
                 @endif
             </div>
         </form>
@@ -68,7 +68,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-normal">
                         @foreach($clients as $c)
-                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                            <tr class="hover:bg-slate-50 dark:bg-slate-800/50/60 dark:hover:bg-slate-800/30 transition-colors">
                                 <td class="px-5 py-3.5">
                                     <a href="{{ route('admin.clients.show', $c->id) }}" class="font-bold text-slate-900 dark:text-white hover:text-[#F6821F] transition block">
                                         {{ $c->name }}
@@ -92,8 +92,8 @@
                                 </td>
                                 <td class="px-5 py-3.5 text-right space-x-2">
                                     <a href="{{ route('admin.clients.show', $c->id) }}" class="text-[#F6821F] hover:underline text-xs font-semibold">Manage</a>
-                                    <span class="text-slate-300 dark:text-slate-700">&bull;</span>
-                                    <a href="{{ route('admin.clients.edit', $c->id) }}" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">Edit</a>
+                                    <span class="text-slate-300 dark:text-slate-700 dark:text-slate-300">&bull;</span>
+                                    <a href="{{ route('admin.clients.edit', $c->id) }}" class="text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-200 text-xs">Edit</a>
                                 </td>
                             </tr>
                         @endforeach

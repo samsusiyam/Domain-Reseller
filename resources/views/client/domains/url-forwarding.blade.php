@@ -6,6 +6,34 @@
 <div class="space-y-6">
     <x-domain-tabs :domain="$domain" active="url-forwarding" />
 
+    <!-- DNS Status & Pointing Instructions -->
+    <div class="rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border {{ !empty($dnsConfigured) ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40' : 'bg-blue-50/60 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/40' }}">
+        <div class="flex items-start gap-3">
+            @if(!empty($dnsConfigured))
+                <span class="inline-flex p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </span>
+                <div>
+                    <h4 class="text-sm font-bold text-emerald-900 dark:text-emerald-200">Redirection Active</h4>
+                    <p class="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">Your domain A record is pointing to the redirect engine (188.40.147.141). HTTP requests will be forwarded automatically.</p>
+                </div>
+            @else
+                <span class="inline-flex p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 mt-0.5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </span>
+                <div>
+                    <h4 class="text-sm font-bold text-blue-900 dark:text-blue-200">DNS Setup Instructions</h4>
+                    <p class="text-xs text-blue-700 dark:text-blue-400 mt-0.5">Point your root domain or subdomain <code class="font-mono font-bold">A record</code> to <code class="font-mono font-bold">188.40.147.141</code> (or CNAME to <code class="font-mono font-bold">domain.hostnibo.com</code>) to activate automatic web redirection.</p>
+                </div>
+            @endif
+        </div>
+        <div class="flex items-center gap-2 self-start md:self-auto shrink-0">
+            <span class="text-xs px-2.5 py-1 rounded-full font-medium {{ !empty($dnsConfigured) ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300' }}">
+                {{ !empty($dnsConfigured) ? 'Pointed (Active)' : '188.40.147.141' }}
+            </span>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-data="{ redirectType: '301' }">
         <!-- Add URL Forward Form -->
         <div class="lg:col-span-1">

@@ -5,10 +5,9 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Bangladesh SMS Gateway & Telemetry</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Configure local SMS providers (Greenweb, BulkSMSBD, AlphaSMS) for order alerts, bKash receipts, and expiry warnings.</p>
-        </div>
-        <div>
+            <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Bangladesh SMS Gateway & Telemetry
+
+    <x-admin-settings-tabs active="sms" /><div>
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                 Live Balance: <strong class="ml-1 text-[#F6821F]">{{ $balance }}</strong>
             </span>
@@ -30,7 +29,7 @@
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="sms_enabled" value="1" {{ $settings['sms_enabled'] ? 'checked' : '' }} class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F6821F]"></div>
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:bg-[#111827] after:border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F6821F]"></div>
                         </label>
                     </div>
 

@@ -36,6 +36,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
+    <link rel="stylesheet" href="{{ asset('css/app.min.css') . '?v=' . @filemtime(public_path('css/app.min.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/design-system.css') . '?v=' . @filemtime(public_path('css/design-system.css')) }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -102,8 +103,12 @@
            style="background-color: var(--surface); border-right: 1px solid var(--border);">
         <!-- Brand Header -->
         <div class="h-14 flex items-center justify-between px-4 border-b shrink-0" style="border-color: var(--border);">
-            <a href="{{ route('client.dashboard') }}" class="flex items-center gap-2.5">
-                <x-brand-logo class="h-7 w-auto" :show-text="false" />
+            <a href="{{ route('client.dashboard') }}" class="flex items-center gap-2.5 group">
+                
+                <div class="flex flex-col">
+                    <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white leading-tight">HOST NIBO</span>
+                    <span class="text-[9px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500">Client Portal</span>
+                </div>
             </a>
             <button @click="sidebarOpen = false" class="p-1 rounded text-slate-500 hover:text-slate-900 lg:hidden">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">

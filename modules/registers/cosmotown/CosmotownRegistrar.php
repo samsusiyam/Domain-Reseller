@@ -332,8 +332,8 @@ class CosmotownRegistrar extends AbstractRegistrar
         if ($this->hasValidCredentials()) {
             $res = $this->apiRequest('GET', '/reseller/domaininfo', [], ['domain' => $domain]);
             if ($res['status'] === 200 && !empty($res['data'])) {
-                $d = $res['data']['domain'] ?? $res['data'];
-                $nameservers = $res['data']['nameservers'] ?? [];
+                $d = is_array($res['data']['domain'] ?? null) ? $res['data']['domain'] : $res['data'];
+                $nameservers = $d['nameservers'] ?? $res['data']['nameservers'] ?? [];
 
                 $created = !empty($d['created']) ? Carbon::parse($d['created']) : now()->subMonth();
                 $expires = !empty($d['expiration_date']) ? Carbon::parse($d['expiration_date']) : now()->addYear();
@@ -436,29 +436,207 @@ class CosmotownRegistrar extends AbstractRegistrar
 
     public function addDnsRecord(string $domain, DnsRecordDTO $record): DnsRecordDTO
     {
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $existing = $this->getRawDnsSettings($domain);
+            $type = strtoupper($record->type);
+
+            $entry = [
+                'host'     => ($record->name === '@' || empty($record->name)) ? '' : $record->name,
+                'pointto'  => $record->content,
+                'ttl'      => $record->ttl ?: 300,
+                'priority' => $record->priority ?? 10,
+            ];
+
+            if ($type === 'TXT') {
+                $entry = [
+                    'content'  => '"' . trim($record->content, '"') . '"',
+                    'ttl'      => $record->ttl ?: 3600,
+                    'priority' => 0,
+                ];
+            }
+
+            if (!isset($existing[$type])) {
+                $existing[$type] = [];
+            }
+            $existing[$type][] = $entry;
+
+            $payloadRecords = array_filter($existing, fn($r) => !empty($r));
+            $res = $this->apiRequest('POST', '/reseller/savedomaindnssettings', [
+                'domain'  => $domain,
+                'records' => $payloadRecords,
+            ]);
+
+            if (in_array($res['status'], [200, 204])) {
+                $idx = count($existing[$type]) - 1;
+                $record->id = 'ct_' . strtolower($type) . '_' . $idx;
+                return $record;
+            }
+        }
+
         $record->id = 'ct_' . rand(10000, 99999);
         return $record;
     }
 
     public function updateDnsRecord(string $domain, string|int $recordId, DnsRecordDTO $record): DnsRecordDTO
     {
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $existing = $this->getRawDnsSettings($domain);
+            $type = strtoupper($record->type);
+
+            if (is_string($recordId) && preg_match('/^ct_([a-z]+)_(\d+)$/', $recordId, $m)) {
+                $recType = strtoupper($m[1]);
+                $idx = (int) $m[2];
+                if (isset($existing[$recType][$idx])) {
+                    if ($type === 'TXT') {
+                        $existing[$recType][$idx] = [
+                            'content'  => '"' . trim($record->content, '"') . '"',
+                            'ttl'      => $record->ttl ?: 3600,
+                            'priority' => 0,
+                        ];
+                    } else {
+                        $existing[$recType][$idx] = [
+                            'host'     => ($record->name === '@' || empty($record->name)) ? '' : $record->name,
+                            'pointto'  => $record->content,
+                            'ttl'      => $record->ttl ?: 300,
+                            'priority' => $record->priority ?? 10,
+                        ];
+                    }
+
+                    $this->apiRequest('POST', '/reseller/savedomaindnssettings', [
+                        'domain'  => $domain,
+                        'records' => $existing,
+                    ]);
+                }
+            }
+        }
+
         $record->id = (string) $recordId;
         return $record;
     }
 
     public function deleteDnsRecord(string $domain, string|int $recordId): bool
     {
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $existing = $this->getRawDnsSettings($domain);
+
+            if (is_string($recordId) && preg_match('/^ct_([a-z]+)_(\d+)$/', $recordId, $m)) {
+                $type = strtoupper($m[1]);
+                $idx = (int) $m[2];
+                if (isset($existing[$type][$idx])) {
+                    array_splice($existing[$type], $idx, 1);
+
+                    $res = $this->apiRequest('POST', '/reseller/savedomaindnssettings', [
+                        'domain'  => $domain,
+                        'records' => $existing,
+                    ]);
+                    return in_array($res['status'], [200, 204]);
+                }
+            }
+        }
+
         return true;
+    }
+
+    protected function getRawDnsSettings(string $domain): array
+    {
+        $res = $this->apiRequest('GET', '/reseller/getdomaindnssettings', [], ['domain' => $domain]);
+        if ($res['status'] === 200 && !empty($res['data']['records'])) {
+            return $res['data']['records'];
+        }
+        return [
+            'A'     => [],
+            'AAAA'  => [],
+            'CNAME' => [],
+            'MX'    => [],
+            'TXT'   => [],
+            'PTR'   => [],
+        ];
     }
 
     public function getWhois(string $domain): WhoisDataDTO
     {
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $res = $this->apiRequest('GET', '/reseller/contactinfo', [], ['domain' => $domain]);
+            if ($res['status'] === 200 && !empty($res['data'])) {
+                $d = $res['data'];
+                return new WhoisDataDTO(
+                    registrant: $this->mapCosmotownContact($d['registrant'] ?? []),
+                    admin:      $this->mapCosmotownContact($d['administrative'] ?? []),
+                    tech:       $this->mapCosmotownContact($d['technical'] ?? []),
+                    billing:    $this->mapCosmotownContact($d['billing'] ?? [])
+                );
+            }
+        }
+
         return new WhoisDataDTO();
     }
 
     public function updateWhois(string $domain, WhoisDataDTO $whoisData): bool
     {
-        return true;
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $reg = !empty($whoisData->registrant) ? $this->formatCosmotownContact($whoisData->registrant) : [];
+            $admin = !empty($whoisData->admin) ? $this->formatCosmotownContact($whoisData->admin) : $reg;
+            $tech = !empty($whoisData->tech) ? $this->formatCosmotownContact($whoisData->tech) : $reg;
+            $billing = !empty($whoisData->billing) ? $this->formatCosmotownContact($whoisData->billing) : $reg;
+
+            $payload = [
+                'registrant'     => $reg,
+                'administrative' => $admin,
+                'technical'      => $tech,
+                'billing'        => $billing,
+            ];
+
+            $res = $this->apiRequest('POST', '/reseller/contactinfo', $payload, ['domain' => $domain]);
+            return in_array($res['status'], [200, 204]);
+        }
+
+        return false;
+    }
+
+    protected function mapCosmotownContact(array $c): array
+    {
+        return [
+            'first_name'     => $c['FirstName'] ?? '',
+            'last_name'      => $c['LastName'] ?? '',
+            'company_name'   => $c['Company'] ?? '',
+            'email'          => $c['Email'] ?? '',
+            'phone_number'   => $c['Phone'] ?? '',
+            'address_line_1' => $c['Address1'] ?? '',
+            'address_line_2' => $c['Address2'] ?? '',
+            'city'           => $c['City'] ?? '',
+            'state'          => $c['State'] ?? '',
+            'postal_code'    => $c['Zip'] ?? '',
+            'country'        => $c['Country'] ?? 'BD',
+        ];
+    }
+
+    protected function formatCosmotownContact(array $c): array
+    {
+        return [
+            'FirstName' => $c['first_name'] ?? $c['FirstName'] ?? 'Registrant',
+            'LastName'  => $c['last_name'] ?? $c['LastName'] ?? 'Contact',
+            'Company'   => $c['company_name'] ?? $c['Company'] ?? '',
+            'Phone'     => $c['phone_number'] ?? $c['Phone'] ?? '+8801700000000',
+            'Extension' => $c['extension'] ?? $c['Extension'] ?? '',
+            'Fax'       => $c['fax'] ?? $c['Fax'] ?? '',
+            'City'      => $c['city'] ?? $c['City'] ?? 'Dinajpur',
+            'State'     => $c['state'] ?? $c['State'] ?? 'Dinajpur',
+            'Zip'       => $c['postal_code'] ?? $c['Zip'] ?? '5200',
+            'Country'   => strtoupper($c['country'] ?? $c['Country'] ?? 'BD'),
+            'Email'     => $c['email'] ?? $c['Email'] ?? 'siyam@baharihost.com',
+            'Address1'  => $c['address_line_1'] ?? $c['Address1'] ?? 'HSTU',
+            'Address2'  => $c['address_line_2'] ?? $c['Address2'] ?? '',
+        ];
     }
 
     /**
@@ -486,10 +664,13 @@ class CosmotownRegistrar extends AbstractRegistrar
         $domain = strtolower(trim($domain));
 
         if ($this->hasValidCredentials()) {
+            $info = $this->getInfo($domain);
             $res = $this->apiRequest('POST', '/reseller/domaininfo', [
                 'domain'  => $domain,
                 'options' => [
-                    'lock_domain' => $locked,
+                    'lock_domain'          => $locked,
+                    'enable_private_whois' => $info->idProtection,
+                    'enable_auto_billing'  => false,
                 ],
             ]);
             return in_array($res['status'], [200, 204]);
@@ -506,10 +687,13 @@ class CosmotownRegistrar extends AbstractRegistrar
         $domain = strtolower(trim($domain));
 
         if ($this->hasValidCredentials()) {
+            $info = $this->getInfo($domain);
             $res = $this->apiRequest('POST', '/reseller/domaininfo', [
                 'domain'  => $domain,
                 'options' => [
+                    'lock_domain'          => $info->isLocked,
                     'enable_private_whois' => $enabled,
+                    'enable_auto_billing'  => false,
                 ],
             ]);
             return in_array($res['status'], [200, 204]);

@@ -130,6 +130,7 @@ Route::prefix('invoices')->name('invoices.')->group(function () {
     Route::post('/{invoice}/cancel', [InvoiceManagementController::class, 'cancel'])->name('cancel');
     Route::post('/{invoice}/refund', [InvoiceManagementController::class, 'refund'])->name('refund');
     Route::get('/{invoice}/pdf', [InvoiceManagementController::class, 'generatePdf'])->name('pdf');
+    Route::get('/{invoice}/print', [InvoiceManagementController::class, 'generatePdf'])->name('print');
 });
 
 // Transactions Ledger
@@ -243,3 +244,28 @@ Route::get('/system-health', [SystemHealthController::class, 'index'])->name('sy
 Route::post('/system-health/backup', [SystemHealthController::class, 'createBackup'])->name('system-health.backup');
 Route::get('/system-health/backup/download/{filename}', [SystemHealthController::class, 'downloadBackup'])->name('system-health.backup.download');
 Route::delete('/system-health/backup/{filename}', [SystemHealthController::class, 'deleteBackup'])->name('system-health.backup.delete');
+
+// Admin Account Profile, Password, Passkeys, 2FA, and Sessions
+Route::prefix('profile')->name('profile.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\AdminProfileController::class, 'edit'])->name('edit');
+    Route::put('/', [\App\Http\Controllers\Admin\AdminProfileController::class, 'update'])->name('update');
+    Route::put('/password', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updatePassword'])->name('password');
+});
+
+Route::prefix('passkeys')->name('passkeys.')->group(function () {
+    Route::post('/register/options', [\App\Http\Controllers\Auth\PasskeyController::class, 'registerOptions'])->name('register.options');
+    Route::post('/register', [\App\Http\Controllers\Auth\PasskeyController::class, 'store'])->name('store');
+    Route::delete('/{passkey}', [\App\Http\Controllers\Auth\PasskeyController::class, 'destroy'])->name('destroy');
+});
+
+Route::prefix('two-factor')->name('two-factor.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\AdminProfileController::class, 'twoFactor'])->name('index');
+    Route::post('/confirm', [\App\Http\Controllers\Admin\AdminProfileController::class, 'confirmTwoFactor'])->name('confirm');
+    Route::post('/disable', [\App\Http\Controllers\Admin\AdminProfileController::class, 'disableTwoFactor'])->name('disable');
+});
+
+Route::prefix('sessions')->name('sessions.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\AdminProfileController::class, 'sessions'])->name('index');
+    Route::delete('/other', [\App\Http\Controllers\Admin\AdminProfileController::class, 'destroyOtherSessions'])->name('destroy.other');
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\AdminProfileController::class, 'destroySession'])->name('destroy');
+});

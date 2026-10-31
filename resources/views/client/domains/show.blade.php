@@ -78,6 +78,11 @@
             <button type="button" @click="fetchEpp()" class="cf-btn cf-btn-secondary text-xs h-9">
                 Get EPP Code
             </button>
+
+            <a href="{{ route('client.domains.push', $domain->id) }}" class="cf-btn cf-btn-secondary text-xs h-9 inline-flex items-center gap-1 text-[#F6821F] font-semibold border-orange-200 dark:border-orange-900/60 hover:bg-orange-50 dark:hover:bg-orange-950/30">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>Instant Push</span>
+            </a>
         </div>
     </div>
 
@@ -135,9 +140,16 @@
             <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1.5">EPP / Authorization Code</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">This authorization secret code is required if you wish to transfer {{ $domain->domain_name }} to another provider.</p>
 
-            <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 text-center font-mono text-base font-bold text-[#F6821F] select-all mb-4">
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 text-center font-mono text-base font-bold text-[#F6821F] select-all mb-4" x-data="{ copied: false }">
                 <span x-show="!loadingEpp" x-text="eppCode"></span>
-                <span x-show="loadingEpp">Fetching from registrar...</span>
+                <span x-show="loadingEpp" class="text-slate-400 text-sm font-normal">Fetching from registrar...</span>
+
+                <button x-show="!loadingEpp && eppCode && !eppCode.includes(' ')" type="button"
+                    @click="navigator.clipboard.writeText(eppCode); copied = true; setTimeout(() => copied = false, 2000)"
+                    class="mt-3 w-full py-1.5 px-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 text-[#F6821F] text-xs font-bold border border-orange-200 dark:border-orange-900/40 hover:bg-orange-100 dark:hover:bg-orange-950/60 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                    <span x-text="copied ? 'Copied to Clipboard!' : 'Copy EPP Code'"></span>
+                </button>
             </div>
 
             <button type="button" @click="eppModal = false" class="cf-btn cf-btn-secondary w-full text-xs cursor-pointer">

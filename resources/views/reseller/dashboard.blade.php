@@ -64,23 +64,56 @@
         </div>
     </div>
 
-    <!-- Quick Integration & Module Setup Card -->
-    <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <!-- 3-Step WHMCS Registrar Module Integration Guide -->
+    <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 mb-2">
-                    WHMCS & Billing Platform Integration
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono uppercase bg-orange-50 text-[#F6821F] dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900/40 font-bold mb-1">
+                    Turnkey WHMCS Module
                 </span>
-                <h2 class="text-base font-bold text-slate-900 dark:text-white">Connect Your Hosting Platform & WHMCS</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-2xl">Use our turnkey WHMCS Registrar Module or 44 REST API endpoints for automated client domain ordering, renewals, and DNS sync.</p>
+                <h2 class="text-base font-bold text-slate-900 dark:text-white">WHMCS Automated Registrar Onboarding</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Automate domain registration, transfers, renewals, DNS records, and WHOIS privacy directly from your billing system.</p>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <a href="{{ route('reseller.api-docs') }}" class="cf-btn cf-btn-secondary cf-btn-sm text-xs font-medium cursor-pointer">
-                    API Documentation
-                </a>
-                <a href="{{ route('reseller.api-keys.index') }}" class="cf-btn cf-btn-primary cf-btn-sm text-xs font-semibold cursor-pointer">
-                    Manage API Credentials
-                </a>
+            <a href="/downloads/domainreseller-whmcs.zip" class="cf-btn cf-btn-primary cf-btn-sm text-xs font-semibold shrink-0 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>Download WHMCS Module (.zip)</span>
+            </a>
+        </div>
+
+        <!-- 3-Step Visual Process -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <!-- Step 1 -->
+            <div class="p-3.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="w-5 h-5 rounded-full bg-[#F6821F] text-white flex items-center justify-center font-bold text-[11px]">1</span>
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white">Extract Module</h4>
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    Unzip download package and upload folder to:
+                    <code class="block font-mono text-[10px] bg-slate-200 dark:bg-slate-900 px-1.5 py-0.5 rounded mt-1 select-all text-slate-800 dark:text-slate-200">modules/registrars/domainreseller</code>
+                </p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="p-3.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="w-5 h-5 rounded-full bg-[#F6821F] text-white flex items-center justify-center font-bold text-[11px]">2</span>
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white">Configure API Key</h4>
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    In WHMCS <em>Domain Registrars</em>, activate <strong>DomainReseller</strong>. Enter your <a href="{{ route('reseller.api-keys.index') }}" class="text-[#F6821F] hover:underline font-semibold">API Key & Secret &rarr;</a>
+                </p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="p-3.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="w-5 h-5 rounded-full bg-[#F6821F] text-white flex items-center justify-center font-bold text-[11px]">3</span>
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white">Sync Pricing & Test</h4>
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    Click <strong>Test Connection</strong>. Import wholesale pricing matrix directly into your WHMCS TLD catalogue.
+                </p>
             </div>
         </div>
     </div>

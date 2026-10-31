@@ -2,95 +2,280 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice #{{ $invoice->invoice_number ?? $invoice->id }} - DomainReseller</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Invoice #{{ $invoice->invoice_number ?? $invoice->id }} - {{ \App\Models\SystemSetting::get('company_name', 'HostNibo') }}</title>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            background: #fff;
+            padding: 40px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-img {
+            max-height: 38px;
+            width: auto;
+            object-fit: contain;
+        }
+        .logo-text {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+        }
+        .logo-text span {
+            color: #F6821F;
+        }
+        .company-meta {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+        .inv-details {
+            text-align: right;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .badge-paid { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .badge-unpaid { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        .badge-other { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+        .inv-title {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 24px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .meta-col h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+        .meta-col p {
+            margin-bottom: 2px;
+        }
+        .customer-name {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+        th {
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .item-title {
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .item-addon {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+        .totals {
+            margin-left: auto;
+            width: 280px;
+            padding-top: 16px;
+        }
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            color: #64748b;
+        }
+        .totals-total {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 8px;
+            margin-top: 4px;
+        }
+        .totals-due {
+            font-size: 14px;
+            font-weight: 800;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 6px;
+            margin-top: 4px;
+        }
+        .totals-due.due-zero { color: #059669; }
+        .totals-due.due-positive { color: #d97706; }
+        .no-print {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-print {
+            background: #F6821F;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
         @media print {
-            .no-print { display: none !important; }
-            body { font-size: 12pt; background: #fff !important; }
+            .no-print { display: none; }
+            body { padding: 0; }
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 p-4 sm:p-8 font-sans antialiased">
-    <div class="max-w-3xl mx-auto mb-4 no-print flex justify-between items-center">
-        <a href="{{ route('admin.invoices.show', $invoice->id) }}" class="text-sm font-semibold text-slate-600 hover:text-slate-900">&larr; Back to Invoice</a>
-        <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg text-sm shadow hover:bg-indigo-700">
-            Print / Save as PDF
-        </button>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
     </div>
 
-    <div class="max-w-3xl mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-sm border border-slate-200">
-        <!-- Header -->
-        <div class="flex justify-between items-start border-b border-slate-200 pb-6 mb-6">
-            <div>
-                <h1 class="text-2xl font-black text-slate-900">Domain<span class="text-indigo-600">Reseller</span></h1>
-                <p class="text-xs text-slate-500 mt-1">Domain & Cloud Management Platform</p>
-                <p class="text-xs text-slate-500">support@domainreseller.com</p>
+    <div class="header">
+        <div>
+            @php
+                $logoLight = \App\Models\SystemSetting::get('logo_light');
+                $company = \App\Models\SystemSetting::get('company_name', 'HostNibo Technologies Ltd.');
+                $email = \App\Models\SystemSetting::get('support_email', 'support@hostnibo.com');
+            @endphp
+            <div class="logo-box">
+                @if($logoLight)
+                    <img src="{{ asset($logoLight) }}" alt="{{ $company }}" class="logo-img">
+                @else
+                    <span class="logo-text">Host<span>Nibo</span></span>
+                @endif
             </div>
-            <div class="text-right">
-                <h2 class="text-2xl font-black text-slate-900 uppercase">Invoice</h2>
-                <p class="text-xs text-slate-600 mt-1"><strong>Invoice #:</strong> #{{ $invoice->invoice_number ?? str_pad($invoice->id, 6, '0', STR_PAD_LEFT) }}</p>
-                <p class="text-xs text-slate-600"><strong>Date:</strong> {{ $invoice->created_at->format('M d, Y') }}</p>
-                <p class="text-xs text-slate-600"><strong>Due Date:</strong> {{ $invoice->due_date ? $invoice->due_date->format('M d, Y') : 'Due on receipt' }}</p>
-                <span class="mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold uppercase
-                    {{ $invoice->status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
-                    {{ strtoupper($invoice->status) }}
-                </span>
+            <div class="company-meta">
+                <p><strong>{{ $company }}</strong></p>
+                <p>Automated Billing & Cloud Provisioning Engine</p>
+                <p>Support: {{ $email }}</p>
             </div>
         </div>
 
-        <!-- Billed To -->
-        <div class="mb-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Billed To</h3>
-            <p class="font-bold text-slate-900">{{ $invoice->user?->name ?? 'Guest' }}</p>
+        <div class="inv-details">
+            <div class="badge {{ $invoice->status === 'paid' ? 'badge-paid' : ($invoice->status === 'unpaid' ? 'badge-unpaid' : 'badge-other') }}">
+                {{ $invoice->status }}
+            </div>
+            <h1 class="inv-title">INVOICE</h1>
+            <p style="font-size: 11px; color: #64748b; margin-top: 4px;">#{{ $invoice->invoice_number ?? str_pad($invoice->id, 6, '0', STR_PAD_LEFT) }}</p>
+            <p style="font-size: 11px; color: #64748b;">Date: {{ $invoice->created_at->format('M d, Y') }}</p>
+            <p style="font-size: 11px; color: #64748b;">Due: {{ $invoice->due_date ? $invoice->due_date->format('M d, Y') : 'Due on receipt' }}</p>
+        </div>
+    </div>
+
+    <div class="meta-grid">
+        <div class="meta-col">
+            <h3>Billed To</h3>
+            <p class="customer-name">{{ $invoice->user?->name ?? 'Guest/Deleted User' }}</p>
             @if($invoice->user?->company_name)
-                <p class="text-xs text-slate-600">{{ $invoice->user->company_name }}</p>
+                <p>{{ $invoice->user->company_name }}</p>
             @endif
-            <p class="text-xs text-slate-600">{{ $invoice->user?->email }}</p>
+            <p style="color: #64748b;">{{ $invoice->user?->email }}</p>
             @if($invoice->user?->phone)
-                <p class="text-xs text-slate-600">{{ $invoice->user->phone }}</p>
+                <p style="color: #64748b;">{{ $invoice->user->phone }}</p>
             @endif
         </div>
 
-        <!-- Items Table -->
-        <table class="w-full text-left text-sm mb-6 border-b border-slate-200 pb-4">
-            <thead>
-                <tr class="text-xs uppercase text-slate-400 border-b border-slate-200">
-                    <th class="pb-2">Description</th>
-                    <th class="pb-2 text-center">Qty</th>
-                    <th class="pb-2 text-right">Unit Price</th>
-                    <th class="pb-2 text-right">Amount</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-                @foreach($invoice->items as $item)
-                    <tr>
-                        <td class="py-3 font-medium text-slate-800">{{ $item->description }}</td>
-                        <td class="py-3 text-center text-slate-600">{{ $item->quantity }}</td>
-                        <td class="py-3 text-right text-slate-600">${{ number_format($item->unit_price, 2) }}</td>
-                        <td class="py-3 text-right font-bold text-slate-900">${{ number_format($item->total_price, 2) }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <div class="meta-col" style="text-align: right;">
+            <h3>Payment Details</h3>
+            <p>Currency: <strong>{{ $invoice->currency ?? 'USD' }}</strong></p>
+            @if($invoice->paid_at)
+                <p>Paid At: {{ $invoice->paid_at->format('M d, Y H:i') }}</p>
+            @endif
+            @if($invoice->payment_method)
+                <p>Method: {{ ucfirst($invoice->payment_method) }}</p>
+            @endif
+        </div>
+    </div>
 
-        <!-- Totals -->
-        <div class="flex justify-end text-sm">
-            <div class="w-64 space-y-2">
-                <div class="flex justify-between text-slate-600">
-                    <span>Subtotal:</span>
-                    <span class="font-semibold">${{ number_format($invoice->subtotal, 2) }}</span>
-                </div>
-                <div class="flex justify-between font-bold text-base text-slate-900 pt-2 border-t border-slate-200">
-                    <span>Total Amount:</span>
-                    <span>${{ number_format($invoice->total_amount, 2) }} USD</span>
-                </div>
-                <div class="flex justify-between font-bold text-sm text-slate-800 pt-1">
-                    <span>Balance Due:</span>
-                    <span>${{ number_format($invoice->balance_due, 2) }} USD</span>
-                </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th style="text-align: center; width: 60px;">Qty</th>
+                <th style="text-align: right; width: 100px;">Unit Price</th>
+                <th style="text-align: right; width: 100px;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($invoice->items as $item)
+                @php
+                    $lines = explode("\n", $item->description);
+                    $mainDesc = $lines[0];
+                    $extraDesc = $lines[1] ?? null;
+                @endphp
+                <tr>
+                    <td>
+                        <div class="item-title">{{ $mainDesc }}</div>
+                        @if($extraDesc)
+                            <div class="item-addon">✓ {{ $extraDesc }}</div>
+                        @endif
+                    </td>
+                    <td style="text-align: center; font-family: monospace;">{{ $item->quantity }}</td>
+                    <td style="text-align: right; font-family: monospace;">${{ number_format($item->unit_price, 2) }}</td>
+                    <td style="text-align: right; font-weight: 700; font-family: monospace;">${{ number_format($item->total_price, 2) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div class="totals-row">
+            <span>Subtotal</span>
+            <span style="font-family: monospace;">${{ number_format($invoice->subtotal, 2) }}</span>
+        </div>
+        @if($invoice->discount_amount > 0)
+            <div class="totals-row" style="color: #059669;">
+                <span>Discount</span>
+                <span style="font-family: monospace;">-${{ number_format($invoice->discount_amount, 2) }}</span>
             </div>
+        @endif
+        <div class="totals-row totals-total">
+            <span>Total Amount</span>
+            <span style="font-family: monospace;">${{ number_format($invoice->total_amount, 2) }} USD</span>
+        </div>
+        <div class="totals-row totals-due {{ $invoice->balance_due > 0 ? 'due-positive' : 'due-zero' }}">
+            <span>Remaining Balance</span>
+            <span style="font-family: monospace;">${{ number_format($invoice->balance_due, 2) }} USD</span>
         </div>
     </div>
 </body>

@@ -39,6 +39,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Design System Tokens -->
+    <link rel="stylesheet" href="{{ asset('css/app.min.css') . '?v=' . @filemtime(public_path('css/app.min.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/design-system.css') . '?v=' . @filemtime(public_path('css/design-system.css')) }}">
 
     <!-- Tailwind CSS CDN -->
@@ -140,15 +141,19 @@
 
     <!-- LEFT SIDEBAR: 240px (collapsible to 56px), 1px border, white bg -->
     <aside :class="[
-               sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0',
-               sidebarCollapsed ? 'lg:w-14 w-64' : 'lg:w-60 w-64'
+               sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full',
+               sidebarCollapsed ? 'lg:w-14' : 'lg:w-60'
            ]"
-           class="fixed inset-y-0 left-0 z-50 lg:static lg:z-auto bg-white dark:bg-[#111827] border-r border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-200 ease-in-out shrink-0 select-none">
+           class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col transition-transform duration-200 ease-in-out shrink-0 select-none -translate-x-full lg:static lg:translate-x-0 bg-white dark:bg-[#111827] border-r border-slate-200 dark:border-slate-800">
 
         <!-- Sidebar Top: Brand Logo + Name only -->
         <div class="h-14 flex items-center justify-between px-3.5 border-b border-slate-200 dark:border-slate-800 shrink-0">
-            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 overflow-hidden">
-                <x-brand-logo class="h-7 w-auto" :show-text="false" />
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 overflow-hidden group">
+                
+                <div x-show="!sidebarCollapsed" class="flex flex-col">
+                    <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white leading-tight">HOST NIBO</span>
+                    <span class="text-[9px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500">Admin Console</span>
+                </div>
             </a>
 
             <!-- Collapse Toggle for Desktop -->
@@ -187,6 +192,18 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                     </svg>
                     <span x-show="!sidebarCollapsed" class="truncate">Overview</span>
+                </a>
+            </div>
+
+            <!-- GROUP: Admin Security & Passkeys -->
+            <div>
+                <a href="{{ route('admin.profile.edit') }}"
+                   title="Password, Passkeys & Profile"
+                   class="group flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition-colors {{ request()->routeIs('admin.profile.*') || request()->routeIs('admin.two-factor.*') || request()->routeIs('admin.sessions.*') ? 'bg-[#FFF7ED] dark:bg-[#F6821F]/15 text-[#F6821F] dark:text-[#F6821F] font-medium border-l-2 border-[#F6821F]' : 'border-l-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60' }}">
+                    <svg class="w-4 h-4 shrink-0 {{ request()->routeIs('admin.profile.*') || request()->routeIs('admin.two-factor.*') || request()->routeIs('admin.sessions.*') ? 'text-[#F6821F]' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:text-slate-100' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                    </svg>
+                    <span x-show="!sidebarCollapsed" class="truncate">Password & Passkeys</span>
                 </a>
             </div>
 
@@ -484,12 +501,26 @@
                         <p class="font-medium text-slate-900 dark:text-slate-100 truncate">{{ auth()->user()->name }}</p>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ auth()->user()->email }}</p>
                     </div>
+                    <a href="{{ route('admin.profile.edit') }}"
+                       class="flex items-center gap-2 px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                        <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                        </svg>
+                        Password & Passkeys
+                    </a>
+                    <a href="{{ route('admin.two-factor.index') }}"
+                       class="flex items-center gap-2 px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                        <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                        Two-Factor Auth (2FA)
+                    </a>
                     <a href="{{ route('admin.settings.general') }}"
                        class="flex items-center gap-2 px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
                         <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
                         </svg>
-                        Settings
+                        Platform Settings
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -536,8 +567,18 @@
                 </button>
             </div>
 
+            @php
+                $lowBalanceRegistrars = \App\Models\RegistrarModule::where('is_active', true)->where('balance', '<', 20)->get();
+            @endphp
+
             <!-- Right: Actions -->
             <div class="flex items-center gap-2">
+                @if($lowBalanceRegistrars->isNotEmpty())
+                    <a href="{{ route('admin.registrars.index') }}" title="Low registrar balance" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                        <span>Low Balance ({{ $lowBalanceRegistrars->count() }})</span>
+                    </a>
+                @endif
 
                 <!-- "+ Add" Dropdown -->
                 <div class="relative" x-data="{ addMenuOpen: false }">
@@ -718,19 +759,39 @@
                             <p class="font-medium text-slate-900 dark:text-slate-100 truncate">{{ auth()->user()->name }}</p>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ auth()->user()->email }}</p>
                         </div>
-                        <a href="{{ route('admin.settings.general') }}" class="block px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">General settings</a>
+                        <a href="{{ route('admin.profile.edit') }}" class="block px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-medium transition">Password & Passkeys</a>
+                        <a href="{{ route('admin.two-factor.index') }}" class="block px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-medium transition">Two-Factor Auth</a>
+                        <a href="{{ route('admin.sessions.index') }}" class="block px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-medium transition">Active Sessions</a>
+                        <div class="border-t border-slate-200 dark:border-slate-800 my-1"></div>
+                        <a href="{{ route('admin.settings.general') }}" class="block px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">Platform Settings</a>
                         <a href="{{ route('admin.settings.currencies') }}" class="block px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">Currencies</a>
-                        <a href="{{ route('admin.settings.security') }}" class="block px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">Security policy</a>
+                        <a href="{{ route('admin.settings.security') }}" class="block px-3 py-1.5 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">Security Policy</a>
                         <div class="border-t border-slate-200 dark:border-slate-800 my-1"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="w-full text-left px-3 py-1.5 text-[#DC2626] hover:bg-[#FEF2F2] transition">Log out</button>
+                            <button type="submit" class="w-full text-left px-3 py-1.5 text-[#DC2626] hover:bg-[#FEF2F2] transition cursor-pointer">Log out</button>
                         </form>
                     </div>
                 </div>
 
             </div>
         </header>
+
+        @if($lowBalanceRegistrars->isNotEmpty())
+            <div class="bg-amber-500/10 dark:bg-amber-950/40 border-b border-amber-500/20 px-4 sm:px-6 py-2 flex items-center justify-between text-xs text-amber-800 dark:text-amber-300 shrink-0">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>
+                        <strong>Registrar Low-Balance Warning:</strong>
+                        @foreach($lowBalanceRegistrars as $lbr)
+                            <span class="font-mono font-bold">{{ $lbr->name }} (${{ number_format((float)$lbr->balance, 2) }})</span>{{ !$loop->last ? ', ' : '' }}
+                        @endforeach
+                        has dropped below safety threshold ($20.00). Top up upstream balance to ensure smooth provisioning.
+                    </span>
+                </div>
+                <a href="{{ route('admin.registrars.index') }}" class="font-semibold underline hover:no-underline ml-4 shrink-0 text-amber-900 dark:text-amber-200">View Registrars &rarr;</a>
+            </div>
+        @endif
 
         <!-- MAIN PAGE SCROLLER -->
         <main class="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#0B0F19] p-4 sm:p-6 lg:p-8">
@@ -822,6 +883,12 @@
             <div class="max-h-80 overflow-y-auto p-2 space-y-1">
                 <div class="px-2 py-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">Quick Jump</div>
 
+                <a href="{{ route('admin.profile.edit') }}"
+                   x-show="!query || 'profile password passkey passkeys security account'.includes(query.toLowerCase())"
+                   class="flex items-center justify-between px-2.5 py-1.5 rounded-[4px] hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-900 dark:text-slate-100 transition">
+                    <span class="font-medium text-[#F6821F]">Password, Passkeys & Profile</span>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400">/admin/profile</span>
+                </a>
                 <a href="{{ route('admin.dashboard') }}"
                    x-show="!query || 'overview dashboard'.includes(query.toLowerCase())"
                    class="flex items-center justify-between px-2.5 py-1.5 rounded-[4px] hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-900 dark:text-slate-100 transition">

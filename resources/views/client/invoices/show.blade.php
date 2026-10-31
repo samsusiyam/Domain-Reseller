@@ -94,7 +94,18 @@
                     @forelse($invoice->items as $item)
                         <tr>
                             <td class="py-3.5 pr-4">
-                                <span class="font-semibold text-slate-900 dark:text-white text-sm block">{{ $item->description }}</span>
+                                @php
+                                    $lines = explode("
+", $item->description);
+                                    $mainDesc = $lines[0];
+                                    $extraDesc = $lines[1] ?? null;
+                                @endphp
+                                <span class="font-semibold text-slate-900 dark:text-white text-sm block">{{ $mainDesc }}</span>
+                                @if($extraDesc)
+                                    <span class="text-xs text-slate-500 dark:text-slate-400 block mt-1 font-normal">
+                                        <span class="text-emerald-600 dark:text-emerald-400 font-bold">✓</span> {{ $extraDesc }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="py-3.5 text-center font-mono">{{ $item->quantity }}</td>
                             <td class="py-3.5 text-right font-mono tabular-nums">

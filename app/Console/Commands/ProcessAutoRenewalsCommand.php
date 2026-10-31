@@ -6,6 +6,7 @@ use App\Models\Domain;
 use App\Models\TldPricing;
 use App\Services\Domain\DomainOrderService;
 use App\Services\Domain\DomainPricingService;
+use App\Jobs\SendEmailJob;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -22,9 +23,9 @@ class ProcessAutoRenewalsCommand extends Command
         $threshold = Carbon::now()->addDays(7);
 
         $domains = Domain::where('status', 'active')
-            ->where('auto_renew', true)
+            ->where('is_auto_renew', true)
             ->where('expires_at', '<=', $threshold)
-            ->with(['user', 'tld'])
+            ->with(['user'])
             ->get();
 
         $this->info("Found {$domains->count()} domains eligible for automatic renewal.");
@@ -42,6 +43,19 @@ class ProcessAutoRenewalsCommand extends Command
             if (!$user->hasSufficientBalance($costUsd)) {
                 $this->warn("User {$user->email} has insufficient balance (\${$user->balance}) to auto-renew {$domain->domain_name} (\${$costUsd}).");
                 Log::warning("Auto-renew failed for {$domain->domain_name}: insufficient balance for user {$user->id}.");
+
+                // Dispatch notification to user
+                try {
+                    app(\App\Services\Webhook\WebhookDispatcher::class)->dispatch('wallet.balance_low', [
+                        'event'        => 'wallet.balance_low',
+                        'domain'       => $domain->domain_name,
+                        'required_usd' => $costUsd,
+                        'current_balance' => (float)$user->balance,
+                        'message'      => "Auto-renewal for {$domain->domain_name} could not proceed due to insufficient wallet balance.",
+                        'timestamp'    => now()->toIso8601String(),
+                    ], $user);
+                } catch (\Throwable $e) {}
+
                 continue;
             }
 

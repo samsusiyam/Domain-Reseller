@@ -18,11 +18,11 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by domain name, client name or email..."
-                    class="block w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F6821F] focus:border-[#F6821F]">
+                    class="block w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-[#F6821F] focus:border-[#F6821F]">
             </div>
 
             <div class="w-full sm:w-44">
-                <select name="registrar_id" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F6821F] focus:border-[#F6821F]">
+                <select name="registrar_id" class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-[#F6821F] focus:border-[#F6821F]">
                     <option value="">All Registrars</option>
                     @foreach($registrars as $reg)
                         <option value="{{ $reg->id }}" {{ request('registrar_id') == $reg->id ? 'selected' : '' }}>{{ $reg->name }}</option>
@@ -31,7 +31,7 @@
             </div>
 
             <div class="w-full sm:w-40">
-                <select name="status" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F6821F] focus:border-[#F6821F]">
+                <select name="status" class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-[#F6821F] focus:border-[#F6821F]">
                     <option value="">All Statuses</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                     <option value="expired" {{ request('status') === 'expired' ? 'selected' : '' }}>Expired</option>
@@ -44,7 +44,7 @@
                 Filter
             </button>
             @if(request('search') || request('registrar_id') || request('status'))
-                <a href="{{ route('admin.domains.index') }}" class="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 underline">Reset</a>
+                <a href="{{ route('admin.domains.index') }}" class="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-white underline">Reset</a>
             @endif
         </form>
     </div>
@@ -68,7 +68,7 @@
                             <th class="px-6 py-3.5 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         @foreach($domains as $dom)
                             <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 transition">
                                 <td class="px-6 py-4 font-mono font-bold text-slate-900 dark:text-white">
@@ -77,7 +77,7 @@
                                     </a>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="font-bold text-slate-800">{{ $dom->user?->name ?? 'None' }}</div>
+                                    <div class="font-bold text-slate-800 dark:text-white">{{ $dom->user?->name ?? 'None' }}</div>
                                     <div class="text-xs text-slate-400">{{ $dom->user?->email }}</div>
                                 </td>
                                 <td class="px-6 py-4">
@@ -85,7 +85,7 @@
                                         {{ $dom->registrar?->name ?? 'Default Upstream' }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 font-semibold text-xs text-slate-700">
+                                <td class="px-6 py-4 font-semibold text-xs text-slate-700 dark:text-slate-300">
                                     {{ $dom->expires_at ? $dom->expires_at->format('M d, Y') : '—' }}
                                     @if($dom->expires_at && $dom->expires_at->isPast())
                                         <span class="text-rose-600 block text-[10px]">Expired</span>
@@ -95,13 +95,13 @@
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
-                                        {{ $dom->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700' }}">
+                                        {{ $dom->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700 dark:text-slate-300' }}">
                                         {{ ucfirst($dom->status) }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right space-x-2">
                                     <a href="{{ route('admin.domains.show', $dom->id) }}" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold">Manage</a>
-                                    <a href="{{ route('admin.domains.edit', $dom->id) }}" class="text-slate-500 dark:text-slate-400 hover:text-slate-800 text-xs font-semibold">Edit</a>
+                                    <a href="{{ route('admin.domains.edit', $dom->id) }}" class="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-white text-xs font-semibold">Edit</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -110,7 +110,7 @@
             </div>
 
             @if($domains->hasPages())
-                <div class="p-4 border-t border-slate-100">
+                <div class="p-4 border-t border-slate-100 dark:border-slate-800">
                     {{ $domains->links() }}
                 </div>
             @endif

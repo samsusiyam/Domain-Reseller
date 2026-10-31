@@ -1,33 +1,8 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="space-y-6" x-data="{
-    editModalOpen: false,
-    editingCurrency: {
-        id: '',
-        code: '',
-        name: '',
-        symbol: '',
-        exchange_rate: '',
-        decimal_places: 2,
-        symbol_position: 'before',
-        is_active: true
-    },
-    openEdit(curr) {
-        this.editingCurrency = {
-            id: curr.id,
-            code: curr.code,
-            name: curr.name,
-            symbol: curr.symbol,
-            exchange_rate: curr.exchange_rate,
-            decimal_places: curr.decimal_places,
-            symbol_position: curr.symbol_position,
-            is_active: !!curr.is_active
-        };
-        this.editModalOpen = true;
-    }
-}">
-    <!-- Header -->
+<div class="space-y-6">
+    <x-admin-settings-tabs active="currencies" />
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Currencies & FX Exchange Rates</h1>
@@ -44,14 +19,7 @@
         </div>
     </div>
 
-    <!-- Navigation Sub-Tabs -->
-    <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
-        <a href="{{ route('admin.settings.general') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">General & Branding</a>
-        <a href="{{ route('admin.settings.email') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Email & SMTP</a>
-        <a href="{{ route('admin.settings.security') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Security & 2FA</a>
-        <a href="{{ route('admin.settings.currencies') }}" class="px-3.5 py-2 text-[#F6821F] border-b-2 border-[#F6821F] font-semibold">Currencies & FX Rates</a>
-        <a href="{{ route('admin.settings.gateways') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Payment Gateways</a>
-    </div>
+    
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Add Currency Form -->
@@ -129,7 +97,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                             @foreach($currencies as $curr)
-                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                                <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/40 transition">
                                     <td class="px-4 py-3 font-mono font-semibold text-slate-900 dark:text-white">
                                         {{ $curr->code }}
                                         @if($curr->is_primary)
@@ -183,7 +151,7 @@
                         </h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manually change exchange rate or display format.</p>
                     </div>
-                    <button type="button" @click="editModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <button type="button" @click="editModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-200">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -224,7 +192,7 @@
                     </div>
 
                     <div class="flex items-center gap-2 pt-1">
-                        <input type="checkbox" id="edit_is_active" name="is_active" value="1" :checked="editingCurrency.is_active" class="rounded border-slate-300 accent-[#F6821F]">
+                        <input type="checkbox" id="edit_is_active" name="is_active" value="1" :checked="editingCurrency.is_active" class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white accent-[#F6821F]">
                         <label for="edit_is_active" class="text-xs text-slate-700 dark:text-slate-300">Active for customer checkout & storefront currency toggle</label>
                     </div>
 

@@ -3,10 +3,10 @@
 @section('content')
 <div class="max-w-4xl space-y-8">
     <!-- Sub-navigation tabs -->
-    <div class="flex items-center gap-2 border-b border-slate-200 pb-3 text-sm font-semibold">
-        <a href="{{ route('client.profile.edit') }}" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100">Personal Details</a>
+    <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 text-sm font-semibold">
+        <a href="{{ route('client.profile.edit') }}" class="px-3.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800">Personal Details</a>
         <a href="{{ route('client.two-factor.index') }}" class="px-3.5 py-1.5 rounded-lg bg-[#F6821F]/10 text-[#F6821F]">Two-Factor Authentication</a>
-        <a href="{{ route('client.sessions.index') }}" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100">Browser Sessions</a>
+        <a href="{{ route('client.sessions.index') }}" class="px-3.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800">Browser Sessions</a>
     </div>
 
     @if(session('recoveryCodes'))
@@ -23,10 +23,10 @@
         </div>
     @endif
 
-    <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+    <div class="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div class="flex items-start justify-between">
             <div>
-                <h3 class="text-lg font-bold text-slate-900 mb-1">Two-Factor Authentication Status</h3>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Two-Factor Authentication Status</h3>
                 <p class="text-xs text-slate-500 max-w-xl leading-relaxed">
                     Add an extra layer of security to your domain reseller portal account using Google Authenticator, Authy, or 1Password.
                 </p>
@@ -42,16 +42,16 @@
             @endif
         </div>
 
-        <div class="mt-8 pt-6 border-t border-slate-100">
+        <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
             @if($user->two_factor_confirmed_at)
-                <p class="text-sm text-slate-600 mb-4">
+                <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">
                     Two-Factor Authentication is currently active on your account. To disable it, enter your current password below.
                 </p>
                 <form action="{{ route('client.two-factor.disable') }}" method="POST" class="max-w-sm space-y-3">
                     @csrf
                     @method('DELETE')
                     <input type="password" name="password" placeholder="Enter current password to disable" required
-                        class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        class="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
                     <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition">
                         Disable Two-Factor Authentication
                     </button>

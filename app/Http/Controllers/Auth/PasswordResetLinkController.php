@@ -22,7 +22,7 @@ class PasswordResetLinkController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', strtolower(trim($request->email)))->first();
         if ($user) {
             $token = Str::random(64);
 
@@ -33,9 +33,11 @@ class PasswordResetLinkController extends Controller
 
             $resetUrl = route('password.reset', ['token' => $token, 'email' => $user->email]);
 
-            SendEmailJob::dispatch($user->email, 'welcome_email', [
-                'user_name' => $user->name,
-                'login_url' => $resetUrl,
+            SendEmailJob::dispatch($user->email, 'password_reset', [
+                'user_name'      => $user->name,
+                'reset_url'      => $resetUrl,
+                'expiry_minutes' => 60,
+                'company_name'   => config('app.name', 'HostNibo Domain Hub'),
             ], $user->id);
         }
 

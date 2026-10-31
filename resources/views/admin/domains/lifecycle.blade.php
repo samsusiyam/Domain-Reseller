@@ -36,7 +36,7 @@
         </a>
 
         <a href="{{ route('admin.domains.lifecycle', ['tab' => 'pending_delete']) }}" class="bg-white dark:bg-[#111827] rounded-xl border {{ $tab === 'pending_delete' ? 'border-[#F6821F]' : 'border-slate-200 dark:border-slate-800' }} p-4 shadow-xs hover:border-[#F6821F] transition">
-            <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Pending Delete</span>
+            <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Delete</span>
             <div class="text-2xl font-bold font-mono text-slate-900 dark:text-white mt-1 tabular-nums">{{ number_format($stats['pending_delete']) }}</div>
             <p class="text-[10px] text-slate-400 mt-0.5">Dropping / Non-restorable</p>
         </a>
@@ -85,7 +85,7 @@
                         @php
                             $diff = $domain->expires_at ? now()->diffInDays($domain->expires_at, false) : 0;
                         @endphp
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                        <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/40 transition">
                             <td class="px-5 py-3 font-mono font-bold text-slate-900 dark:text-white">
                                 <a href="{{ route('admin.domains.show', $domain->id) }}" class="hover:text-[#F6821F]">
                                     {{ $domain->domain_name }}
@@ -122,7 +122,7 @@
                                         Redemption (RGP)
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 dark:text-slate-300 dark:bg-slate-800">
                                         Pending Delete
                                     </span>
                                 @endif

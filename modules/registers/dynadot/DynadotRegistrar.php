@@ -603,12 +603,116 @@ class DynadotRegistrar extends AbstractRegistrar implements RegistrarModuleInter
 
     public function getWhois(string $domain): WhoisDataDTO
     {
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $dRes = $this->restRequest('GET', "/restful/v2/domains/{$domain}");
+            if (!empty($dRes['data']['domain_info'])) {
+                $info = $dRes['data']['domain_info'];
+                $regId = $info['registrant_contact_id'] ?? null;
+                $adminId = $info['admin_contact_id'] ?? $regId;
+                $techId = $info['technical_contact_id'] ?? $regId;
+                $billingId = $info['billing_contact_id'] ?? $regId;
+
+                $cache = [];
+                $fetchContact = function ($id) use (&$cache) {
+                    if (!$id) return [];
+                    if (isset($cache[$id])) return $cache[$id];
+                    $cRes = $this->restRequest('GET', "/restful/v2/contacts/{$id}");
+                    if (!empty($cRes['data']['contact'])) {
+                        $c = $cRes['data']['contact'];
+                        $nameParts = explode(' ', trim($c['name'] ?? ''), 2);
+                        $cache[$id] = [
+                            'first_name'     => $nameParts[0] ?? '',
+                            'last_name'      => $nameParts[1] ?? 'Owner',
+                            'company_name'   => $c['organization'] ?? '',
+                            'email'          => $c['email'] ?? '',
+                            'phone_number'   => ($c['phone_cc'] ? '+' . $c['phone_cc'] . '.' : '') . ($c['phone_number'] ?? ''),
+                            'address_line_1' => $c['address1'] ?? '',
+                            'address_line_2' => $c['address2'] ?? '',
+                            'city'           => $c['city'] ?? '',
+                            'state'          => $c['state'] ?? '',
+                            'postal_code'    => $c['zip'] ?? '',
+                            'country'        => $c['country'] ?? 'BD',
+                        ];
+                        return $cache[$id];
+                    }
+                    return [];
+                };
+
+                return new WhoisDataDTO(
+                    registrant: $fetchContact($regId),
+                    admin:      $fetchContact($adminId),
+                    tech:       $fetchContact($techId),
+                    billing:    $fetchContact($billingId)
+                );
+            }
+        }
+
         return new WhoisDataDTO();
     }
 
     public function updateWhois(string $domain, WhoisDataDTO $whoisData): bool
     {
-        return true;
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $regData = !empty($whoisData->registrant) ? $whoisData->registrant : [];
+            if (empty($regData)) {
+                return false;
+            }
+
+            $fullName = trim(($regData['first_name'] ?? '') . ' ' . ($regData['last_name'] ?? ''));
+            if (empty($fullName)) $fullName = 'MD Samsuzzaman Siyam';
+
+            $phone = $regData['phone_number'] ?? '01303533855';
+            $phoneCc = '880';
+            if (preg_match('/^\+?(\d{1,3})[\.-]?(\d+)$/', $phone, $pm)) {
+                $phoneCc = $pm[1];
+                $phone = $pm[2];
+            }
+
+            $contactPayload = [
+                'organization' => $regData['company_name'] ?? 'Host Nibo',
+                'name'         => $fullName,
+                'email'        => $regData['email'] ?? 'samsusiyam@gmail.com',
+                'phone_number' => $phone,
+                'phone_cc'     => $phoneCc,
+                'address1'     => $regData['address_line_1'] ?? 'Bus Stand Road',
+                'city'         => $regData['city'] ?? 'Gaibandha',
+                'state'        => $regData['state'] ?? 'Rangpur',
+                'zip'          => $regData['postal_code'] ?? '5700',
+                'country'      => strtoupper($regData['country'] ?? 'BD'),
+            ];
+
+            // Get current domain info to check existing contact ID
+            $dRes = $this->restRequest('GET', "/restful/v2/domains/{$domain}");
+            $contactId = $dRes['data']['domain_info']['registrant_contact_id'] ?? null;
+
+            if ($contactId) {
+                $uRes = $this->restRequest('PUT', "/restful/v2/contacts/{$contactId}", ['contact' => $contactPayload]);
+                if (isset($uRes['code']) && $uRes['code'] === 200) {
+                    return true;
+                }
+            }
+
+            // Create new contact and associate with domain
+            $newRes = $this->restRequest('POST', '/restful/v2/contacts', ['contact' => $contactPayload]);
+            $newContactId = $newRes['data']['contact_id'] ?? null;
+
+            if ($newContactId) {
+                $setRes = $this->restRequest('PUT', "/restful/v2/domains/{$domain}/contacts", [
+                    'registrant_contact_id' => $newContactId,
+                    'admin_contact_id'      => $newContactId,
+                    'technical_contact_id'  => $newContactId,
+                    'billing_contact_id'    => $newContactId,
+                ]);
+
+                return isset($setRes['code']) && $setRes['code'] === 200;
+            }
+        }
+
+        return false;
     }
 
     public function getEppCode(string $domain): string

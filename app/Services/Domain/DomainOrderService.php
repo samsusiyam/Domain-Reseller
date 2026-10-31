@@ -76,6 +76,63 @@ class DomainOrderService
                     'registrar_payload' => $item,
                     'status' => 'pending',
                 ]);
+
+                $domainStr = strtolower(trim($item['domain']));
+                $years = (int) ($item['years'] ?? 1);
+
+                // If ID Protection has a cost, create OrderItem for it
+                if (!empty($item['id_protection']) && $tldModel->id_protection_available && (float) $tldModel->id_protection_cost > 0) {
+                    $cost = (float) $tldModel->id_protection_cost;
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'domain_id' => $existingDomain?->id,
+                        'item_type' => 'id_protection',
+                        'domain_name' => $domainStr,
+                        'years' => $years,
+                        'unit_price' => $cost,
+                        'total_price' => $cost * $years,
+                        'registrar_id' => $tldModel->registrar_id,
+                        'registrar_cost' => 0.0000,
+                        'registrar_payload' => ['for_domain' => $domainStr],
+                        'status' => 'pending',
+                    ]);
+                }
+
+                // If DNS Management has a cost, create OrderItem for it
+                if (!empty($item['dns_management']) && $tldModel->dns_management_available && (float) $tldModel->dns_management_cost > 0) {
+                    $cost = (float) $tldModel->dns_management_cost;
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'domain_id' => $existingDomain?->id,
+                        'item_type' => 'dns_management',
+                        'domain_name' => $domainStr,
+                        'years' => $years,
+                        'unit_price' => $cost,
+                        'total_price' => $cost * $years,
+                        'registrar_id' => $tldModel->registrar_id,
+                        'registrar_cost' => 0.0000,
+                        'registrar_payload' => ['for_domain' => $domainStr],
+                        'status' => 'pending',
+                    ]);
+                }
+
+                // If Email Forwarding has a cost, create OrderItem for it
+                if (!empty($item['email_forwarding']) && $tldModel->email_forwarding_available && (float) $tldModel->email_forwarding_cost > 0) {
+                    $cost = (float) $tldModel->email_forwarding_cost;
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'domain_id' => $existingDomain?->id,
+                        'item_type' => 'email_forwarding',
+                        'domain_name' => $domainStr,
+                        'years' => $years,
+                        'unit_price' => $cost,
+                        'total_price' => $cost * $years,
+                        'registrar_id' => $tldModel->registrar_id,
+                        'registrar_cost' => 0.0000,
+                        'registrar_payload' => ['for_domain' => $domainStr],
+                        'status' => 'pending',
+                    ]);
+                }
             }
 
             // 3. Create Invoice
@@ -93,14 +150,55 @@ class DomainOrderService
             ]);
 
             // 4. Create Invoice Items
-            foreach ($order->items as $orderItem) {
-                InvoiceItem::create([
-                    'invoice_id' => $invoice->id,
-                    'description' => strtoupper(str_replace('_', ' ', $orderItem->item_type)) . ' - ' . $orderItem->domain_name . ' (' . $orderItem->years . ' Yr)',
-                    'quantity' => $orderItem->years,
-                    'unit_price' => $orderItem->unit_price,
-                    'total_price' => $orderItem->total_price,
-                ]);
+            foreach ($order->fresh()->items as $orderItem) {
+                if (in_array($orderItem->item_type, ['id_protection', 'dns_management', 'email_forwarding'])) {
+                    $label = match ($orderItem->item_type) {
+                        'id_protection' => 'ID PROTECTION PRIVACY',
+                        'dns_management' => 'DNS ZONE MANAGEMENT',
+                        'email_forwarding' => 'EMAIL FORWARDING SERVICE',
+                        default => strtoupper($orderItem->item_type),
+                    };
+                    InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'description' => $label . ' - ' . $orderItem->domain_name . ' (' . $orderItem->years . ' ' . ($orderItem->years == 1 ? 'Yr' : 'Yrs') . ')',
+                        'quantity' => $orderItem->years,
+                        'unit_price' => $orderItem->unit_price,
+                        'total_price' => $orderItem->total_price,
+                    ]);
+                } else {
+                    $payload = is_array($orderItem->registrar_payload)
+                        ? $orderItem->registrar_payload
+                        : (json_decode($orderItem->registrar_payload ?? '[]', true) ?: []);
+
+                    $tld = $this->availabilityService->extractTld($orderItem->domain_name);
+                    $tldModel = TldPricing::where('tld', $tld)->first();
+
+                    $addons = [];
+                    // DNS Management
+                    if (isset($payload['dns_management']) ? (bool) $payload['dns_management'] : true) {
+                        $addons[] = 'DNS Management (Free)';
+                    }
+                    // Email Forwarding
+                    if (!empty($payload['email_forwarding'])) {
+                        $addons[] = 'Email Forwarding (Free)';
+                    }
+                    // ID Protection
+                    if (!empty($payload['id_protection'])) {
+                        $cost = (float) ($tldModel?->id_protection_cost ?? 0);
+                        $addons[] = 'ID Protection (' . ($cost > 0 ? '$' . number_format($cost, 2) . '/yr' : 'Free') . ')';
+                    }
+
+                    $addonText = !empty($addons) ? "
+Included: " . implode(' • ', $addons) : '';
+
+                    InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'description' => strtoupper(str_replace('_', ' ', $orderItem->item_type)) . ' - ' . $orderItem->domain_name . ' (' . $orderItem->years . ' ' . ($orderItem->years == 1 ? 'Yr' : 'Yrs') . ')' . $addonText,
+                        'quantity' => $orderItem->years,
+                        'unit_price' => $orderItem->unit_price,
+                        'total_price' => $orderItem->total_price,
+                    ]);
+                }
             }
 
             if ($totals['promo_code']) {
@@ -136,7 +234,7 @@ class DomainOrderService
             $user->deductBalance($amountDue);
 
             // Record transaction
-            Transaction::create([
+            $transaction = Transaction::create([
                 'user_id' => $user->id,
                 'invoice_id' => $invoice->id,
                 'gateway' => 'balance',
@@ -150,6 +248,7 @@ class DomainOrderService
             ]);
 
             $invoice->markAsPaid('balance');
+            event(new \App\Events\InvoicePaid($invoice, $transaction));
 
             if ($invoice->order) {
                 $this->fulfillOrder($invoice->order);

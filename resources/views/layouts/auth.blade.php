@@ -22,6 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Design System Tokens -->
+    <link rel="stylesheet" href="{{ asset('css/app.min.css') . '?v=' . @filemtime(public_path('css/app.min.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/design-system.css') . '?v=' . @filemtime(public_path('css/design-system.css')) }}">
 
     <!-- Tailwind CSS CDN -->

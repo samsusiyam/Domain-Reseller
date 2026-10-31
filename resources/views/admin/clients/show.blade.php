@@ -5,7 +5,7 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-            <a href="{{ route('admin.clients.index') }}" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+            <a href="{{ route('admin.clients.index') }}" class="p-2 text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-200 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </a>
             <div>
@@ -172,7 +172,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-500 uppercase text-[11px] font-semibold">
+                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-semibold">
                         <th class="py-3 px-4">Domain</th>
                         <th class="py-3 px-4">Registrar</th>
                         <th class="py-3 px-4">Expiry Date</th>
@@ -183,7 +183,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($domains as $d)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition">
+                        <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/20 transition">
                             <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
                                 <a href="{{ route('admin.domains.show', $d->id) }}" class="hover:text-[#F6821F]">
                                     {{ $d->domain_name }}
@@ -192,7 +192,7 @@
                             <td class="py-3 px-4 text-slate-600 dark:text-slate-300 font-mono">{{ $d->registrarModule?->display_name ?? $d->registrar ?? '—' }}</td>
                             <td class="py-3 px-4 text-slate-600 dark:text-slate-300 font-mono">{{ $d->expires_at ? $d->expires_at->format('Y-m-d') : '—' }}</td>
                             <td class="py-3 px-4">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-medium {{ $d->auto_renew ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }}">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium {{ $d->auto_renew ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }}">
                                     {{ $d->auto_renew ? 'Enabled' : 'Disabled' }}
                                 </span>
                             </td>
@@ -228,7 +228,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-500 uppercase text-[11px] font-semibold">
+                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-semibold">
                         <th class="py-3 px-4">Order #</th>
                         <th class="py-3 px-4">Amount</th>
                         <th class="py-3 px-4">Status</th>
@@ -238,7 +238,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($orders as $o)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition">
+                        <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/20 transition">
                             <td class="py-3 px-4 font-mono font-semibold text-slate-900 dark:text-white">
                                 <a href="{{ route('admin.orders.show', $o->id) }}" class="hover:text-[#F6821F]">
                                     {{ $o->order_number }}
@@ -252,7 +252,7 @@
                                     {{ $o->status }}
                                 </span>
                             </td>
-                            <td class="py-3 px-4 text-slate-500">{{ $o->created_at->format('M d, Y H:i') }}</td>
+                            <td class="py-3 px-4 text-slate-500 dark:text-slate-400">{{ $o->created_at->format('M d, Y H:i') }}</td>
                             <td class="py-3 px-4 text-right">
                                 <a href="{{ route('admin.orders.show', $o->id) }}" class="cf-btn cf-btn-secondary text-[11px] py-1 px-2.5">
                                     View Order
@@ -280,7 +280,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-500 uppercase text-[11px] font-semibold">
+                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-semibold">
                         <th class="py-3 px-4">Invoice #</th>
                         <th class="py-3 px-4">Total</th>
                         <th class="py-3 px-4">Balance Due</th>
@@ -291,7 +291,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($invoices as $inv)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition">
+                        <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/20 transition">
                             <td class="py-3 px-4 font-mono font-semibold text-slate-900 dark:text-white">
                                 <a href="{{ route('admin.invoices.show', $inv->id) }}" class="hover:text-[#F6821F]">
                                     #{{ $inv->invoice_number }}
@@ -304,7 +304,7 @@
                                     {{ $inv->status }}
                                 </span>
                             </td>
-                            <td class="py-3 px-4 text-slate-500">{{ $inv->due_date ? $inv->due_date->format('M d, Y') : '—' }}</td>
+                            <td class="py-3 px-4 text-slate-500 dark:text-slate-400">{{ $inv->due_date ? $inv->due_date->format('M d, Y') : '—' }}</td>
                             <td class="py-3 px-4 text-right">
                                 <a href="{{ route('admin.invoices.show', $inv->id) }}" class="cf-btn cf-btn-secondary text-[11px] py-1 px-2.5">
                                     View
@@ -329,7 +329,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-500 uppercase text-[11px] font-semibold">
+                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-semibold">
                         <th class="py-3 px-4">Reference</th>
                         <th class="py-3 px-4">Type</th>
                         <th class="py-3 px-4">Gateway</th>
@@ -340,7 +340,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($transactions as $txn)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition">
+                        <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/20 transition">
                             <td class="py-3 px-4 font-mono text-slate-900 dark:text-slate-100">{{ $txn->reference_id ?? $txn->gateway_transaction_id ?? ('#TXN-' . $txn->id) }}</td>
                             <td class="py-3 px-4 uppercase font-semibold text-[10px] {{ $txn->type === 'credit' ? 'text-emerald-600' : 'text-red-600' }}">{{ $txn->type }}</td>
                             <td class="py-3 px-4 text-slate-600 dark:text-slate-300 capitalize">{{ $txn->gateway }}</td>
@@ -352,7 +352,7 @@
                                     {{ $txn->status }}
                                 </span>
                             </td>
-                            <td class="py-3 px-4 text-slate-500">{{ $txn->created_at->format('M d, Y H:i') }}</td>
+                            <td class="py-3 px-4 text-slate-500 dark:text-slate-400">{{ $txn->created_at->format('M d, Y H:i') }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -375,7 +375,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-500 uppercase text-[11px] font-semibold">
+                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-semibold">
                         <th class="py-3 px-4">Ticket #</th>
                         <th class="py-3 px-4">Department</th>
                         <th class="py-3 px-4">Subject</th>
@@ -386,7 +386,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($tickets as $t)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition">
+                        <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/20 transition">
                             <td class="py-3 px-4 font-mono font-semibold text-slate-900 dark:text-white">
                                 <a href="{{ route('admin.tickets.show', $t->id) }}" class="hover:text-[#F6821F]">
                                     #{{ $t->ticket_number }}
@@ -399,7 +399,7 @@
                                     {{ $t->status }}
                                 </span>
                             </td>
-                            <td class="py-3 px-4 text-slate-500">{{ $t->updated_at->diffForHumans() }}</td>
+                            <td class="py-3 px-4 text-slate-500 dark:text-slate-400">{{ $t->updated_at->diffForHumans() }}</td>
                             <td class="py-3 px-4 text-right">
                                 <a href="{{ route('admin.tickets.show', $t->id) }}" class="cf-btn cf-btn-secondary text-[11px] py-1 px-2.5">
                                     View

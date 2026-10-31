@@ -4,11 +4,9 @@
 <div class="max-w-4xl mx-auto space-y-6">
 
     <div>
-        <h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Default Nameservers</h1>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Specify default brand nameservers assigned to new domain registrations and wholesale orders.</p>
-    </div>
+        <h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Default Nameservers
 
-    @if(session('success'))
+    <x-admin-settings-tabs active="nameservers" />@if(session('success'))
         <div class="p-3.5 rounded-[6px] text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/50 flex items-center gap-2">
             <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>

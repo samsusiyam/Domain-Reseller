@@ -6,6 +6,7 @@ use App\Models\Domain;
 use App\Models\EmailForward;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class ApiEmailForwardController extends BaseApiController
 {
@@ -51,6 +52,10 @@ class ApiEmailForwardController extends BaseApiController
             'is_active'         => true,
         ]);
 
+        try {
+            Http::timeout(3)->get('http://127.0.0.1:9099/sync', ['domain' => $domainModel->domain_name]);
+        } catch (\Throwable $e) {}
+
         return $this->sendResponse($forward, 'Email forwarder created successfully.', 201);
     }
 
@@ -69,6 +74,10 @@ class ApiEmailForwardController extends BaseApiController
 
         $forward = EmailForward::where('domain_id', $domainModel->id)->findOrFail($forwardId);
         $forward->delete();
+
+        try {
+            Http::timeout(3)->get('http://127.0.0.1:9099/sync', ['domain' => $domainModel->domain_name]);
+        } catch (\Throwable $e) {}
 
         return $this->sendResponse(null, 'Email forwarder removed.');
     }

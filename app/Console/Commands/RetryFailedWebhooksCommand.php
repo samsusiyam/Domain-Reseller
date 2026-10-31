@@ -15,9 +15,11 @@ class RetryFailedWebhooksCommand extends Command
     {
         $limit = (int) $this->option('limit');
 
-        $failedLogs = WebhookLog::where('is_success', false)
-            ->where('retry_count', '<', 5)
+        $failedLogs = WebhookLog::where('status', 'failed')
             ->where('created_at', '>=', now()->subHours(24))
+            ->whereHas('webhook', function ($q) {
+                $q->where('is_active', true)->where('failure_count', '<', 5);
+            })
             ->with('webhook')
             ->take($limit)
             ->get();
@@ -27,9 +29,9 @@ class RetryFailedWebhooksCommand extends Command
         foreach ($failedLogs as $log) {
             if (!$log->webhook || !$log->webhook->is_active) continue;
 
-            $log->increment('retry_count');
-            DispatchWebhookJob::dispatch($log->webhook_id, $log->event, $log->payload ?? []);
-            $this->line("Re-queued webhook delivery for Webhook #{$log->webhook_id} ({$log->event})");
+            $payload = is_array($log->payload) ? $log->payload : json_decode($log->payload, true);
+            DispatchWebhookJob::dispatch($log->webhook_id, $log->event_name, $payload ?? []);
+            $this->line("Re-queued webhook delivery for Webhook #{$log->webhook_id} ({$log->event_name})");
         }
 
         $this->info('Webhook retry process completed.');

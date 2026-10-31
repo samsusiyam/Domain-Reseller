@@ -5,24 +5,24 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Financial Transaction Ledger</h1>
-            <p class="text-xs text-slate-500 mt-1">Audit trail of all client and reseller payments, deposits, withdrawals, and balance debits.</p>
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Financial Transaction Ledger</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Audit trail of all client and reseller payments, deposits, withdrawals, and balance debits.</p>
         </div>
     </div>
 
     <!-- Filter Bar -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+    <div class="bg-white dark:bg-[#111827] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4">
         <form method="GET" action="{{ route('admin.transactions.index') }}" class="flex flex-col sm:flex-row items-center gap-3">
             <div class="relative flex-1 w-full">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by reference ID, description, user name or email..."
-                    class="block w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    class="block w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
 
             <div class="w-full sm:w-40">
-                <select name="type" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <select name="type" class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="">All Types</option>
                     <option value="payment" {{ request('type') === 'payment' ? 'selected' : '' }}>Payment</option>
                     <option value="credit" {{ request('type') === 'credit' ? 'selected' : '' }}>Deposit / Credit</option>
@@ -32,7 +32,7 @@
             </div>
 
             <div class="w-full sm:w-40">
-                <select name="status" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <select name="status" class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="">All Statuses</option>
                     <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
                     <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -44,21 +44,21 @@
                 Filter
             </button>
             @if(request('search') || request('type') || request('status'))
-                <a href="{{ route('admin.transactions.index') }}" class="text-xs text-slate-500 hover:text-slate-800 underline">Reset</a>
+                <a href="{{ route('admin.transactions.index') }}" class="text-xs text-slate-500 hover:text-slate-800 dark:text-white underline">Reset</a>
             @endif
         </form>
     </div>
 
     <!-- Transactions Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-white dark:bg-[#111827] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         @if($transactions->isEmpty())
             <div class="text-center py-16 px-4 text-slate-400 text-sm">
                 No financial transactions found.
             </div>
         @else
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+                <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                             <th class="px-6 py-3.5">Reference ID</th>
                             <th class="px-6 py-3.5">User</th>
@@ -69,24 +69,24 @@
                             <th class="px-6 py-3.5 text-center">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 font-mono text-xs">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-xs">
                         @foreach($transactions as $txn)
-                            <tr class="hover:bg-slate-50/50 transition">
-                                <td class="px-6 py-4 font-bold text-slate-900">{{ $txn->transaction_number ?? $txn->gateway_transaction_id ?? ('TXN-' . $txn->id) }}</td>
+                            <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 transition">
+                                <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">{{ $txn->transaction_number ?? $txn->gateway_transaction_id ?? ('TXN-' . $txn->id) }}</td>
                                 <td class="px-6 py-4 font-sans">
-                                    <div class="font-bold text-slate-800">{{ $txn->user?->name ?? 'None' }}</div>
+                                    <div class="font-bold text-slate-800 dark:text-white">{{ $txn->user?->name ?? 'None' }}</div>
                                     <div class="text-[11px] text-slate-400 font-mono">{{ $txn->user?->email }}</div>
                                 </td>
-                                <td class="px-6 py-4 uppercase font-sans font-semibold text-[11px] text-slate-600">
+                                <td class="px-6 py-4 uppercase font-sans font-semibold text-[11px] text-slate-600 dark:text-slate-300">
                                     {{ $txn->gateway ?? $txn->payment_method ?? 'Wallet' }}
                                 </td>
-                                <td class="px-6 py-4 font-sans text-slate-700 font-medium">
+                                <td class="px-6 py-4 font-sans text-slate-700 dark:text-slate-300 font-medium">
                                     {{ $txn->payment_details['reason'] ?? $txn->payment_details['notes'] ?? $txn->description ?? 'Transaction' }}
                                 </td>
-                                <td class="px-6 py-4 text-slate-500 font-sans whitespace-nowrap">
+                                <td class="px-6 py-4 text-slate-500 dark:text-slate-400 font-sans whitespace-nowrap">
                                     {{ $txn->created_at->format('M d, Y H:i') }}
                                 </td>
-                                <td class="px-6 py-4 text-right font-black font-sans text-sm {{ $txn->type === 'credit' || $txn->amount > 0 ? 'text-emerald-600' : 'text-slate-900' }}">
+                                <td class="px-6 py-4 text-right font-black font-sans text-sm {{ $txn->type === 'credit' || $txn->amount > 0 ? 'text-emerald-600' : 'text-slate-900 dark:text-white' }}">
                                     ${{ number_format($txn->amount, 2) }}
                                 </td>
                                 <td class="px-6 py-4 text-center font-sans">
@@ -102,7 +102,7 @@
             </div>
 
             @if($transactions->hasPages())
-                <div class="p-4 border-t border-slate-100 font-sans">
+                <div class="p-4 border-t border-slate-100 dark:border-slate-800 font-sans">
                     {{ $transactions->links() }}
                 </div>
             @endif

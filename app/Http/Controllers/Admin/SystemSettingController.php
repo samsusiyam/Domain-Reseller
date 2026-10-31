@@ -263,4 +263,42 @@ class SystemSettingController extends Controller
         $this->activityLogger->log('settings_updated', 'Admin updated payment gateway credentials');
 
         return back()->with('success', 'Payment gateway credentials saved successfully.');
-    }}
+    }
+    /**
+     * Default Nameservers configuration page.
+     */
+    public function nameservers()
+    {
+        $settings = [
+            'default_ns1' => SystemSetting::get('default_ns1', 'ns1.hostnibo.com'),
+            'default_ns2' => SystemSetting::get('default_ns2', 'ns2.hostnibo.com'),
+            'default_ns3' => SystemSetting::get('default_ns3', ''),
+            'default_ns4' => SystemSetting::get('default_ns4', ''),
+        ];
+
+        return view('admin.settings.nameservers', compact('settings'));
+    }
+
+    /**
+     * Save default nameservers.
+     */
+    public function updateNameservers(Request $request)
+    {
+        $request->validate([
+            'default_ns1' => ['required', 'string', 'max:255'],
+            'default_ns2' => ['required', 'string', 'max:255'],
+            'default_ns3' => ['nullable', 'string', 'max:255'],
+            'default_ns4' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        SystemSetting::set('default_ns1', $request->input('default_ns1'), 'general');
+        SystemSetting::set('default_ns2', $request->input('default_ns2'), 'general');
+        SystemSetting::set('default_ns3', $request->input('default_ns3', ''), 'general');
+        SystemSetting::set('default_ns4', $request->input('default_ns4', ''), 'general');
+
+        $this->activityLogger->log('nameservers_updated', 'Admin updated default brand nameservers');
+
+        return back()->with('success', 'Default brand nameservers saved successfully.');
+    }
+
+}

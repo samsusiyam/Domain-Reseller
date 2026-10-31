@@ -41,7 +41,7 @@ class CheckRegistrarBalancesCommand extends Command
                     // Send email to all admin accounts
                     $admins = User::where('role', 'admin')->get();
                     foreach ($admins as $admin) {
-                        SendEmailJob::dispatch('registrar_balance_low', $admin->email, [
+                        SendEmailJob::dispatch($admin->email, 'registrar_balance_low', [
                             'registrar_name' => $registrar->name,
                             'current_balance'=> '$' . number_format($balanceDto->balance, 2),
                             'threshold'      => '$' . number_format($threshold, 2),

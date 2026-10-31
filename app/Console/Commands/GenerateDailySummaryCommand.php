@@ -20,12 +20,11 @@ class GenerateDailySummaryCommand extends Command
     {
         $today = Carbon::today();
 
-        $dailyRevenueUsd = (float) Transaction::where('type', 'payment')
-            ->where('status', 'completed')
+        $dailyRevenueUsd = (float) Transaction::where('status', 'completed')
             ->whereDate('created_at', $today)
-            ->sum('amount');
+            ->sum('amount_in_usd');
 
-        $newRegistrationsCount = Domain::whereDate('registration_date', $today)->count();
+        $newRegistrationsCount = Domain::whereDate('registered_at', $today)->count();
         $newOrdersCount = Order::whereDate('created_at', $today)->count();
         $newTicketsCount = SupportTicket::whereDate('created_at', $today)->count();
 
@@ -37,13 +36,14 @@ class GenerateDailySummaryCommand extends Command
 
         $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
-            SendEmailJob::dispatch('admin_daily_summary', $admin->email, [
-                'admin_name'        => $admin->name,
-                'date'              => $today->toDateString(),
-                'revenue_usd'       => '$' . number_format($dailyRevenueUsd, 2),
-                'new_domains_count' => $newRegistrationsCount,
-                'new_orders_count'  => $newOrdersCount,
-                'new_tickets_count' => $newTicketsCount,
+            SendEmailJob::dispatch($admin->email, 'admin_daily_summary', [
+                'summary_date'          => $today->toDateString(),
+                'admin_name'            => $admin->name,
+                'daily_revenue'         => '$' . number_format($dailyRevenueUsd, 2),
+                'new_registrations'     => $newRegistrationsCount,
+                'renewals'              => 0,
+                'total_active_domains'  => Domain::where('status', 'active')->count(),
+                'company_name'          => config('app.name', 'HostNibo Domain Hub'),
             ], $admin->id);
         }
 

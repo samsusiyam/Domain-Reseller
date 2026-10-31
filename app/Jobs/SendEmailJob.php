@@ -28,14 +28,46 @@ class SendEmailJob implements ShouldQueue
 
     public function handle(): void
     {
-        $template = EmailTemplate::where('template_key', $this->templateKey)->where('is_active', true)->first();
+        // 1. Auto-detect and fix swapped arguments ($templateKey, $recipientEmail)
+        if (!str_contains($this->recipientEmail, '@') && str_contains($this->templateKey, '@')) {
+            $temp = $this->recipientEmail;
+            $this->recipientEmail = $this->templateKey;
+            $this->templateKey = $temp;
+        }
+
+        // 2. Normalize template key aliases
+        $templateKey = match ($this->templateKey) {
+            'domain_expiring_reminder' => 'domain_expiring',
+            'domain_renewed_confirmation' => 'domain_renewed',
+            'domain_registered_confirmation' => 'domain_registered',
+            default => $this->templateKey,
+        };
+
+        $template = EmailTemplate::where('template_key', $templateKey)->where('is_active', true)->first();
         if (!$template) {
+            \Illuminate\Support\Facades\Log::warning("SendEmailJob: Template [{$templateKey}] not found or inactive.");
             return;
         }
 
-        $rendered = $template->render(array_merge([
-            'company_name' => config('app.name', 'DomainReseller'),
-        ], $this->templateData));
+        // Normalize template placeholders (support both {client_name}/{user_name}, {days_remain}/{days_left}, etc.)
+        $data = array_merge([
+            'company_name' => config('app.name', 'HostNibo Domain Hub'),
+        ], $this->templateData);
+
+        if (isset($data['client_name']) && !isset($data['user_name'])) {
+            $data['user_name'] = $data['client_name'];
+        }
+        if (isset($data['days_remain']) && !isset($data['days_left'])) {
+            $data['days_left'] = $data['days_remain'];
+        }
+        if (isset($data['expiry_date']) && !isset($data['expires_at'])) {
+            $data['expires_at'] = $data['expiry_date'];
+        }
+        if (isset($data['renewal_url']) && !isset($data['renew_url'])) {
+            $data['renew_url'] = $data['renewal_url'];
+        }
+
+        $rendered = $template->render($data);
 
         $status = 'sent';
         $errorMessage = null;
@@ -48,18 +80,23 @@ class SendEmailJob implements ShouldQueue
         } catch (\Throwable $e) {
             $status = 'failed';
             $errorMessage = $e->getMessage();
+            \Illuminate\Support\Facades\Log::error("SendEmailJob failed to {$this->recipientEmail}: " . $e->getMessage());
         }
 
-        EmailLog::create([
-            'user_id' => $this->userId,
-            'recipient_email' => $this->recipientEmail,
-            'template_key' => $this->templateKey,
-            'subject' => $rendered['subject'],
-            'body' => $rendered['body_html'],
-            'status' => $status,
-            'error_message' => $errorMessage,
-            'sent_at' => ($status === 'sent') ? now() : null,
-            'created_at' => now(),
-        ]);
+        try {
+            EmailLog::create([
+                'user_id' => $this->userId,
+                'recipient_email' => $this->recipientEmail,
+                'template_key' => $templateKey,
+                'subject' => $rendered['subject'],
+                'body' => $rendered['body_html'],
+                'status' => $status,
+                'error_message' => $errorMessage,
+                'sent_at' => ($status === 'sent') ? now() : null,
+                'created_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            // Log creation fallback
+        }
     }
 }

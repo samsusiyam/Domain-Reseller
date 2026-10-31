@@ -83,6 +83,7 @@ require __DIR__.'/auth.php';
 
 // Personal Payment Gateway Routes
 Route::middleware(['auth'])->group(function () {
+    Route::get('/payment/checkout/{invoice}/{gateway}', [PaymentGatewayController::class, 'checkout'])->name('payment.checkout');
     Route::get('/payment/bkash-personal/{invoice}', [PaymentGatewayController::class, 'showBkashPersonal'])->name('payment.bkash-personal.show');
     Route::post('/payment/bkash-personal/{invoice}/submit', [PaymentGatewayController::class, 'submitBkashPersonal'])->name('payment.bkash-personal.submit');
     Route::get('/payment/binance-personal/{invoice}', [PaymentGatewayController::class, 'showBinancePersonal'])->name('payment.binance-personal.show');

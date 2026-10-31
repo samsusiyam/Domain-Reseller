@@ -246,55 +246,77 @@
             </div>
 
             <!-- Single Result Panel -->
-            <div x-show="singleResult" x-cloak class="mt-6 p-5 rounded-[6px] border" style="background-color: var(--surface); border-color: var(--border);">
+            <div x-show="singleResult" x-cloak class="mt-6 p-4 sm:p-5 rounded-[6px] border" style="background-color: var(--surface); border-color: var(--border);">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xl font-semibold font-mono tracking-tight" style="color: var(--text);" x-text="singleResult?.domain"></span>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                            <span class="text-lg sm:text-xl font-semibold font-mono tracking-tight break-all" style="color: var(--text);" x-text="singleResult?.domain"></span>
 
                             <!-- Status: Available -->
                             <template x-if="singleResult?.status === 'available' || (singleResult?.is_available && singleResult?.status !== 'error')">
-                                <span class="cf-status-dot success">Available</span>
+                                <span class="cf-status-dot success shrink-0">Available</span>
                             </template>
 
                             <!-- Status: Taken -->
                             <template x-if="singleResult?.status === 'taken' || (!singleResult?.is_available && singleResult?.status !== 'error')">
-                                <span class="cf-status-dot neutral">Registered</span>
+                                <span class="cf-status-dot neutral shrink-0">Registered</span>
                             </template>
 
                             <!-- Status: Error (Never display 'Available' on error) -->
                             <template x-if="singleResult?.status === 'error'">
-                                <span class="cf-status-dot neutral">Unable to check, try again</span>
+                                <span class="cf-status-dot neutral shrink-0">Unable to check, try again</span>
                             </template>
 
                             <!-- Sandbox indicator -->
                             <template x-if="singleResult?.is_test_mode">
-                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 border border-amber-300">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/30 shrink-0">
                                     Sandbox mode
                                 </span>
                             </template>
                         </div>
 
-                        <!-- Explanatory text -->
+                        <!-- Explanatory text & Full Pricing Rates -->
                         <template x-if="singleResult?.status === 'available'">
-                            <p class="text-xs mt-1" style="color: var(--text-muted);">
-                                Available for immediate wholesale registration. Rate:
-                                <span class="font-semibold font-mono text-sm" style="color: var(--text);">
-                                    <span class="price tabular-nums" :data-usd="singleResult?.registration_cost">
-                                        $<span x-text="singleResult?.registration_cost"></span>/yr
-                                    </span>
-                                </span>
-                            </p>
+                            <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs" style="color: var(--text-muted);">
+                                <div class="flex items-baseline gap-1">
+                                    <span>Register:</span>
+                                    <strong class="font-mono text-sm font-bold text-[#F6821F]">
+                                        <span class="price tabular-nums" :data-usd="singleResult?.registration_cost">
+                                            $<span x-text="singleResult?.registration_cost"></span>/yr
+                                        </span>
+                                    </strong>
+                                </div>
+                                <template x-if="singleResult?.renewal_cost">
+                                    <div class="flex items-baseline gap-1">
+                                        <span>Renew:</span>
+                                        <strong class="font-mono text-xs font-semibold" style="color: var(--text);">
+                                            <span class="price tabular-nums" :data-usd="singleResult?.renewal_cost">
+                                                $<span x-text="singleResult?.renewal_cost"></span>/yr
+                                            </span>
+                                        </strong>
+                                    </div>
+                                </template>
+                                <template x-if="singleResult?.transfer_cost">
+                                    <div class="flex items-baseline gap-1">
+                                        <span>Transfer:</span>
+                                        <strong class="font-mono text-xs font-semibold" style="color: var(--text);">
+                                            <span class="price tabular-nums" :data-usd="singleResult?.transfer_cost">
+                                                $<span x-text="singleResult?.transfer_cost"></span>
+                                            </span>
+                                        </strong>
+                                    </div>
+                                </template>
+                            </div>
                         </template>
 
                         <template x-if="singleResult?.status === 'taken'">
-                            <p class="text-xs mt-1" style="color: var(--text-muted);">
+                            <p class="text-xs mt-1.5" style="color: var(--text-muted);">
                                 This domain is already registered. You may inspect the public WHOIS registry record or check alternative extensions.
                             </p>
                         </template>
 
                         <template x-if="singleResult?.status === 'error'">
-                            <p class="text-xs mt-1" style="color: var(--text-muted);" x-text="singleResult?.error_message || 'Upstream registry did not respond within timeout.'"></p>
+                            <p class="text-xs mt-1.5" style="color: var(--text-muted);" x-text="singleResult?.error_message || 'Upstream registry did not respond within timeout.'"></p>
                         </template>
                     </div>
 
@@ -431,19 +453,23 @@
                         <th>Registrar</th>
                         <th class="align-right">Register (1 yr)</th>
                         <th class="align-right">Renew (1 yr)</th>
+                        <th class="align-right">Transfer</th>
                         <th class="align-right">Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($allTlds->take(6) as $tld)
+                    @foreach($allTlds->take(8) as $tld)
                         <tr>
                             <td class="font-mono font-semibold" style="color: var(--text);">{{ $tld->tld }}</td>
                             <td class="text-xs" style="color: var(--text-muted);">{{ $tld->registrar?->name ?? 'Tier 1' }}</td>
                             <td class="align-right font-mono tabular-nums">
                                 <x-price :usd="$tld->client_register" />
                             </td>
-                            <td class="align-right font-mono tabular-nums">
+                            <td class="align-right font-mono tabular-nums" style="color: var(--text-muted);">
                                 <x-price :usd="$tld->client_renew" />
+                            </td>
+                            <td class="align-right font-mono tabular-nums" style="color: var(--text-muted);">
+                                <x-price :usd="$tld->client_transfer" />
                             </td>
                             <td class="align-right">
                                 <button type="button"

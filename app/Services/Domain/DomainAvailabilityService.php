@@ -80,6 +80,7 @@ class DomainAvailabilityService
         if ($tldConfig) {
             $availability->registrationCost = (float) $tldConfig->client_register;
             $availability->renewalCost = (float) $tldConfig->client_renew;
+            $availability->transferCost = (float) $tldConfig->client_transfer;
         }
 
         return $availability;

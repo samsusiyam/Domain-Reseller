@@ -80,6 +80,7 @@ Route::prefix('domains')->name('domains.')->group(function () {
     Route::post('/transfer', [DomainTransferController::class, 'store'])->name('transfer.store');
 
     // Domain Hub & Management
+    Route::post('/bulk-action', [ClientDomainController::class, 'bulkAction'])->name('bulk-action');
     Route::get('/', [ClientDomainController::class, 'index'])->name('index');
     Route::get('/{domain}', [ClientDomainController::class, 'show'])->name('show');
     Route::post('/{domain}/renew', [ClientDomainController::class, 'renew'])->name('renew');
@@ -87,6 +88,10 @@ Route::prefix('domains')->name('domains.')->group(function () {
     Route::post('/{domain}/toggle-lock', [ClientDomainController::class, 'toggleLock'])->name('toggle-lock');
     Route::post('/{domain}/toggle-privacy', [ClientDomainController::class, 'togglePrivacy'])->name('toggle-privacy');
     Route::post('/{domain}/epp', [ClientDomainController::class, 'fetchEppCode'])->name('epp');
+
+    // Internal Domain Push (Free & Instant Handover)
+    Route::get('/{domain}/push', [ClientDomainController::class, 'showPush'])->name('push');
+    Route::post('/{domain}/push', [ClientDomainController::class, 'processPush'])->name('push.process');
 
     // Authoritative Nameservers
     Route::get('/{domain}/nameservers', [NameserverController::class, 'edit'])->name('nameservers.edit');
@@ -98,6 +103,7 @@ Route::prefix('domains')->name('domains.')->group(function () {
     Route::post('/{domain}/dns-records', [DnsRecordController::class, 'store'])->name('dns.store');
     Route::put('/{domain}/dns-records/{recordId}', [DnsRecordController::class, 'update'])->name('dns.update');
     Route::delete('/{domain}/dns-records/{recordId}', [DnsRecordController::class, 'destroy'])->name('dns.destroy');
+    Route::post('/{domain}/dns-presets', [DnsRecordController::class, 'applyPreset'])->name('dns.preset');
 
     // Child Nameservers (Glue Records)
     Route::get('/{domain}/child-nameservers', [ChildNameserverController::class, 'index'])->name('child-ns.index');

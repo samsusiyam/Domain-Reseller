@@ -12,14 +12,7 @@
         </div>
     </div>
 
-    <!-- Navigation Sub-Tabs -->
-    <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
-        <a href="{{ route('admin.settings.general') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">General & Branding</a>
-        <a href="{{ route('admin.settings.email') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Email & SMTP</a>
-        <a href="{{ route('admin.settings.security') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Security & 2FA</a>
-        <a href="{{ route('admin.settings.currencies') }}" class="px-3.5 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Currencies & FX Rates</a>
-        <a href="{{ route('admin.settings.gateways') }}" class="px-3.5 py-2 text-[#F6821F] border-b-2 border-[#F6821F] font-semibold">Payment Gateways</a>
-    </div>
+    <x-admin-settings-tabs active="gateways" />
 
     <form action="{{ route('admin.settings.gateways.update') }}" method="POST" class="space-y-6">
         @csrf
@@ -28,47 +21,47 @@
         <!-- Gateway Selector Sub-Tabs (Clean Pills) -->
         <div class="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-medium">
             <button type="button" @click="activeTab = 'bkash_personal'"
-                    :class="activeTab === 'bkash_personal' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                    :class="activeTab === 'bkash_personal' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                 bKash Personal
             </button>
             <button type="button" @click="activeTab = 'uddoktapay'"
-                    :class="activeTab === 'uddoktapay' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                    :class="activeTab === 'uddoktapay' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                 UddoktaPay
             </button>
             <button type="button" @click="activeTab = 'binance_personal'"
-                    :class="activeTab === 'binance_personal' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                    :class="activeTab === 'binance_personal' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                 Binance Personal (Pay ID)
             </button>
             <button type="button" @click="activeTab = 'binance_merchant'"
-                    :class="activeTab === 'binance_merchant' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                    :class="activeTab === 'binance_merchant' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                 Binance Merchant Pay
             </button>
             <button type="button" @click="activeTab = 'sslcommerz'"
-                    :class="activeTab === 'sslcommerz' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                    :class="activeTab === 'sslcommerz' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                 SSLCommerz
             </button>
             <button type="button" @click="activeTab = 'piprapay'"
-                    :class="activeTab === 'piprapay' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                    :class="activeTab === 'piprapay' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                 PipraPay
             </button>
             <button type="button" @click="activeTab = 'bkash_merchant'"
-                    :class="activeTab === 'bkash_merchant' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                    :class="activeTab === 'bkash_merchant' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                 bKash Tokenized (Merchant)
             </button>
             <button type="button" @click="activeTab = 'stripe'"
-                    :class="activeTab === 'stripe' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                    :class="activeTab === 'stripe' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                 Stripe Cards
             </button>
             <button type="button" @click="activeTab = 'bank'"
-                    :class="activeTab === 'bank' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                    :class="activeTab === 'bank' ? 'bg-white dark:bg-slate-900 text-[#F6821F] font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                 Bank Wire
             </button>

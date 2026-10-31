@@ -33,15 +33,29 @@ class CheckExpiringDomainsCommand extends Command
                 if (!$domain->user) continue;
 
                 $data = [
-                    'client_name'   => $domain->user->name,
-                    'domain_name'   => $domain->domain_name,
-                    'expiry_date'   => $domain->expires_at->format('Y-m-d'),
-                    'days_remain'   => $days,
-                    'renewal_url'   => route('client.domains.show', $domain->id),
-                    'company_name'  => config('app.name'),
+                    'user_name'    => $domain->user->name,
+                    'client_name'  => $domain->user->name,
+                    'domain_name'  => $domain->domain_name,
+                    'expires_at'   => $domain->expires_at->format('M d, Y'),
+                    'expiry_date'  => $domain->expires_at->format('M d, Y'),
+                    'days_left'    => $days,
+                    'days_remain'  => $days,
+                    'renew_url'    => route('client.domains.show', $domain->id),
+                    'renewal_url'  => route('client.domains.show', $domain->id),
+                    'company_name' => config('app.name', 'HostNibo Domain Hub'),
                 ];
 
-                SendEmailJob::dispatch('domain_expiring_reminder', $domain->user->email, $data, $domain->user->id);
+                SendEmailJob::dispatch($domain->user->email, 'domain_expiring', $data, $domain->user->id);
+
+                try {
+                    app(\App\Services\Webhook\WebhookDispatcher::class)->dispatch('domain.expiring_soon', [
+                        'event'      => 'domain.expiring_soon',
+                        'domain'     => $domain->domain_name,
+                        'days_left'  => $days,
+                        'expires_at' => $domain->expires_at->toIso8601String(),
+                        'timestamp'  => now()->toIso8601String(),
+                    ], $domain->user);
+                } catch (\Throwable $e) {}
             }
         }
 

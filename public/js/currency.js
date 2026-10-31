@@ -77,11 +77,13 @@
             const isActive = (val === currentCurrency);
             btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             if (isActive) {
-                btn.classList.add('bg-white', 'text-[#111827]', 'font-semibold', 'border', 'border-[#E5E7EB]');
-                btn.classList.remove('text-[#6B7280]');
+                btn.classList.add('is-active');
+                btn.style.setProperty('background-color', '#F6821F', 'important');
+                btn.style.setProperty('color', '#FFFFFF', 'important');
             } else {
-                btn.classList.remove('bg-white', 'text-[#111827]', 'font-semibold', 'border', 'border-[#E5E7EB]');
-                btn.classList.add('text-[#6B7280]');
+                btn.classList.remove('is-active');
+                btn.style.removeProperty('background-color');
+                btn.style.removeProperty('color');
             }
         });
     }

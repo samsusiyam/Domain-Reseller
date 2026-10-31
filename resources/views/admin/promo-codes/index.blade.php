@@ -5,8 +5,8 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Promotional Discount Coupons</h1>
-            <p class="text-xs text-slate-500 mt-1">Create discount codes for retail checkout campaigns and TLD registry promotions.</p>
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Promotional Discount Coupons</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Create discount codes for retail checkout campaigns and TLD registry promotions.</p>
         </div>
         <div>
             <a href="{{ route('admin.promo-codes.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-xs">
@@ -17,15 +17,15 @@
     </div>
 
     <!-- Promo Codes Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-white dark:bg-[#111827] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         @if($promoCodes->isEmpty())
             <div class="text-center py-16 px-4 text-slate-400 text-sm">
                 No promotional codes created yet.
             </div>
         @else
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+                <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                             <th class="px-6 py-3.5">Coupon Code</th>
                             <th class="px-6 py-3.5">Discount</th>
@@ -34,11 +34,11 @@
                             <th class="px-6 py-3.5 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         @foreach($promoCodes as $promo)
-                            <tr class="hover:bg-slate-50/50 transition">
+                            <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 transition">
                                 <td class="px-6 py-4">
-                                    <span class="font-mono font-black text-slate-900 text-base block">{{ $promo->code }}</span>
+                                    <span class="font-mono font-black text-slate-900 dark:text-white text-base block">{{ $promo->code }}</span>
                                     <span class="text-xs text-slate-400">{{ $promo->description ?: 'No description' }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-bold text-emerald-600">
@@ -49,7 +49,7 @@
                                     <strong>{{ $promo->orders_count ?? $promo->uses_count ?? 0 }}</strong>
                                     <span class="text-slate-400">/ {{ $promo->max_uses ?: '∞' }}</span>
                                 </td>
-                                <td class="px-6 py-4 text-xs text-slate-500">
+                                <td class="px-6 py-4 text-xs text-slate-500 dark:text-slate-400">
                                     {{ $promo->valid_from ? $promo->valid_from->format('M d, Y') : 'Anytime' }} &rarr;
                                     {{ $promo->valid_to ? $promo->valid_to->format('M d, Y') : 'Ongoing' }}
                                 </td>
@@ -68,7 +68,7 @@
             </div>
 
             @if($promoCodes->hasPages())
-                <div class="p-4 border-t border-slate-100">
+                <div class="p-4 border-t border-slate-100 dark:border-slate-800">
                     {{ $promoCodes->links() }}
                 </div>
             @endif

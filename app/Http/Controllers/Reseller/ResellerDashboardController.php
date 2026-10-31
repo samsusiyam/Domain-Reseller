@@ -22,7 +22,7 @@ class ResellerDashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $reseller = $request->user();
+        $reseller = $request->user() ?? Auth::user();
 
         $balanceUsd = (float) $reseller->wallet_balance;
         $balanceBdt = $this->converter->convert($balanceUsd, 'USD', 'BDT');

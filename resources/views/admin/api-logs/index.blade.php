@@ -58,7 +58,7 @@
             </select>
             <button type="submit" class="cf-btn cf-btn-secondary cf-btn-sm text-xs cursor-pointer">Filter</button>
             @if(request()->hasAny(['search', 'method', 'status']))
-                <a href="{{ route('admin.api-logs.index') }}" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">Reset</a>
+                <a href="{{ route('admin.api-logs.index') }}" class="text-xs text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-200">Reset</a>
             @endif
         </form>
     </div>
@@ -80,7 +80,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                     @forelse($logs as $log)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                        <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/40 transition">
                             <td class="px-5 py-3 font-mono">
                                 <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase mr-1.5
                                     {{ $log->method === 'POST' ? 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' }}">
@@ -141,7 +141,7 @@
                         <h3 class="text-sm font-semibold text-slate-900 dark:text-white">API Request Payload & Response</h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" x-text="(selectedLog?.method || '') + ' ' + (selectedLog?.path || '')"></p>
                     </div>
-                    <button type="button" @click="inspectModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <button type="button" @click="inspectModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-200">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>

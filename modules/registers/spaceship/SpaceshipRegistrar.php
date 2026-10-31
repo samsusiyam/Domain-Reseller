@@ -533,6 +533,51 @@ class SpaceshipRegistrar extends AbstractRegistrar
      */
     public function getWhois(string $domain): WhoisDataDTO
     {
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $res = $this->apiRequest('GET', '/domains/' . rawurlencode($domain));
+            if ($res['status'] === 200 && !empty($res['data']['contacts'])) {
+                $contacts = $res['data']['contacts'];
+                $regId = $contacts['registrant'] ?? null;
+                $adminId = $contacts['admin'] ?? $regId;
+                $techId = $contacts['tech'] ?? $regId;
+                $billingId = $contacts['billing'] ?? $regId;
+
+                $cache = [];
+                $fetchContact = function (?string $id) use (&$cache) {
+                    if (!$id) return [];
+                    if (isset($cache[$id])) return $cache[$id];
+                    $cRes = $this->apiRequest('GET', '/contacts/' . rawurlencode($id));
+                    if ($cRes['status'] === 200 && !empty($cRes['data'])) {
+                        $cd = $cRes['data'];
+                        $cache[$id] = [
+                            'first_name'     => $cd['firstName'] ?? '',
+                            'last_name'      => $cd['lastName'] ?? '',
+                            'company_name'   => $cd['organization'] ?? '',
+                            'email'          => $cd['email'] ?? '',
+                            'phone_number'   => $cd['phone'] ?? '',
+                            'address_line_1' => $cd['address1'] ?? '',
+                            'address_line_2' => $cd['address2'] ?? '',
+                            'city'           => $cd['city'] ?? '',
+                            'state'          => $cd['stateProvince'] ?? '',
+                            'postal_code'    => $cd['postalCode'] ?? '',
+                            'country'        => $cd['country'] ?? 'BD',
+                        ];
+                        return $cache[$id];
+                    }
+                    return [];
+                };
+
+                return new WhoisDataDTO(
+                    registrant: $fetchContact($regId),
+                    admin:      $fetchContact($adminId),
+                    tech:       $fetchContact($techId),
+                    billing:    $fetchContact($billingId)
+                );
+            }
+        }
+
         return new WhoisDataDTO();
     }
 
@@ -541,7 +586,47 @@ class SpaceshipRegistrar extends AbstractRegistrar
      */
     public function updateWhois(string $domain, WhoisDataDTO $whoisData): bool
     {
-        return true;
+        $domain = strtolower(trim($domain));
+
+        if ($this->hasValidCredentials()) {
+            $regData = !empty($whoisData->registrant) ? $whoisData->registrant : [];
+            if (empty($regData)) {
+                return false;
+            }
+
+            $payload = [
+                'firstName'     => $regData['first_name'] ?? 'MD Samsuzzaman',
+                'lastName'      => $regData['last_name'] ?? 'Siyam',
+                'organization'  => $regData['company_name'] ?? '',
+                'email'         => $regData['email'] ?? 'samsusiyam@gmail.com',
+                'phone'         => $regData['phone_number'] ?? '+880.01581852020',
+                'address1'      => $regData['address_line_1'] ?? 'Dakkhin Chakmamrojpur',
+                'city'          => $regData['city'] ?? 'Gaibandha',
+                'stateProvince' => $regData['state'] ?? 'Rangpur',
+                'postalCode'    => $regData['postal_code'] ?? '5700',
+                'country'       => strtoupper($regData['country'] ?? 'BD'),
+            ];
+
+            if (isset($payload['phone']) && !str_starts_with($payload['phone'], '+')) {
+                $payload['phone'] = '+880.' . ltrim($payload['phone'], '0');
+            }
+
+            $cRes = $this->apiRequest('PUT', '/contacts', $payload);
+            $contactId = $cRes['data']['contactId'] ?? ($cRes['data']['id'] ?? null);
+
+            if ($contactId) {
+                $dRes = $this->apiRequest('PUT', '/domains/' . rawurlencode($domain) . '/contacts', [
+                    'registrant' => $contactId,
+                    'admin'      => $contactId,
+                    'tech'       => $contactId,
+                    'billing'    => $contactId,
+                ]);
+
+                return in_array($dRes['status'], [200, 204]);
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -199,6 +199,9 @@ class SystemHealthController extends Controller
 
         $filepath = storage_path('app/backups/' . $filename);
         if (!File::exists($filepath)) {
+            $filepath = storage_path('backups/' . $filename);
+        }
+        if (!File::exists($filepath)) {
             abort(404, 'Backup file not found');
         }
 
@@ -214,6 +217,9 @@ class SystemHealthController extends Controller
         }
 
         $filepath = storage_path('app/backups/' . $filename);
+        if (!File::exists($filepath)) {
+            $filepath = storage_path('backups/' . $filename);
+        }
         if (File::exists($filepath)) {
             File::delete($filepath);
             return back()->with('success', "Backup {$filename} deleted.");

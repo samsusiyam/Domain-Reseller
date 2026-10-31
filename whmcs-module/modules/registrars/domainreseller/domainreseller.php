@@ -26,6 +26,8 @@ function domainreseller_MetaData()
         'DisplayName' => 'DomainReseller Wholesale Module',
         'APIVersion' => '1.1',
         'RequiresServer' => false,
+        'CheckAvailability' => true,
+        'GetDomainSuggestions' => true,
     ];
 }
 
@@ -500,4 +502,167 @@ function domainreseller_TransferSync(array $params)
     }
 
     return ['pending' => true];
+}
+
+
+/**
+ * Register a child / private nameserver (glue record).
+ */
+function domainreseller_RegisterNameserver(array $params)
+{
+    $client = domainreseller_getApiClient($params);
+    $domain = $params['sld'] . '.' . $params['tld'];
+    $nameserver = $params['nameserver'];
+    $ip = $params['ipaddress'];
+
+    $response = $client->post('domains/' . urlencode($domain) . '/child-nameservers', [
+        'hostname'   => $nameserver,
+        'ip_address' => $ip,
+    ]);
+
+    if (!$response['success']) {
+        return ['error' => $response['error']];
+    }
+
+    return ['success' => true];
+}
+
+/**
+ * Modify a child / private nameserver IP address.
+ */
+function domainreseller_ModifyNameserver(array $params)
+{
+    $client = domainreseller_getApiClient($params);
+    $domain = $params['sld'] . '.' . $params['tld'];
+    $nameserver = $params['nameserver'];
+    $newIp = $params['newipaddress'];
+
+    $response = $client->put('domains/' . urlencode($domain) . '/child-nameservers/' . urlencode($nameserver), [
+        'ip_address' => $newIp,
+    ]);
+
+    if (!$response['success']) {
+        return ['error' => $response['error']];
+    }
+
+    return ['success' => true];
+}
+
+/**
+ * Delete a child / private nameserver.
+ */
+function domainreseller_DeleteNameserver(array $params)
+{
+    $client = domainreseller_getApiClient($params);
+    $domain = $params['sld'] . '.' . $params['tld'];
+    $nameserver = $params['nameserver'];
+
+    $response = $client->delete('domains/' . urlencode($domain) . '/child-nameservers/' . urlencode($nameserver));
+
+    if (!$response['success']) {
+        return ['error' => $response['error']];
+    }
+
+    return ['success' => true];
+}
+
+/**
+ * Check domain availability (WHMCS 7+ Domain Lookup Provider).
+ */
+function domainreseller_CheckAvailability(array $params)
+{
+    $client = domainreseller_getApiClient($params);
+    $searchTerm = strtolower(trim($params['searchTerm'] ?? ''));
+    $tldsToInclude = $params['tldsToInclude'] ?? [];
+
+    $domainsToCheck = [];
+    if (!empty($tldsToInclude)) {
+        foreach ($tldsToInclude as $tld) {
+            $tldClean = '.' . ltrim($tld, '.');
+            $domainsToCheck[] = $searchTerm . $tldClean;
+        }
+    } else {
+        $domainsToCheck[] = $searchTerm;
+    }
+
+    $response = $client->post('domains/check-bulk', [
+        'domains' => $domainsToCheck,
+    ]);
+
+    // Handle WHMCS native SearchResult object list if available
+    if (class_exists('\\WHMCS\\Domains\\DomainLookup\\ResultsList') && class_exists('\\WHMCS\\Domains\\DomainLookup\\SearchResult')) {
+        $results = new \WHMCS\Domains\DomainLookup\ResultsList();
+
+        if (!$response['success'] || empty($response['data'])) {
+            return $results;
+        }
+
+        foreach ($response['data'] as $item) {
+            $domainName = $item['domain'] ?? '';
+            $parts = explode('.', $domainName, 2);
+            $sld = $parts[0] ?? '';
+            $tld = $parts[1] ?? '';
+
+            $searchResult = new \WHMCS\Domains\DomainLookup\SearchResult($sld, $tld);
+
+            if (!empty($item['is_available'])) {
+                $searchResult->setStatus(\WHMCS\Domains\DomainLookup\SearchResult::STATUS_NOT_REGISTERED);
+            } elseif (($item['status'] ?? '') === 'unsupported_tld') {
+                $searchResult->setStatus(\WHMCS\Domains\DomainLookup\SearchResult::STATUS_TLD_NOT_SUPPORTED);
+            } else {
+                $searchResult->setStatus(\WHMCS\Domains\DomainLookup\SearchResult::STATUS_REGISTERED);
+            }
+
+            if (!empty($item['price_usd'])) {
+                $searchResult->setRegisterPrice($item['price_usd']);
+            }
+
+            $results->append($searchResult);
+        }
+
+        return $results;
+    }
+
+    return $response['data'] ?? [];
+}
+
+/**
+ * Provide domain name suggestions (WHMCS 7+ Domain Lookup Provider).
+ */
+function domainreseller_GetDomainSuggestions(array $params)
+{
+    $client = domainreseller_getApiClient($params);
+    $searchTerm = strtolower(trim($params['searchTerm'] ?? ''));
+
+    $response = $client->get('domains/suggestions', [
+        'keyword' => $searchTerm,
+    ]);
+
+    if (class_exists('\\WHMCS\\Domains\\DomainLookup\\ResultsList') && class_exists('\\WHMCS\\Domains\\DomainLookup\\SearchResult')) {
+        $results = new \WHMCS\Domains\DomainLookup\ResultsList();
+
+        if (!$response['success'] || empty($response['data'])) {
+            return $results;
+        }
+
+        foreach ($response['data'] as $item) {
+            $domainName = $item['domain'] ?? '';
+            $parts = explode('.', $domainName, 2);
+            $sld = $parts[0] ?? '';
+            $tld = $parts[1] ?? '';
+
+            $searchResult = new \WHMCS\Domains\DomainLookup\SearchResult($sld, $tld);
+            $searchResult->setStatus(\WHMCS\Domains\DomainLookup\SearchResult::STATUS_NOT_REGISTERED);
+
+            if (!empty($item['price_usd'])) {
+                $searchResult->setRegisterPrice($item['price_usd']);
+            }
+
+            $results->append($searchResult);
+        }
+
+        return $results;
+    }
+
+    return $response['data'] ?? [];
 }

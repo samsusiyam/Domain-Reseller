@@ -32,7 +32,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                         @foreach($pendingPayments as $p)
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                            <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/40 transition">
                                 <td class="px-5 py-4">
                                     @if($p->gateway === 'bkash_personal')
                                         <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300 border border-pink-200 dark:border-pink-900/40">
@@ -52,9 +52,9 @@
                                     <div class="font-semibold text-slate-900 dark:text-white">{{ $p->user?->name ?? 'Guest' }}</div>
                                     <div class="text-[11px] text-slate-400">{{ $p->user?->email }}</div>
                                     @if(!empty($p->payment_details['sender_phone']))
-                                        <div class="text-[11px] font-mono text-slate-500 mt-0.5">Phone: {{ $p->payment_details['sender_phone'] }}</div>
+                                        <div class="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-0.5">Phone: {{ $p->payment_details['sender_phone'] }}</div>
                                     @elseif(!empty($p->payment_details['sender_account']))
-                                        <div class="text-[11px] font-mono text-slate-500 mt-0.5">Binance: {{ $p->payment_details['sender_account'] }}</div>
+                                        <div class="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-0.5">Binance: {{ $p->payment_details['sender_account'] }}</div>
                                     @endif
                                 </td>
                                 <td class="px-5 py-4">
@@ -69,7 +69,7 @@
                                             #{{ $p->invoice?->invoice_number ?? $p->invoice_id }}
                                         </a>
                                     @else
-                                        <span class="text-slate-500 font-sans">Wallet Deposit</span>
+                                        <span class="text-slate-500 dark:text-slate-400 font-sans">Wallet Deposit</span>
                                     @endif
                                 </td>
                                 <td class="px-5 py-4 text-right">

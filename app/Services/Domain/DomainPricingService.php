@@ -56,6 +56,23 @@ class DomainPricingService
                 $user
             );
             $subtotal += $pricing['total_usd'];
+
+            // Add optional addons if enabled and priced
+            if (!empty($tld)) {
+                $tldModel = TldPricing::where('tld', $tld)->first();
+                $term = (int) ($item['years'] ?? 1);
+                if ($tldModel) {
+                    if (!empty($item['id_protection']) && $tldModel->id_protection_available && (float) $tldModel->id_protection_cost > 0) {
+                        $subtotal += ((float) $tldModel->id_protection_cost * $term);
+                    }
+                    if (!empty($item['dns_management']) && $tldModel->dns_management_available && (float) $tldModel->dns_management_cost > 0) {
+                        $subtotal += ((float) $tldModel->dns_management_cost * $term);
+                    }
+                    if (!empty($item['email_forwarding']) && $tldModel->email_forwarding_available && (float) $tldModel->email_forwarding_cost > 0) {
+                        $subtotal += ((float) $tldModel->email_forwarding_cost * $term);
+                    }
+                }
+            }
         }
 
         $discount = 0.0;

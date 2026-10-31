@@ -41,7 +41,7 @@
         <div class="overflow-x-auto">
             <table class="cf-table w-full text-left text-xs">
                 <thead>
-                    <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                    <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                         <th class="py-3 px-4">Sender</th>
                         <th class="py-3 px-4">Subject & Message</th>
                         <th class="py-3 px-4">Status</th>
@@ -51,10 +51,10 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($inquiries as $inq)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors {{ $inq->status === 'unread' ? 'font-medium bg-orange-50/20 dark:bg-orange-950/10' : '' }}">
+                        <tr class="hover:bg-slate-50 dark:bg-slate-800/50/50 dark:hover:bg-slate-800/40 transition-colors {{ $inq->status === 'unread' ? 'font-medium bg-orange-50/20 dark:bg-orange-950/10' : '' }}">
                             <td class="py-3.5 px-4 whitespace-nowrap">
                                 <div class="font-semibold text-slate-900 dark:text-white">{{ $inq->name }}</div>
-                                <div class="text-slate-500 text-[11px]">{{ $inq->email }}</div>
+                                <div class="text-slate-500 dark:text-slate-400 text-[11px]">{{ $inq->email }}</div>
                                 @if($inq->phone)
                                     <div class="text-slate-400 text-[10px] font-mono">{{ $inq->phone }}</div>
                                 @endif
@@ -80,7 +80,7 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="py-3.5 px-4 whitespace-nowrap text-slate-500 text-[11px]">
+                            <td class="py-3.5 px-4 whitespace-nowrap text-slate-500 dark:text-slate-400 text-[11px]">
                                 {{ $inq->created_at->format('M d, Y h:i A') }}
                             </td>
                             <td class="py-3.5 px-4 whitespace-nowrap text-right">
@@ -113,7 +113,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-12 text-center text-slate-500 text-xs">
+                            <td colspan="5" class="py-12 text-center text-slate-500 dark:text-slate-400 text-xs">
                                 No inquiries found.
                             </td>
                         </tr>

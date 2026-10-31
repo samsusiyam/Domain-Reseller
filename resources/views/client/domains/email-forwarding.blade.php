@@ -6,11 +6,31 @@
 <div class="space-y-6">
     <x-domain-tabs :domain="$domain" active="email-forwarding" />
 
-    <!-- Notice -->
-    <div class="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-xl p-4 flex items-start gap-3">
-        <svg class="w-5 h-5 text-blue-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        <div class="text-sm text-blue-800 dark:text-blue-300">
-            <span class="font-semibold">Notice:</span> For email forwarding to function properly, your domain's MX records must point to our default email routing cluster. When you add your first email forwarder, required DNS entries will be verified.
+    <!-- DNS Status & Notice -->
+    <div class="rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border {{ !empty($mxConfigured) ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40' : 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40' }}">
+        <div class="flex items-start gap-3">
+            @if(!empty($mxConfigured))
+                <span class="inline-flex p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </span>
+                <div>
+                    <h4 class="text-sm font-bold text-emerald-900 dark:text-emerald-200">Email Routing Active</h4>
+                    <p class="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">Your domain MX records are pointing to our mail routing cluster. Forwarding is live.</p>
+                </div>
+            @else
+                <span class="inline-flex p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 mt-0.5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </span>
+                <div>
+                    <h4 class="text-sm font-bold text-amber-900 dark:text-amber-200">Required DNS Configuration</h4>
+                    <p class="text-xs text-amber-700 dark:text-amber-400 mt-0.5">Point your domain's MX record to <code class="font-mono font-bold">domain.hostnibo.com</code> (Priority: 10) to receive and route forwarded emails.</p>
+                </div>
+            @endif
+        </div>
+        <div class="flex items-center gap-2 self-start md:self-auto shrink-0">
+            <span class="text-xs px-2.5 py-1 rounded-full font-medium {{ !empty($mxConfigured) ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300' }}">
+                {{ !empty($mxConfigured) ? 'MX Pointed' : 'Action Required' }}
+            </span>
         </div>
     </div>
 

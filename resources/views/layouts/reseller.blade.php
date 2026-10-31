@@ -21,6 +21,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
+    <link rel="stylesheet" href="{{ asset('css/app.min.css') . '?v=' . @filemtime(public_path('css/app.min.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/design-system.css') . '?v=' . @filemtime(public_path('css/design-system.css')) }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -87,11 +88,11 @@
            style="background-color: var(--surface); border-right: 1px solid var(--border);">
         <!-- Logo Header -->
         <div class="h-14 flex items-center px-4 border-b shrink-0" style="border-color: var(--border);">
-            <a href="{{ route('reseller.dashboard') }}" class="flex items-center gap-2.5">
-                <x-brand-logo class="h-6 w-auto" :show-text="false" />
-                <div class="leading-tight truncate">
-                    <span class="block text-xs font-semibold tracking-tight" style="color: var(--text);">Reseller console</span>
-                    <span class="block text-[10px] font-mono uppercase" style="color: var(--accent);">{{ strtoupper(auth()->user()->pricing_tier ?? 'Standard') }} Tier</span>
+            <a href="{{ route('reseller.dashboard') }}" class="flex items-center gap-2.5 group">
+                
+                <div class="flex flex-col">
+                    <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white leading-tight">HOST NIBO</span>
+                    <span class="text-[9px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500">Reseller Portal</span>
                 </div>
             </a>
         </div>
@@ -132,6 +133,11 @@
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
                 <span>Sub-clients</span>
             </a>
+            <a href="{{ route('reseller.profile.edit') }}"
+               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition {{ request()->routeIs('reseller.profile.*') || request()->routeIs('reseller.two-factor.*') || request()->routeIs('reseller.sessions.*') ? 'bg-[#FFF7ED] dark:bg-[#F6821F]/15 text-[#F6821F] font-semibold border-l-2 border-[#F6821F]' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" /></svg>
+                <span>Password & Passkeys</span>
+            </a>
             <a href="{{ route('reseller.whitelabel') }}"
                class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[4px] transition {{ request()->routeIs('reseller.whitelabel') ? 'bg-[#FFF7ED] dark:bg-[#F6821F]/15 text-[#F6821F] font-semibold border-l-2 border-[#F6821F]' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.39m3.42 3.415a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.416a6.717 6.717 0 01-3.42-3.416" /></svg>
@@ -142,10 +148,10 @@
         <!-- Reseller Footer Brief -->
         <div class="p-3 border-t shrink-0" style="border-color: var(--border);">
             <div class="flex items-center justify-between">
-                <div class="truncate">
-                    <p class="text-xs font-semibold truncate" style="color: var(--text);">{{ auth()->user()->company_name ?? auth()->user()->name }}</p>
+                <a href="{{ route('reseller.profile.edit') }}" class="truncate block group hover:opacity-90 transition" title="Account & Security">
+                    <p class="text-xs font-semibold truncate group-hover:text-[#F6821F]" style="color: var(--text);">{{ auth()->user()->company_name ?? auth()->user()->name }}</p>
                     <p class="text-[11px] truncate" style="color: var(--text-muted);">{{ auth()->user()->email }}</p>
-                </div>
+                </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" title="Logout" class="p-1 rounded text-[var(--danger)] hover:bg-[var(--danger-bg)]">

@@ -125,9 +125,25 @@ class DomainManagementService
             $registrar = $this->registrarManager->driver($domain->registrar->slug);
             $registrar->deleteChildNameserver($domain->domain_name, $child->hostname);
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to delete child nameserver at registrar: " . $e->getMessage());
         }
 
         return (bool) $child->delete();
+    }
+
+    public function updateChildNameserver(ChildNameserver $child, string $newIp): bool
+    {
+        $child->update(['ip_address' => $newIp]);
+
+        try {
+            $domain = $child->domain;
+            $registrar = $this->registrarManager->driver($domain->registrar->slug);
+            $registrar->updateChildNameserver($domain->domain_name, $child->hostname, $newIp);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to update child nameserver at registrar: " . $e->getMessage());
+        }
+
+        return true;
     }
 
     /**
@@ -168,5 +184,33 @@ class DomainManagementService
         $domain->update(['auth_code' => $epp]);
 
         return $epp;
+    }
+
+    public function getWhois(Domain $domain): \App\DTOs\WhoisDataDTO
+    {
+        try {
+            $registrar = $this->registrarManager->driver($domain->registrar->slug);
+            return $registrar->getWhois($domain->domain_name);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to fetch WHOIS for {$domain->domain_name}: " . $e->getMessage());
+            return new \App\DTOs\WhoisDataDTO();
+        }
+    }
+
+    public function updateWhois(Domain $domain, array $contactData): bool
+    {
+        try {
+            $registrar = $this->registrarManager->driver($domain->registrar->slug);
+            $dto = new \App\DTOs\WhoisDataDTO(
+                registrant: $contactData,
+                admin:      $contactData,
+                tech:       $contactData,
+                billing:    $contactData
+            );
+            return $registrar->updateWhois($domain->domain_name, $dto);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to update WHOIS for {$domain->domain_name}: " . $e->getMessage());
+            return false;
+        }
     }
 }

@@ -41,6 +41,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Design System Tokens -->
+    <link rel="stylesheet" href="{{ asset('css/app.min.css') . '?v=' . @filemtime(public_path('css/app.min.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/design-system.css') . '?v=' . @filemtime(public_path('css/design-system.css')) }}">
 
     <!-- Tailwind CSS CDN -->
@@ -96,7 +97,7 @@
 <body class="flex flex-col min-h-screen" x-data="{ mobileMenuOpen: false }">
 
     <!-- HEADER: 64px, bottom border on scroll, Cloudflare minimal -->
-    <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#0F1115]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors"
+    <header class="sticky top-0 z-40 bg-white dark:bg-[#0B0E14] border-b border-slate-200 dark:border-slate-800 transition-colors"
             x-data="{ domainsOpen: false, resourcesOpen: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
@@ -350,7 +351,7 @@
                     </p>
                     <div class="text-[12px] space-y-1">
                         <div>Support: <a href="mailto:{{ config('app.support_email', config('mail.from.address', 'support@hostnibo.com')) }}" class="hover:underline font-medium" style="color: var(--text);">{{ config('app.support_email', config('mail.from.address', 'support@hostnibo.com')) }}</a></div>
-                        <div>WhatsApp: <span class="font-mono font-medium" style="color: var(--text);">{{ config('app.support_whatsapp', '+880 1700-000000') }}</span></div>
+                        <div>WhatsApp: <span class="font-mono font-medium tracking-normal select-all" style="color: var(--text);">{{ config('app.support_whatsapp', '+880 1700-000000') }}</span></div>
                     </div>
                 </div>
 
@@ -465,13 +466,9 @@
                  x-transition:leave-end="translate-x-full">
                 <div>
                     <div class="flex items-center justify-between pb-3.5 border-b border-slate-200 dark:border-slate-800">
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-[5px] bg-[#F6821F] flex items-center justify-center text-white shrink-0">
-                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
-                                </svg>
-                            </div>
-                            <span class="font-bold text-sm text-slate-900 dark:text-white">{{ config('app.name', 'DomainReseller') }}</span>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white leading-tight">HOST NIBO</span>
+                            <span class="text-[9px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500">Domain Hub</span>
                         </div>
                         <button @click="mobileMenuOpen = false" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

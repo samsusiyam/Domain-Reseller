@@ -15,7 +15,21 @@ class UrlForwardingController extends Controller
         $this->authorizeDomain($domain);
         $forwards = $domain->urlForwards;
 
-        return view('client.domains.url-forwarding', compact('domain', 'forwards'));
+        // Check if root A record is pointed to server IP
+        $dnsConfigured = false;
+        try {
+            $aRecords = @dns_get_record($domain->domain_name, DNS_A);
+            if (!empty($aRecords)) {
+                foreach ($aRecords as $a) {
+                    if (($a['ip'] ?? '') === '188.40.147.141') {
+                        $dnsConfigured = true;
+                        break;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        return view('client.domains.url-forwarding', compact('domain', 'forwards', 'dnsConfigured'));
     }
 
     public function store(Request $request, Domain $domain)
@@ -37,7 +51,7 @@ class UrlForwardingController extends Controller
             'is_active' => true,
         ]);
 
-        return back()->with('success', 'URL redirection configured.');
+        return back()->with('success', 'URL redirection configured successfully.');
     }
 
     public function destroy(Domain $domain, int $id)

@@ -42,7 +42,7 @@
             <div>
                 <p class="text-xs font-medium text-slate-500">Available credit</p>
                 <p class="text-2xl font-bold text-slate-900 dark:text-white mt-1 tabular-nums">
-                    ${{ number_format((float)auth()->user()->balance, 2) }}
+                    <x-price :usd="auth()->user()->balance" />
                 </p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-[#F6821F]/10 text-[#F6821F] flex items-center justify-center">
